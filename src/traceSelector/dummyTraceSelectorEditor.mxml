@@ -46,11 +46,11 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 		
 	</fx:Declarations>
-	<s:Button id="generateBtn" x="10" y="10" label="Generate" click="generateBtn_clickHandler(event)"/>
+	<s:Button id="generateBtn" x="10" y="10" label="Generate MetaTrace" click="generateBtn_clickHandler(event)"/>
 	
-	<s:Button id="addtypeBtn" x="210" y="10" label="Add Type" click="addTypeClickHandler(event)"/>
+	<s:Button id="addtypeBtn" x="14" y="238" label="Add Type" click="addTypeClickHandler(event)"/>
 	
-	<s:List id="listObselTypes" x="10" y="40" width="200" height="209" dataProvider="{metaTrace.arTypes}"></s:List>
+	<s:List id="listObselTypes" x="10" y="40" width="200" height="190" dataProvider="{metaTrace.arTypes}"></s:List>
 	
 	<s:List id="listAttributeTypes" x="220" y="40" width="200" height="209" dataProvider="{metaTrace.arAttributeTypes}"></s:List>
 	

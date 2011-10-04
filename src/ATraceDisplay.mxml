@@ -49,7 +49,7 @@
 			
 			protected var theTtlLoader:TtlLoader = new TtlLoader();
 			
-			protected var topPositionForNewTraceline:int = 100;
+			protected var topPositionForNewTraceline:int = 70;
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
@@ -180,7 +180,7 @@
 					
 				newTraceLine.traceData = obsCollec;
 				
-				this.addElement(newTraceLine);
+				timelineGroup.addElement(newTraceLine);
 			}
 			
 		]]>
@@ -188,46 +188,53 @@
 	
 	<!--Display the selected traces-->
 	
-	<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true"
-						rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
-						borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
-						top="50" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+	<s:Group left="10" right="330" top="50" bottom="280" id="timelineGroup">
+		<s:layout>
+			<s:BasicLayout/>
+		</s:layout>
+			
 	
-	<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true"
-						rendererFunctionParams="{{'color':0xFF0000}}"
-						top="50" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
+		<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
+							borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
+							top="25" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+		
+		<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							rendererFunctionParams="{{'color':0xFF0000}}"
+							top="25" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
+		
+		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="10" width="{contextTraceLine.width}" 
+									startEdge="5" endEdge="{contextTraceLine.width}"  
+									minimumSize="70" lockSize="200" lockPosition="100"
+									startAndEndDelta="1"
+									locked="false"/>
+		
+		<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+							rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+							top="50" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+		
+		<!--Display the selected obsels in the traces (stored in obselSelection Array)-->
+		
+		<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
+							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+							top="50" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
 	
-	<timeline:CurseurHorizontal id="curseurTraceLine" top="35" height="49" x="10" width="{contextTraceLine.width}" 
-								startEdge="5" endEdge="{contextTraceLine.width}"  
-								minimumSize="70" lockSize="200" lockPosition="100"
-								startAndEndDelta="1"
-								locked="false"/>
-	
-	<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true"
-						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-						rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
-						top="75" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
-	
-	<!--Display the selected obsels in the traces (stored in obselSelection Array)-->
-	
-	<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true"
-						rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
-						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-						top="75" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
-	
-
+	</s:Group>
 	
 	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
 			 horizontalScrollPolicy="on" verticalScrollPolicy="on"/>
 	<s:TextInput y="10" left="10" right="100" id="urlInput"
 				 text="http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl"/>
 	<s:Button y="10" right="10" label="Load" id="loadBtn" click="loadBtn_clickHandler(event)"/>
-	<traceSelector:dummyTraceSelectorEditor id="selectorEditor" x="8" y="421" obselTypeSelected="obselTypeSelectedHandler(event)">
+	<traceSelector:dummyTraceSelectorEditor id="selectorEditor" x="8" bottom="0"
+											obselTypeSelected="obselTypeSelectedHandler(event)">
 	</traceSelector:dummyTraceSelectorEditor>
-	<mx:ColorPicker id="theColorPicker" x="656" y="421"/>
+	<mx:ColorPicker id="theColorPicker" x="656" bottom="10"/>
 	
 </s:WindowedApplication>
