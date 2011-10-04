@@ -32,7 +32,7 @@
 			{
 				if(listObselTypes.selectedItem)
 				{
-					var e:ResultEvent = new ResultEvent("obselTypeSelected",false,true, metaTrace.mapTypesToObsels[listObselTypes.selectedItem]);
+					var e:ResultEvent = new ResultEvent("obselTypeSelected",false,true, {"typeObsel":(listObselTypes.selectedItem as ObselType).label ,"obsels":metaTrace.mapTypesToObsels[listObselTypes.selectedItem]});
 					this.dispatchEvent(e);
 				}
 			}

@@ -20,12 +20,13 @@
 			import com.ithaca.traces.Trace;
 			
 			import mx.binding.utils.BindingUtils;
-			import mx.controls.Label;
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import services.TtlLoader;
+			
+			import spark.components.Label;
 			
 			import traceSelector.dummyTraceSelector;
 			
@@ -153,6 +154,7 @@
 			
 			protected function obselTypeSelectedHandler(event:ResultEvent):void
 			{
+				//CREATION DE LA TRACELINE
 				var newTraceLine:TraceLine = new TraceLine();
 				newTraceLine.direction = "horizontal";
 				newTraceLine.startPadding = 10;
@@ -161,9 +163,9 @@
 				newTraceLine.useRendererFunction = true;
 				newTraceLine.rendererFunctionParams={'color':theColorPicker.selectedColor,'minSize':3,'alpha':0.8};
 				newTraceLine.top = topPositionForNewTraceline;
-				topPositionForNewTraceline += 25;
+				
 				newTraceLine.height = 10;
-				newTraceLine.left = 10;
+				newTraceLine.left = 100;
 				newTraceLine.right = 10;
 				newTraceLine.renderAlign = "middle";
 				//newTraceLine.setStyle("borderColor",0xFF0000);
@@ -175,12 +177,24 @@
 				
 				var obsCollec:ObselCollection = new ObselCollection();
 				
-				for each(var obs:Obsel in (event.result as Array))
+				for each(var obs:Obsel in (event.result.obsels as Array))
 					obsCollec.push(obs);
 					
 				newTraceLine.traceData = obsCollec;
 				
+				//CREATION DU LABEL
+				var l:Label = new Label();
+				l.y = topPositionForNewTraceline +1;
+				l.left = 10;
+				l.width = 90;
+				l.setStyle("fontSize",10);
+				l.showTruncationTip = true;
+				l.text = event.result.typeObsel;
+				l.maxDisplayedLines = 1;
+				
+				topPositionForNewTraceline += 25;
 				timelineGroup.addElement(newTraceLine);
+				timelineGroup.addElement(l);
 			}
 			
 		]]>
@@ -198,15 +212,15 @@
 							RendererType="{RectangleRenderer}" useRendererFunction="true"
 							rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
 							borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
-							top="25" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+							top="25" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
 		
 		<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
 							RendererType="{RectangleRenderer}" useRendererFunction="true"
 							rendererFunctionParams="{{'color':0xFF0000}}"
-							top="25" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
+							top="25" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
-		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="10" width="{contextTraceLine.width}" 
-									startEdge="5" endEdge="{contextTraceLine.width}"  
+		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" width="{contextTraceLine.width-90}" 
+									startEdge="5" endEdge="{contextTraceLine.width-90}"  
 									minimumSize="70" lockSize="200" lockPosition="100"
 									startAndEndDelta="1"
 									locked="false"/>
@@ -215,7 +229,7 @@
 							RendererType="{RectangleRenderer}" useRendererFunction="true"
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
 							rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
-							top="50" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+							top="50" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
 		
 		<!--Display the selected obsels in the traces (stored in obselSelection Array)-->
 		
@@ -223,8 +237,9 @@
 							RendererType="{RectangleRenderer}" useRendererFunction="true"
 							rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-							top="50" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
-	
+							top="50" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
+		
+		<s:Label y="51" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
 	</s:Group>
 	
 	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
