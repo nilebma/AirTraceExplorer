@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TraceLineRenderers:BaseRenderer xmlns:mx="http://www.adobe.com/2006/mxml" height="72" creationComplete="init()" xmlns:geom="flash.geom.*" 
+	width="99%" borderColor="#567F87" borderStyle="solid" backgroundColor="#CAD6D8"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	mouseDown="startDragOperation(event)"
+	backgroundAlpha="1.0" cornerRadius="11" xmlns:TraceLineRenderers="com.lyon2.visu.views.newTimeline.TraceLineRenderers.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.VideoDisplay;
+		
+			import mx.core.DragSource;
+       		import mx.managers.DragManager;
+       		import mx.events.DragEvent;
+       		
+			
+			public function startDragOperation(e:MouseEvent):void
+			{
+				if(e.target == this)
+				{
+					  // Get the drag initiator component from the event object.
+		            var dragInitiator:Canvas=Canvas(e.currentTarget);
+		
+		            // Create a DragSource object.
+		            var ds:DragSource = new DragSource();
+		
+		            // Add the data to the object.
+		            ds.addData(traceData, 'traceData');
+		
+		            // Call the DragManager doDrag() method to start the drag. 
+		            DragManager.doDrag(dragInitiator, ds, e);
+				}
+			}
+			
+			public function updateTime(from:String=null):void
+			{
+				if(bar != undefined && debut != undefined && _fin != undefined && max != undefined)
+				{
+					var unit:Number = progressFond.width/max;
+					
+					if(from != "center")
+					{
+						bar.x = progressFond.x + (debut * unit);
+						bar.width = (progressFond.x + (_fin * unit)) - bar.x;
+					}
+				
+					if(from != "left")
+					{	
+						barLeft.x = progressFond.x + (debut * unit);
+					}
+						
+					if(from != "right")
+						barRight.x = Math.max(barLeft.x,(progressFond.x + (_fin * unit)) /*- barRight.width*/);
+
+						
+					timeStamp.text = debut.toString().substr(0,4) + "   ->   " + _fin.toString().substr(0,4);
+				}
+			}
+			
+			public function init():void
+			{
+				updateTime();
+				
+			}
+			
+			
+			private function centerStartDrag(e:MouseEvent):void
+			{
+				
+				bar.startDrag(false,new Rectangle(
+									progressFond.x,
+									progressFond.y,
+									progressFond.width - bar.width,
+									0));				
+				
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,centerDraging);
+				stage.addEventListener(MouseEvent.MOUSE_UP,centerStopDrag);
+			}
+			
+			private function centerDraging(e:MouseEvent):void
+			{
+				var unit:Number = progressFond.width/max;
+				var oldDebut:Number = debut;
+				debut = (bar.x - progressFond.x) / unit;
+				takeSnap();
+				_fin = ((bar.x - progressFond.x) + bar.width) / unit;
+				updateTime("center");		
+			}
+			
+			private function centerStopDrag(e:MouseEvent):void
+			{
+				bar.stopDrag();
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,centerDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,centerStopDrag);
+			}
+			
+			private function leftStartDrag(e:MouseEvent):void
+			{
+				barLeft.startDrag(false,new Rectangle(
+									progressFond.x,
+									progressFond.y,
+									barRight.x - progressFond.x - barLeft.width,
+									0));
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,leftDraging);
+				stage.addEventListener(MouseEvent.MOUSE_UP,leftStopDrag);
+			}
+			
+			private function leftDraging(e:MouseEvent):void
+			{
+				var unit:Number = progressFond.width/max;
+				var oldDebut:Number = debut;
+				debut = (barLeft.x - progressFond.x) / unit;
+				updateTime("left");		
+			}
+			
+			private function leftStopDrag(e:MouseEvent):void
+			{
+				barLeft.stopDrag();
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,leftDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,leftStopDrag);
+			}
+			
+			private function rightStartDrag(e:MouseEvent):void
+			{
+				barRight.startDrag(false,new Rectangle(
+									barLeft.x + barLeft.width,
+									progressFond.y,
+									progressFond.x + progressFond.width - barRight.width - (barLeft.x + barLeft.width),
+									0));
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,rightDraging);
+				stage.addEventListener(MouseEvent.MOUSE_UP,rightStopDrag);
+			}
+			
+			private function rightDraging(e:MouseEvent):void
+			{
+				var unit:Number = progressFond.width/max;
+				_fin = (barRight.x - progressFond.x) / unit;
+				updateTime("right");		
+			}
+			
+			private function rightStopDrag(e:MouseEvent):void
+			{
+				barRight.stopDrag();
+				barRight.removeEventListener(MouseEvent.MOUSE_MOVE,rightDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,rightDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,rightStopDrag);
+			}
+
+		]]>
+	</mx:Script>
+	
+
+	<mx:Canvas id="bar" height="14" backgroundColor="#AC2727" width="100%"
+		mouseDown="centerStartDrag(event)" buttonMode="true" useHandCursor="true"/>
+	<mx:Canvas id="barLeft" height="14" width="7" backgroundColor="#540000" left="0"
+		mouseDown="leftStartDrag(event)" buttonMode="true" useHandCursor="true"/>
+	<mx:Canvas id="barRight" height="14" width="7" backgroundColor="#005400" right="0"
+		mouseDown="rightStartDrag(event)" buttonMode="true" useHandCursor="true"/>
+</mx:Canvas>

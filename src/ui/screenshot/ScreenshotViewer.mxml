@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:screenshotservice="services.screenshotservice.*"
+		 width="100%" height="100%" currentState="State1">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import valueObjects.VOScreenshot;
+
+			private var _currentTime:Number = NaN;
+			
+			private var _traceUris:ArrayCollection;
+			
+			private var mapTimeToScreenshotUrl:Dictionary;
+			private var arTimes:Array;
+			
+
+
+			[Bindable]
+			public function get traceUris():ArrayCollection
+			{
+				return _traceUris;
+			}
+
+			public function set traceUris(value:ArrayCollection):void
+			{
+				_traceUris = value;
+				if(_traceUris)
+				{
+					_traceUris.addEventListener(CollectionEvent.COLLECTION_CHANGE, onTraceUrisChange);
+					onTraceUrisChange();
+				}
+				theImage.source = null;
+			}
+			
+			protected function onTraceUrisChange(e:Event = null):void
+			{
+				currentState = "loadingList";
+				getScreenshotByTraceUrisResult.token = screenshotService.getScreenshotByTraceUris(_traceUris);
+			}
+
+			[Bindable]
+			public function get currentTime():Number
+			{
+				return _currentTime;
+			}
+
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+				updateImage();
+			}
+
+			
+			protected function list_creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}
+			
+			protected function listScreenshotReady(event:ResultEvent):void
+			{
+				mapTimeToScreenshotUrl = new Dictionary();
+				arTimes = new Array();
+				
+				for each(var s:VOScreenshot in getScreenshotByTraceUrisResult.lastResult)
+				{
+					mapTimeToScreenshotUrl[s.time] = s.filename;
+					arTimes.push(s.time);
+				}
+				
+				arTimes.sort(Array.NUMERIC);
+				currentState = "showing";
+				updateImage();
+			}
+			
+			protected function updateImage():void
+			{
+				if(!isNaN(_currentTime) && getScreenshotByTraceUrisResult.lastResult  && this.currentState != "loadingList")
+				{
+					var closestTime:Number = findClosestSmaller(arTimes,_currentTime);
+					var url:String = mapTimeToScreenshotUrl[closestTime];
+					
+					if(url)
+					{
+						theImage.source = url;
+						theImage.invalidateDisplayList();
+						theImage.validateNow();
+					}
+					trace(url,_currentTime,closestTime);
+					
+				}
+			}
+			
+			protected function findClosestSmaller(ar:Array, n:Number, start:Number = NaN, end:Number = NaN):Number
+			{
+				if(isNaN(start))
+					return findClosestSmaller(ar,n,0,arTimes.length-1)
+				else if(start == end)
+					return ar[start];
+				else
+				{
+					var middle:Number = Math.floor((end-start)/2);
+					
+					if(middle >= 1)
+					{
+						middle += start;
+						
+						if(ar[middle] > n)
+							return findClosestSmaller(ar,n,start, middle);
+						else
+							return findClosestSmaller(ar,n,middle, end);
+					}
+					else
+						return ar[start];
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:states>
+		<s:State name="State1"/>
+		<s:State name="loadingList"/>
+		<s:State name="showing"/>
+	</s:states>
+	<fx:Declarations>
+		<s:CallResponder id="getScreenshotByTraceUrisResult"/>
+		<screenshotservice:ScreenshotService id="screenshotService"
+											 fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+											 showBusyCursor="true" result="listScreenshotReady(event)"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Label includeIn="loadingList" x="179" y="134" text="Loading List"/>
+	<s:Label id="lbl_loading_image" includeIn="showing" x="179" y="134" text="Loading Image" visible="false"/>
+	<s:Image id="theImage" includeIn="showing" x="0" y="0" width="100%" height="100%"/>
+	<s:List id="list" includeIn="State1" x="194" y="90"
+			creationComplete="list_creationCompleteHandler(event)" labelField="filename">
+		<s:AsyncListView list="{getScreenshotByTraceUrisResult.lastResult}"/>
+	</s:List>
+</s:Group>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="640" height="269">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Attribute;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.ObselType;
+			import com.ithaca.traces.Trace;
+			
+			import mx.rpc.events.ResultEvent;
+			
+			[Bindable]
+			public var metaTrace:dummyMetaTraces = new dummyMetaTraces();
+			
+			public var obsels:ObselCollection
+			
+			
+
+			protected function generateBtn_clickHandler(event:MouseEvent):void
+			{
+				if(obsels)
+				{
+					metaTrace.obselCollections = obsels;
+				}
+			}
+			
+			protected function addTypeClickHandler(event:Event):void
+			{
+				if(listObselTypes.selectedItem)
+				{
+					var e:ResultEvent = new ResultEvent("obselTypeSelected",false,true, metaTrace.mapTypesToObsels[listObselTypes.selectedItem]);
+					this.dispatchEvent(e);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Metadata>
+		[Event(name="obselTypeSelected", type="mx.rpc.events.ResultEvent")]
+	</fx:Metadata>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	<s:Button id="generateBtn" x="10" y="10" label="Generate" click="generateBtn_clickHandler(event)"/>
+	
+	<s:Button id="addtypeBtn" x="210" y="10" label="Add Type" click="addTypeClickHandler(event)"/>
+	
+	<s:List id="listObselTypes" x="10" y="40" width="200" height="209" dataProvider="{metaTrace.arTypes}"></s:List>
+	
+	<s:List id="listAttributeTypes" x="220" y="40" width="200" height="209" dataProvider="{metaTrace.arAttributeTypes}"></s:List>
+	
+	<s:List id="listAttributeValues" x="430" y="40" width="200" height="209" dataProvider="{metaTrace.arValues}"></s:List>
+	
+</s:Group>

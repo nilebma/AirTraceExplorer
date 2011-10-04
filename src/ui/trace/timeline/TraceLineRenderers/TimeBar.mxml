@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<timeline:CurseurBase direction="horizontal" backgroundColor="#222277" cornerRadius="5" width="50" height="20"
+						 xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ithaca.traces.timeline.*"
+						 implements="ithaca.traces.timeline.TraceLineRenderers.ITraceRenderer" 
+						 creationComplete="init()" currentState="preview">
+	
+	<mx:Style>
+		
+		
+		.Grid{
+			upSkin:Embed("timeline/curseurThinVerticalGrip.png");
+			overSkin:Embed("timeline/curseurThinVerticalGrip.png");
+			downSkin:Embed("timeline/curseurThinVerticalGrip.png");
+		}
+		
+		.MiddleHorizontalGrid{
+			upSkin:Embed("timeline/curseurBigHorizontalGrip.png");
+			overSkin:Embed("timeline/curseurBigHorizontalGrip.png");
+			downSkin:Embed("timeline/curseurBigHorizontalGrip.png");
+		}
+		
+		
+	</mx:Style>
+	
+	<mx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Obsel;
+			import ithaca.traces.timeline.TimelineModel;
+			import ithaca.traces.timeline.TraceLine;
+			
+			import flash.events.Event;
+			
+			import mx.core.UIComponent;
+			import mx.events.PropertyChangeEvent;
+			
+				protected var _traceData:Obsel;
+				protected var _endTraceData:Obsel;
+				protected var _model:TimelineModel;
+				protected var _parentLine:TraceLine;
+				
+				protected var _selfSized:Boolean = true;
+				protected var _selfPositioned:Boolean;
+				
+				protected function init():void
+				{
+					startEdge = 0;
+					endEdge = parent.width;
+				}
+			
+				public function set traceData(value:Obsel):void
+				{
+					_traceData = value;
+					
+					if(traceData)
+						traceData.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, traceDataUpdate);
+				}
+				
+				[Bindable]
+				public function get traceData():Obsel
+				{
+					return _traceData;
+				}
+				
+				public function set endTraceData(value:Obsel):void
+				{
+					_endTraceData = value;
+					
+					if(traceData)
+						traceData.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, traceDataUpdate);
+				}
+				
+				public function get endTraceData():Obsel
+				{
+					return _endTraceData;
+				}
+				
+				public function traceDataUpdate(e:Event = null):void
+				{
+					;
+				}
+				
+				[Bindable]
+				public function set model(value:TimelineModel):void
+				{
+					_model = value;
+					
+					if(model)
+						model.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, modelUpdate);
+				}
+				
+				public function get model():TimelineModel
+				{
+					return _model;
+				}
+				
+				public function modelUpdate(e:Event = null):void
+				{
+					;
+				}
+				
+				public function set parentLine(parent:TraceLine):void
+				{
+					_parentLine = parent;
+				}
+				
+				public function get parentLine():TraceLine
+				{
+					return _parentLine;
+				}
+				
+				public function set selfSized(value:Boolean):void
+				{
+					_selfSized = value;
+				}
+				
+				public function get selfSized():Boolean
+				{
+					return _selfSized;
+				}
+				
+				public function set selfPositioned(value:Boolean):void
+				{
+					_selfPositioned = value;
+				}
+				
+				public function get selfPositioned():Boolean
+				{
+					return _selfPositioned;
+				}
+				
+				public function update():void
+				{
+					;
+				}
+			
+		]]>
+	</mx:Script>
+	<timeline:states>
+		<mx:State name="normal"/>
+		<mx:State name="preview"/>
+	</timeline:states>
+	
+	<mx:Button id="middleGripGraphic" styleName="MiddleHorizontalGrid" horizontalCenter="0" verticalCenter="0"/>
+	
+	<mx:Button id="middleGrip" horizontalCenter="-1"  verticalCenter="0" height="18" minWidth="20" mouseDown="centerStartDrag(event)"  
+			   buttonMode="true" fillAlphas="[1.0, 1.0]" fillColors="[#420A0A, #420A0A]" alpha="0" left="10" right="10"
+			   />
+	
+	<mx:Button id="startGripGraphic" styleName="Grid" left="2" verticalCenter="0"/>
+	
+	<mx:Button id="startGrip" x="0" y="0"  mouseDown="startGripStartDrag(event)" buttonMode="true" 
+			   useHandCursor="true"  width="8" height="20" alpha="0.0"
+			   />
+	
+	<mx:Button id="endGripGraphic" styleName="Grid" right="2" verticalCenter="0"/>
+	
+	<mx:Button id="endGrip"  y="0" right="0" mouseDown="endGripStartDrag(event)" 
+			   buttonMode="true" useHandCursor="true" width="8" height="20" alpha="0.0"
+			   />
+	
+	
+	
+</timeline:CurseurBase>

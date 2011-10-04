@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="141" height="120" maxHeight="200"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off" creationComplete="handleSize()">
+	
+	<!--TODO : Faire une version ou la pointe se situe en bas pour le cas ou le marker soit positionner ne bas
+	-->
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			
+			
+			//Embedding an 9-slice scaling background image for this component
+			[Embed(source="timeline/editMarqueurFond.png",
+				scaleGridTop="34", scaleGridBottom="36", 
+                scaleGridLeft="43", scaleGridRight="131"
+			)]
+			[Bindable]
+			private var editMarqueurFond:Class;	
+	
+			
+			public function onKey(e:KeyboardEvent):void
+			{
+				
+				//if(e.keyCode == 13)
+					//setPreview();
+				
+				handleSize();
+
+			} 
+			
+			public function handleSize():void
+			{
+					editText.validateNow();
+					
+					var toHeight:Number = Math.max(editText.textHeight,25) + 50;
+					
+					if(maxHeight)
+						toHeight = Math.min(toHeight, maxHeight)
+						
+					this.height = toHeight;
+			}
+			
+			private function onDelete():void
+			{
+				this.dispatchEvent(new Event("delete"));
+			}
+			
+			private function onValidate():void
+			{
+				this.dispatchEvent(new Event("validate"));
+			}
+			
+		]]>
+	</mx:Script>
+
+	<mx:Image source="{editMarqueurFond}" width="100%" height="100%" scaleContent="true" maintainAspectRatio="false" />
+	<mx:Image source="@Embed('timeline/marqueurBlancTrans_16.png')" x="14" y="3" />
+	<mx:VBox y="5" x="32" width="102" horizontalScrollPolicy="off" verticalScrollPolicy="off" height="100%">
+		<mx:TextArea id="editText" editable="true" borderColor="#FFFFFF" borderStyle="solid" keyUp="onKey(event)" 
+					 width="98" height="100%" text=" "
+					 backgroundAlpha="0"
+					 color="#FFFFFF" focusThickness="0"/>
+		<mx:HBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="98">
+			<mx:Image source="@Embed('timeline/trash_16.png')" buttonMode="true" useHandCursor="true" click="onDelete()"/>
+			<mx:Box width="100%"/>
+			<mx:Image source="@Embed('timeline/tick_16.png')" horizontalAlign="right" right="0" 
+					  buttonMode="true" useHandCursor="true" click="onValidate()"/>
+		</mx:HBox>
+		<mx:Box width="100%" height="2"/>
+	</mx:VBox>
+	
+	<mx:filters>
+		<mx:DropShadowFilter blurX="15" blurY="15" distance="0" strength="1"/>
+	</mx:filters>
+	
+</mx:Canvas>

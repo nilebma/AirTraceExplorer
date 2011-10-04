@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TraceLineRenderers1:BaseRenderer xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:local="*" width="400" height="200" 
+				  creationComplete="init()"  selfSized="true" selfPositioned="false" xmlns:TraceLineRenderers="ithaca.traces.timeline.TraceLineRenderers.*" xmlns:TraceLineRenderers1="ithaca.traces.timeline.TraceLineRenderers.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.greensock.TweenMax;
+			import com.greensock.easing.*;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.core.Application;
+			
+			[Embed(source='timeline/maquette-04.swf', symbol='Commentaire Rouge 7')]
+			[Bindable]
+			public var MarqueurPreview:Class;
+			
+			[Embed(source='timeline/maquette-04.swf', symbol='MarqueurEditFront')]
+			[Bindable]
+			public var MarqueurEdit:Class;
+			
+			[Embed(source='timeline/maquette-04.swf', symbol='MarqueurEditBack')]
+			[Bindable]
+			public var MarqueurEditBack:Class;
+			
+			public var previewRenderer:DisplayObject;
+			public var previewText:TextField;
+			
+			private var _editMode:Boolean = false;
+			
+			public var editRenderer:MarqueurPersoEdit;
+			
+			public var editText:TextField;
+			
+			
+			//indicate where to place the edit panel relatively to the preview component
+			public var deltaForEdit:Point = new Point(-20,-0);
+			
+			public function get editMode():Boolean
+			{
+				return _editMode;
+			}
+
+			public function set editMode(value:Boolean):void
+			{
+				_editMode = value;
+				
+				if(_editMode)
+					setEdit();
+				else
+					setPreview();
+				
+	
+			}
+			
+			public function onClick(e:Event = null):void
+			{
+				editMode = !editMode;
+			}
+
+			public function init():void
+			{
+				//Creation of the previe renderer
+				previewRenderer = new MarqueurPreview();
+
+				
+				//We tune the preview renderer a little
+				
+				previewText = previewRenderer["roro"] as TextField;
+				
+				previewText.y = 4;
+				previewText.height = 30;
+				previewText.text = "";
+				
+				var newFormat:TextFormat = previewText.defaultTextFormat;
+				newFormat.leading = -2;
+				previewText.setTextFormat(newFormat);
+				
+				// Creation of the renderer used for editing
+				editRenderer = new MarqueurPersoEdit();
+				
+				editRenderer.addEventListener("delete",onDelete);
+				editRenderer.addEventListener("validate",onSaveAndClose);
+			
+				//we activate the preview mode
+				setPreview();
+			}
+			
+			public function setPreview(e:Event = null):void
+			{
+				_editMode = false;
+				
+				if(!editRenderer)
+					return;
+				
+				if(Application.application.contains(editRenderer))
+				{
+					var thisPoint:Point = this.parent.localToGlobal(new Point(this.x,this.y));
+					
+					TweenMax.to(editRenderer,.6,{scaleX:0,scaleY:0,x:thisPoint.x+20,
+						y:thisPoint.y+20, alpha:0,
+							onComplete:function():void
+								{
+									Application.application.removeChild(editRenderer);
+								}
+							});
+					
+				}
+					
+				if(!this.contains(previewRenderer))
+					this.addChild(previewRenderer);	
+				
+				this.addEventListener(MouseEvent.CLICK,onClick);
+				
+				if(editRenderer && editRenderer.editText)
+					editRenderer.editText.removeEventListener(FocusEvent.FOCUS_OUT,setPreview);
+
+			}
+			
+			public function setEdit(e:Event = null):void
+			{
+				_editMode = true;
+				
+				if(this.contains(previewRenderer))
+					this.removeChild(previewRenderer);
+				
+
+					
+				var thisPoint:Point = this.parent.localToGlobal(new Point(this.x,this.y));
+				var toPoint:Point = thisPoint.add(deltaForEdit);
+				
+				editRenderer.x = thisPoint.x+20;
+				editRenderer.y = thisPoint.y+20;
+				editRenderer.scaleX = 0;
+				editRenderer.scaleY = 0;
+				editRenderer.alpha = 0;
+				
+				Application.application.addChild(editRenderer);
+				Application.application.validateNow();
+				
+				TweenMax.to(editRenderer,.6,{
+									scaleX:1,
+									scaleY:1,
+									x:toPoint.x,
+									y:toPoint.y,
+									alpha:1,
+									onComplete:function():void{editRenderer.handleSize()}
+								});
+				
+				
+				editRenderer.editText.text = traceData.props["text"];
+				editRenderer.editText.setFocus();
+				
+				editRenderer.editText.addEventListener(FocusEvent.FOCUS_OUT,setPreview);
+				this.removeEventListener(MouseEvent.CLICK,onClick);
+			}	
+			
+
+			
+			override public function update():void
+			{
+				if(previewText && editText && traceData && traceData.props["text"])
+				{
+					previewText.text = "    " + traceData.props["text"];
+					editRenderer.editText.text = traceData.props["text"];
+				}
+				
+				
+			}
+			
+			public function onDelete(e:Event = null):void
+			{
+				if(Application.application.contains(editRenderer))
+					Application.application.removeChild(editRenderer);
+				
+				model.deleteMarker(traceData.props["timestamp"], traceData);
+			}
+
+			public function onSave(e:Event = null):void
+			{
+				_model.saveMarker(traceData.props["timestamp"], editRenderer.editText.text, traceData);
+			}
+			
+			public function onSaveAndClose(e:Event = null):void
+			{
+				setPreview();
+				onSave(e);
+			}
+		]]>
+	</mx:Script>
+	
+
+</TraceLineRenderers1:BaseRenderer>

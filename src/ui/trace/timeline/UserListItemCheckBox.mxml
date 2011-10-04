@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="170" height="22" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.ColorUtil;
+		]]>
+	</mx:Script>
+
+	<mx:CheckBox x="0" id="theCheckBox" selected="{data.visible}" verticalCenter="0" click="{data.visible = theCheckBox.selected}" />	
+	<mx:Canvas height="16" backgroundColor="{ColorUtil.adjustBrightness(data.color,50)}" cornerRadius="5" borderColor="#000000" borderStyle="solid" borderThickness="0"  right="10" left="30" verticalCenter="0">
+		<mx:Label text="{data.name}" fontSize="11" height="21" y="0" right="3" left="11" textAlign="left" fontWeight="bold" fontFamily="Arial" color="0x000000">
+		</mx:Label>
+	</mx:Canvas>
+	
+	<mx:Canvas x="20" width="16" height="16" backgroundColor="{data.color}" verticalCenter="0">
+	</mx:Canvas>
+
+	
+</mx:Canvas>

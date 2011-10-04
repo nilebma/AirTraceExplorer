@@ -1,0 +1,150 @@
+Application {
+	backgroundColor: #FFFFFF;
+	borderColor: #000000;
+	borderStyle: solid;
+}
+ToolTip {  
+	fontSize: 12;
+}
+Alert {  
+	fontSize: 12;
+}
+
+/* Panel Style */
+Panel {
+	headerHeight: 20;
+	roundedBottomCorners: true;
+	borderThicknessTop: 0;
+	borderThicknessBottom: 12;
+	borderThicknessLeft: 3;
+	borderThicknessRight: 3;
+	titleStyleName: "mypanelTitle";
+	controlBarStyleName: panelControlBar;
+	statusStyleName: panelStatus;
+	paddingTop: 0;
+	paddingBottom: 0;
+	borderAlpha: 1;
+	borderColor: #F2F2F2;
+}
+.mypanelTitle {
+	fontFamily: Verdana;
+	fontSize: 12;/*10*/
+	fontWeight: bold;/*normal*/
+	textIndent: 4;
+}
+.closeBtn {
+	upSkin:        Embed('/assets/img/closeButton.png');
+	overSkin:      Embed('/assets/img/closeButton.png');
+	downSkin:      Embed('/assets/img/closeButton.png');
+	disabledSkin:  Embed('/assets/img/closeButton.png');
+}
+.increaseBtn {
+	upSkin:        Embed('/assets/img/triangle_up.png');
+	overSkin:      Embed('/assets/img/triangle_up.png');
+	downSkin:      Embed('/assets/img/triangle_up.png');
+	disabledSkin:  Embed('/assets/img/triangle_up.png');
+}
+.decreaseBtn {
+	upSkin:        Embed('/assets/img/triangle_down.png');
+	overSkin:      Embed('/assets/img/triangle_down.png');
+	downSkin:      Embed('/assets/img/triangle_down.png');
+	disabledSkin:  Embed('/assets/img/triangle_down.png');
+}
+.fullScreenOnBtn {
+	upSkin:        Embed('/assets/img/fullScreenOnBtn.png');
+	overSkin:      Embed('/assets/img/fullScreenOnBtn.png');
+	downSkin:      Embed('/assets/img/fullScreenOnBtn.png');
+	disabledSkin:  Embed('/assets/img/fullScreenOnBtn.png');
+}
+.fullScreenOffBtn {
+	upSkin:        Embed('/assets/img/fullScreenOffBtn.png');
+	overSkin:      Embed('/assets/img/fullScreenOffBtn.png');
+	downSkin:      Embed('/assets/img/fullScreenOffBtn.png');
+	disabledSkin:  Embed('/assets/img/fullScreenOffBtn.png');
+}
+/*.minBtn {
+	upSkin:        Embed('/assets/img/minimizeButton.png');
+	overSkin:      Embed('/assets/img/minimizeButton.png');
+	downSkin:      Embed('/assets/img/minimizeButton.png');
+	disabledSkin:  Embed('/assets/img/minimizeButton.png');
+}*/
+.resizeHndlr {
+	upSkin:        Embed('/assets/img/resizeHandler.png');
+	overSkin:      Embed('/assets/img/resizeHandler.png');
+	downSkin:      Embed('/assets/img/resizeHandler.png');
+	disabledSkin:  Embed('/assets/img/resizeHandler.png');
+}
+.penAdd {
+	upSkin:        Embed('/assets/img/pen_add.png');
+	overSkin:      Embed('/assets/img/pen_add.png');
+	downSkin:      Embed('/assets/img/pen_add.png');
+	disabledSkin:  Embed('/assets/img/pen_add.png');
+}
+.blueCross {
+	upSkin:        Embed('/assets/img/blueCross.png');
+	overSkin:      Embed('/assets/img/blueCrossRoll.png');
+	downSkin:      Embed('/assets/img/blueCrossClic.png');
+	disabledSkin:  Embed('/assets/img/blueCross.png');
+}
+.redCross {
+	upSkin:        Embed('/assets/img/redCross.png');
+	overSkin:      Embed('/assets/img/redCrossRoll.png');
+	downSkin:      Embed('/assets/img/blueCrossClic.png');
+	disabledSkin:  Embed('/assets/img/redCross.png');
+}
+.panelControlBar
+{
+}
+.panelStatus
+{
+}
+/* Zoom Style */
+.zoomBg {
+	backgroundImage:Embed('/assets/img/zoom/ZoomBg.png');
+	/*src: url('/assets/img/zoom/ZoomBg.png'));*/
+}
+.zoomLess {
+	upSkin:        Embed('/assets/img/zoom/ZoomLess.png');
+	overSkin:      Embed('/assets/img/zoom/ZoomLessOver.png');
+	downSkin:      Embed('/assets/img/zoom/ZoomLessDown.png');
+	disabledSkin:  Embed('/assets/img/zoom/ZoomLess.png');
+}
+.zoomPlus {
+	upSkin:        Embed('/assets/img/zoom/ZoomPlus.png');
+	overSkin:      Embed('/assets/img/zoom/ZoomPlusOver.png');
+	downSkin:      Embed('/assets/img/zoom/ZoomPlusDown.png');
+	disabledSkin:  Embed('/assets/img/zoom/ZoomPlus.png');
+}
+.zoomSlider {
+	upSkin:        Embed('/assets/img/zoom/ZoomSlider.png');
+	overSkin:      Embed('/assets/img/zoom/ZoomSlider.png');
+	downSkin:      Embed('/assets/img/zoom/ZoomSlider.png');
+	disabledSkin:  Embed('/assets/img/zoom/ZoomSlider.png');
+}
+.littlePencil {
+	upSkin:        Embed('/assets/img/pencil_little.png');
+	overSkin:      Embed('/assets/img/pencil_little.png');
+	downSkin:      Embed('/assets/img/pencil_little.png');
+	disabledSkin:  Embed('/assets/img/pencil_little.png');
+}
+/* Fonts */
+@font-face {
+    src:		   url("/assets/fonts/DinRegular.swf");
+    fontFamily:    "DIN-Regular";
+}
+.labelDin
+{
+	fontFamily:    "DIN-Regular";
+	embedFonts:    true;
+	
+}
+@font-face {
+    src:		   url("/assets/fonts/Trebuchet.swf");
+    fontFamily:    "Trebuchet MS";
+}
+.labelTrebuchet
+{
+	fontFamily:    "Trebuchet MS";
+	embedFonts:    true;
+	
+}

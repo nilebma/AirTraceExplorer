@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   xmlns:timeline="ui.trace.timeline.*"
+					   xmlns:traceSelector="traceSelector.*"
+					   width="1000" height="700" creationComplete="creationCompleteHandler(event)">
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Base;
+			import com.ithaca.traces.Ktbs;
+			import com.ithaca.traces.Model;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.Resource;
+			import com.ithaca.traces.Trace;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Label;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import services.TtlLoader;
+			
+			import traceSelector.dummyTraceSelector;
+			
+			import ui.trace.ObselEditor;
+			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+			import ui.trace.timeline.events.TimelineEvent;
+			
+			import valueObjects.Ttl;
+			
+			[Bindable]
+			public var theKtbs:Ktbs;
+			
+			[Bindable]
+			public var theBase:Base;
+			
+			[Bindable]
+			public var theModel:Model;
+			
+			[Bindable]
+			protected var obselSelection:ObselCollection = new ObselCollection();
+			
+			protected var theTtlLoader:TtlLoader = new TtlLoader();
+			
+			protected var topPositionForNewTraceline:int = 100;
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				theKtbs = new Ktbs("uriKtbs", Resource.RESOURCE_URI_ATTRIBUTION_POLICY_CLIENT_IS_KING);
+				theBase = this.theKtbs.createBase();
+				
+				theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
+				
+
+			}
+			
+			protected function onTtlLoaded(e:ResultEvent):void
+			{
+
+				
+				if(e.result && e.result.loadedTraces && e.result.loadedTraces.length > 0)
+				{
+						
+					var aLoadedTrace:Trace = e.result.loadedTraces[0];
+									
+					var globalBegin:Number = aLoadedTrace.getEarliestObsel().begin;
+
+					var globalEnd:Number = aLoadedTrace.getLatestObsel().end;
+
+					
+					subTraceLine.traceData = aLoadedTrace.obsels;
+					contextTraceLine.traceData = aLoadedTrace.obsels;
+					contextSelectionTraceLine.startTime = globalBegin;
+					contextSelectionTraceLine.stopTime = globalEnd;
+					contextTraceLine.startTime = globalBegin;
+					contextTraceLine.stopTime = globalEnd;
+					curseurTraceLine.startTime = globalBegin;
+					curseurTraceLine.stopTime = globalEnd;
+					curseurTraceLine.currentTime = 0;
+					selectorEditor.obsels = aLoadedTrace.obsels;
+				}
+			
+			}
+			
+			protected function onObselLineSelectionChange(e:TimelineEvent):void
+			{
+				//les obsel selectionné sont stocké dans une variable gloable, on vide celle-ci
+				obselSelection = new ObselCollection();
+				
+				//les obsel selectionné sont affichés dans la box "obseleditorZone", on vide aussi celle-ci
+				obselEditorZone.removeAllChildren();
+				
+				if(e && e.obselSet) 
+					for each(var obs:Obsel in e.obselSet)
+						obselSelection.push(obs);
+				
+				//we update the display of the obselEditorZone
+				fillObselEditorZoneWithObselSelection();
+				
+				//on affiche les obsels selectionnées dans les traceline
+				selectionTraceLine.traceData = obselSelection;
+				contextSelectionTraceLine.traceData = obselSelection;
+			}
+			
+
+			
+
+			
+			protected function fillObselEditorZoneWithObselSelection(e:Event = null):void
+			{
+				//we fill the obselEditorZone
+				var beginValueOfPreviousItem:Number = NaN;
+				
+				//pour tous les obsels selectionnée
+				for each(var obsel:Obsel in obselSelection._obsels)
+				{
+					//var obsel:Object = trace_grid.indexToItemRenderer(trace_grid.indicesToIndex(index,0)).data;
+					
+					if(!isNaN(beginValueOfPreviousItem))
+					{
+						var a:Label = new Label();
+						var diff:Number = obsel.begin - beginValueOfPreviousItem;
+						if(diff < 500)
+							a.setStyle("color","red");
+						
+						a.text = diff + " ms";
+						
+						obselEditorZone.addChild(a);
+						
+					}	
+					
+					var obsEditor:ObselEditor = new ObselEditor();
+					obsEditor.data = obsel;
+					obselEditorZone.addChild(obsEditor);
+					beginValueOfPreviousItem = obsel.begin;
+				}
+			}
+			
+			protected function loadBtn_clickHandler(event:MouseEvent):void
+			{
+				var aTtlFile:Ttl = new Ttl();
+				aTtlFile.url = urlInput.text;
+				
+				theTtlLoader.loadTTL(aTtlFile,theBase);
+			}
+			
+			protected function obselTypeSelectedHandler(event:ResultEvent):void
+			{
+				var newTraceLine:TraceLine = new TraceLine();
+				newTraceLine.direction = "horizontal";
+				newTraceLine.startPadding = 10;
+				newTraceLine.endPadding = 10;
+				//newTraceLine.RendererType = RectangleRenderer;
+				newTraceLine.useRendererFunction = true;
+				newTraceLine.rendererFunctionParams={'color':theColorPicker.selectedColor,'minSize':3,'alpha':0.8};
+				newTraceLine.top = topPositionForNewTraceline;
+				topPositionForNewTraceline += 25;
+				newTraceLine.height = 10;
+				newTraceLine.left = 10;
+				newTraceLine.right = 10;
+				newTraceLine.renderAlign = "middle";
+				//newTraceLine.setStyle("borderColor",0xFF0000);
+				//newTraceLine.setStyle("borderVisible",true);
+				//newTraceLine.setStyle("borderStyle","solid");
+				newTraceLine.addEventListener("obselClick", onObselLineSelectionChange);
+				BindingUtils.bindProperty(newTraceLine,"startTime",curseurTraceLine,"zoomStartTime");
+				BindingUtils.bindProperty(newTraceLine,"stopTime",curseurTraceLine,"zoomStopTime");
+				
+				var obsCollec:ObselCollection = new ObselCollection();
+				
+				for each(var obs:Obsel in (event.result as Array))
+					obsCollec.push(obs);
+					
+				newTraceLine.traceData = obsCollec;
+				
+				this.addElement(newTraceLine);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<!--Display the selected traces-->
+	
+	<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
+						borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
+						top="50" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+	
+	<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						rendererFunctionParams="{{'color':0xFF0000}}"
+						top="50" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
+	
+	<timeline:CurseurHorizontal id="curseurTraceLine" top="35" height="49" x="10" width="{contextTraceLine.width}" 
+								startEdge="5" endEdge="{contextTraceLine.width}"  
+								minimumSize="70" lockSize="200" lockPosition="100"
+								startAndEndDelta="1"
+								locked="false"/>
+	
+	<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+						rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+						top="75" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+	
+	<!--Display the selected obsels in the traces (stored in obselSelection Array)-->
+	
+	<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
+						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+						top="75" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
+	
+
+	
+	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
+			 horizontalScrollPolicy="on" verticalScrollPolicy="on"/>
+	<s:TextInput y="10" left="10" right="100" id="urlInput"
+				 text="http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl"/>
+	<s:Button y="10" right="10" label="Load" id="loadBtn" click="loadBtn_clickHandler(event)"/>
+	<traceSelector:dummyTraceSelectorEditor id="selectorEditor" x="8" y="421" obselTypeSelected="obselTypeSelectedHandler(event)">
+	</traceSelector:dummyTraceSelectorEditor>
+	<mx:ColorPicker id="theColorPicker" x="656" y="421"/>
+	
+</s:WindowedApplication>

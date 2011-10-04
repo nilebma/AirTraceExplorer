@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:timelineservice="services.timelineservice.*"
+		 xmlns:valueObjects="valueObjects.*"
+		 xmlns:timelineManager="ui.timelineManager.*"
+		 xmlns:mediaservice="services.mediaservice.*"
+		 xmlns:mediaInTimeline="ui.mediaInTimeline.*"
+		 xmlns:traceInTimeline="ui.traceInTimeline.*"
+		 width="100%" height="100%">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import valueObjects.Timeline;
+			
+			
+			protected function updateFromServer(event:Event):void
+			{
+				getAllTimelineResult.token = timelineService.getAllTimeline();				
+			}
+			
+			protected function createButton_clickHandler(event:MouseEvent):void
+			{
+				var nt:Timeline = new Timeline();
+				nt.title = "sans titre";
+				
+				createTimelineResult.token = timelineService.createTimeline(nt);
+				timelineService.commit();
+			}
+			
+			protected function saveBtn_clickHandler(event:MouseEvent):void
+			{
+				timelineService.commit();
+			}
+			
+			protected function openBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:CallResponder id="getAllTimelineResult"/>
+		<timelineservice:TimelineService id="timelineService"
+										 fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+										 showBusyCursor="true"/>
+		<s:CallResponder id="createTimelineResult" result="updateFromServer(event)"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:List id="list" x="10" top="10" bottom="10" width="148"
+			creationComplete="updateFromServer(event)" labelField="title">
+		<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
+	</s:List>
+	<s:Button id="createButton" x="166" y="10" label="Create New Timeline"
+			  click="createButton_clickHandler(event)"/>
+	<timelineManager:TimelineForm x="167" y="40" timeline="{list.selectedItem as Timeline}" />
+	<s:Button id="saveBtn" x="431" y="10" label="Save" click="saveBtn_clickHandler(event)"/>
+	<s:Button id="openBtn" x="509" y="40" label="Open" click="openBtn_clickHandler(event)"/>
+	<mediaInTimeline:MediaByTimelineChooser x="165" y="302" timeline="{list.selectedItem as Timeline}"/>
+	<s:Label x="166" y="282" text="Medias :"/>
+	<s:Label x="473" y="282" text="Traces :"/>
+	<traceInTimeline:TraceByTimelineChooser x="473" y="302" timeline="{list.selectedItem as Timeline}"/>
+</s:Group>

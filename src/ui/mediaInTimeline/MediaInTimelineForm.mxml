@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Form xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		xmlns:valueObjects="valueObjects.*"
+		xmlns:mediaservice="services.mediaservice.*"
+		xmlns:timelineservice="services.timelineservice.*"
+		width="400" height="300">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			import valueObjects.Media;
+			import valueObjects.Timeline;
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				mediaInTimeline.id = parseInt(idTextInput.text);
+				mediaInTimeline.idMedia = parseInt(idMediaTextInput.text);
+				mediaInTimeline.idTimeline = parseInt(idTimelineTextInput.text);
+				mediaInTimeline.position = parseInt(positionTextInput.text);
+				mediaInTimeline.delay = parseInt(delayTextInput.text);
+				mediaInTimeline.visible = parseInt(visibleTextInput.text);
+			}
+			
+			protected function comboBox_creationCompleteHandler(event:FlexEvent):void
+			{
+				getAllMediaResult.token = mediaService.getAllMedia();
+			}
+			
+			
+			protected function comboBox2_creationCompleteHandler(event:FlexEvent):void
+			{
+				getAllTimelineResult.token = timelineService.getAllTimeline();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<valueObjects:MediaInTimeline id="mediaInTimeline"/>
+		<s:CallResponder id="getAllMediaResult"/>
+		<mediaservice:MediaService id="mediaService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<s:CallResponder id="getAllTimelineResult"/>
+		<timelineservice:TimelineService id="timelineService"
+										 fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+										 showBusyCursor="true"/>
+		<s:NumberValidator id="delayValidator" source="{delayTextInput}" property="text" trigger='{delayTextInput}'
+						   triggerEvent="change" allowNegative="true" domain="int" />
+	</fx:Declarations>
+		<s:FormItem label="IdMedia">
+			<s:ComboBox id="comboBox" creationComplete="comboBox_creationCompleteHandler(event)" labelField="title" 
+						selectedItem="{mediaService.getMediaByID(mediaInTimeline.idMedia)}" 
+						change="{mediaInTimeline.idMedia = (comboBox.selectedItem as Media).id}">
+				<s:AsyncListView list="{getAllMediaResult.lastResult}"/>
+			</s:ComboBox>
+		</s:FormItem>
+		<s:FormItem label="IdTimeline">
+			<s:ComboBox id="comboBox2" creationComplete="comboBox2_creationCompleteHandler(event)"
+						labelField="title"
+						selectedItem="{timelineService.getTimelineByID(mediaInTimeline.idTimeline)}" 
+						change="{mediaInTimeline.idTimeline = (comboBox2.selectedItem as Timeline).id}">
+				<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
+			</s:ComboBox>
+		</s:FormItem>
+		<s:FormItem label="Delay">
+			<s:TextInput id="delayTextInput" text="{mediaInTimeline.delay}"/>
+		</s:FormItem>
+		<s:FormItem label="Visible">
+			<s:CheckBox id="checkBox" selected="{mediaInTimeline.visible}" change="{mediaInTimeline.visible = checkBox.selected}"/>
+		</s:FormItem>
+</s:Form>

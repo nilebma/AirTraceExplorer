@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="200" height="150" visible="false">
+<mx:Script>
+	<![CDATA[
+		import mx.events.FlexEvent;
+		import mx.controls.SWFLoader;
+		
+		import mx.utils.URLUtil;
+			
+		[Embed(source="icons/video.jpg")]
+		private var videoImg:Class;
+			
+		private static var URL_YOU_TUBE:String = "www.youtube.com";
+		
+		private var loaderSwf:SWFLoader = new SWFLoader();
+
+		public function setMedia(value:String):void
+		{
+			loaderSwf.addEventListener(Event.COMPLETE, onLoadComplet);
+			var serveurName:String = URLUtil.getServerName(value);
+			if (serveurName == URL_YOU_TUBE)
+			{
+				loaderSwf.source = videoImg;
+				onLoadComplet(null);
+			} else
+			{		
+				loaderSwf.load(value);
+			}			
+		}
+		
+		private function onLoadComplet(event:Event):void{
+			loaderSwf.removeEventListener(Event.COMPLETE, onLoadComplet);
+		 	var originalWidth:Number = loaderSwf.contentWidth;
+		 	var originalHeight:Number = loaderSwf.contentHeight;
+		 	// can't load image of the video, nothing about the size
+			if(event == null)
+			{
+			 	originalWidth = this.width;
+			 	originalHeight = this.height;
+			}
+		 	var newWidth:Number = originalWidth;
+		 	var newHeight:Number = originalHeight;
+		 			
+		 	var scale:Number = 1;
+		 
+		 	if (originalWidth > this.width || originalHeight > this.height)
+		 	{
+		  		var sx:Number =  this.width / originalWidth;
+		  		var sy:Number = this.height / originalHeight;
+		  		scale = Math.min(sx, sy);
+		  		newWidth = originalWidth * scale;
+		  		newHeight = originalHeight * scale;	 
+		  	}
+		 	loaderSwf.width = newWidth;
+		 	loaderSwf.height = newHeight;
+		 	this.addEventListener(Event.ADDED, onAdded);
+		 	this.addChild(loaderSwf);
+		}
+		
+		private function onAdded(event:Event):void
+		{
+			this.removeEventListener(Event.ADDED, onAdded);
+			this.addEventListener(FlexEvent.UPDATE_COMPLETE , onUpdateCompet);
+			this.width  = loaderSwf.width;
+			this.height = loaderSwf.height;
+		    loaderSwf.x = 0;
+		 	loaderSwf.y = 0;
+		}
+		
+		private function onUpdateCompet(event:FlexEvent):void{
+			this.removeEventListener(FlexEvent.UPDATE_COMPLETE , onUpdateCompet);
+			this.visible = true;
+		 	this.dispatchEvent(new Event("EndResize"));
+		} 
+	]]>
+</mx:Script>
+
+</mx:Canvas>

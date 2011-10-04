@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off" width="82" 
+		 verticalAlign="middle" 
+		 creationComplete="init()" horizontalGap="2">
+
+	<mx:Script>
+		<![CDATA[
+			import ui.trace.timeline.TimelineModel;
+			
+			import com.ithaca.traces.Obsel;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.formatters.DateFormatter;
+			
+			private var _model:TimelineModel;
+			private var _traceData:Obsel;
+			private var _trashButtonVisible:Boolean;
+			
+			
+			
+			public function get traceData():Obsel
+			{
+				return _traceData;
+			}
+
+			public function set traceData(value:Obsel):void
+			{
+				_traceData = value;
+				
+				setTimeText();
+			}
+
+			public function get model():TimelineModel
+			{
+				return _model;
+			}
+
+			public function set model(value:TimelineModel):void
+			{
+				_model = value;
+				
+				if(_model && _model.startTime)
+					BindingUtils.bindSetter(setTimeText,_model,"startTime");
+				
+				if(_model)
+					BindingUtils.bindSetter(setGotoButtonVisibility,_model,"modeReplay");
+				
+				setGotoButtonVisibility();
+				setTimeText();
+			}
+			
+			public function init():void
+			{
+				setTimeText();
+				setGotoButtonVisibility();
+				trashButton.visible = _trashButtonVisible;
+			}
+			public function setDeleteImage(value:Boolean):void{
+				_trashButtonVisible = value;
+			}
+			public function setTimeText(dummyParam:* = null):void
+			{
+				if(_traceData && !isNaN(_traceData.begin) && _model && !isNaN(_model.startTime) && timeText)
+				{
+					var date:Date = new Date(_traceData.begin - _model.startTime);
+
+					var df:DateFormatter = new DateFormatter();
+					
+					if(date.hoursUTC < 1)
+						df.formatString = "NN:SS";
+					else
+						df.formatString = "JJ:NN:SS";
+					
+					timeText.text = df.format(date.toUTCString());
+				}
+			}
+			
+			public function setGotoButtonVisibility(dummyParam:* = null):void
+			{
+				if(model && gotoButton)
+					gotoButton.visible = model.modeReplay;
+			}
+			private function onClickPlayButton(event:Event):void
+			{
+				event.stopPropagation();
+				this.dispatchEvent(new Event('goto'));
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Label id="timeText" fontSize="10" width="44" height="16" fontStyle="italic" fontWeight="bold"/>
+	<mx:Image id="gotoButton" source="@Embed('assets/timeline/playButtonRed_16.png')" 
+			  buttonMode="true" useHandCursor="true" click="onClickPlayButton(event)" width="16" height="16"/>
+	 <mx:Image source="@Embed('assets/timeline/trash_16.png')" id="trashButton"
+			  buttonMode="true" useHandCursor="true" click="this.dispatchEvent(new Event('delete'))" width="16" height="16"/>
+   
+<!-- 
+	<mx:Image source="@Embed('timeline/search_16.png')" visible="false"
+			  buttonMode="true" useHandCursor="true" click="this.dispatchEvent(new Event('zoom'))" width="14" height="14"/>
+	<mx:Image source="@Embed('timeline/pencil_16.png')" visible="false"
+			  buttonMode="true" useHandCursor="true" click="this.dispatchEvent(new Event('edit'))" width="14" height="14"/>
+-->
+</mx:HBox>
+

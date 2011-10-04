@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TraceLineRenderers1:CanvasBaseRenderer xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:local="*" width="40" height="35" 
+			direction="horizontal" selfSized="false" selfPositioned="false" xmlns:TraceLineRenderers="ithaca.traces.timeline.TraceLineRenderers.*"
+			verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:TraceLineRenderers1="ithaca.traces.timeline.TraceLineRenderers.*">
+		
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.formatters.DateFormatter;
+			
+			[Bindable]
+			protected var currentRelativeTime:Number;
+			
+			[Bindable]
+			private var strTime:String;
+			
+			private var theDateFormatter:DateFormatter = new DateFormatter();
+			
+			
+			override public function modelUpdate(e:Event=null) : void
+			{
+				super.modelUpdate(e);
+				BindingUtils.bindSetter(timeUpdate,model,"startTime");
+				
+			}
+			
+			protected function timeUpdate(dummyVar:* = null):void
+			{
+				if(model && model.startTime && model.currentTime && traceData)
+				{
+					currentRelativeTime = traceData.begin - model.startTime;
+					showTime(currentRelativeTime);
+				}
+			}
+			
+			override public function update() : void
+			{
+				timeUpdate();
+			}
+			
+			public function showTime(time:Number):void
+			{
+				if(!isNaN(time))
+				{
+					theDateFormatter.formatString = "NN:SS";
+					
+					if(time < 0)
+					{
+						time *= -1;
+						strTime = "-" + theDateFormatter.format(new Date(time));
+					}
+					else
+						strTime = theDateFormatter.format(new Date(time));
+					
+					;
+				}
+			}
+			
+
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas id="theLine" backgroundColor="#444444" width="4" height="15" y="0" horizontalCenter="0"/>
+	<mx:Label id="theText" y="15" text="{strTime}" color="#444444" fontWeight="bold" fontSize="10" horizontalCenter="1" width="41.4" height="19" textAlign="center"/>
+	
+</TraceLineRenderers1:CanvasBaseRenderer>

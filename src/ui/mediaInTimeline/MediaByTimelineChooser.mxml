@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:List xmlns:fx="http://ns.adobe.com/mxml/2009"
+			xmlns:s="library://ns.adobe.com/flex/spark"
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+			xmlns:mediaintimelineservice="services.mediaintimelineservice.*"
+			xmlns:mediaservice="services.mediaservice.*"
+			width="300" height="260" creationComplete="updateFromServer(event)"
+			labelField="title" itemRenderer="ui.mediaInTimeline.mediaListItem"
+			dataProvider="{medias}">
+	<fx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.events.PropertyChangeEventKind;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectProxy;
+			
+			import valueObjects.Media;
+			import valueObjects.MediaInTimeline;
+			import valueObjects.Timeline;
+			
+			private var _timeline:Timeline;
+			
+			[Bindable]
+			public var medias:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public function get timeline():Timeline
+			{
+				return _timeline;
+			}
+
+			public function set timeline(value:Timeline):void
+			{
+				_timeline = value;
+				getAllMediaInTimelineResult_resultHandler();
+			}
+
+			protected function updateFromServer(event:Event = null):void
+			{
+				getAllMediaInTimelineResult.token = mediaInTimelineService.getAllMediaInTimeline();
+				getAllMediaResult.token = mediaService.getAllMedia();
+			}
+			
+			protected function getAllMediaInTimelineResult_resultHandler(event:Event = null):void
+			{
+				medias.removeAll();
+				
+				if(timeline && getAllMediaResult.lastResult && getAllMediaInTimelineResult.lastResult)
+				{
+					for each(var m:Media in getAllMediaResult.lastResult)
+					{
+						var mediaInTimeline:MediaInTimeline = null;
+					
+						for each(var l:MediaInTimeline in getAllMediaInTimelineResult.lastResult)
+						{	
+							if(l.idTimeline == timeline.id && l.idMedia == m.id)
+								mediaInTimeline = l;
+						}
+						
+						var dataItem:ObjectProxy = new ObjectProxy({"media":m, "mediaInTimeline":mediaInTimeline, "related":mediaInTimeline!=null, "title":m.title});
+						
+						dataItem.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onDataItemChange);
+	
+					
+						medias.addItem(dataItem);
+					}
+				}
+				
+				this.invalidateDisplayList();
+				
+			}
+			
+			protected function onDataItemChange(e:PropertyChangeEvent):void
+			{
+				if(e.kind == PropertyChangeEventKind.UPDATE && e.property == "related")
+				{
+					if(e.newValue == true)
+					{
+						var mit:MediaInTimeline = new MediaInTimeline();
+						mit.idTimeline = timeline.id;
+						mit.idMedia = (e.currentTarget.media as Media).id;
+						mit.delay = 0;
+						mit.position = -1;
+						mit.visible = 1;
+						
+						createMediaInTimeline.token = mediaInTimelineService.createMediaInTimeline(mit);
+						mediaInTimelineService.commit();
+					}
+					else
+					{
+						deleteMediaInTimeline.token = mediaInTimelineService.deleteMediaInTimeline((e.currentTarget.mediaInTimeline as MediaInTimeline).id);
+						mediaInTimelineService.commit();
+					}
+				}
+			}
+			
+			protected function createMediaInTimeline_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				updateFromServer();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:CallResponder id="getAllMediaInTimelineResult" result="getAllMediaInTimelineResult_resultHandler(event)"/>
+		<s:CallResponder id="createMediaInTimeline" result="createMediaInTimeline_resultHandler(event)"/>
+		<s:CallResponder id="deleteMediaInTimeline" result="updateFromServer(event)"/>
+		<mediaintimelineservice:MediaInTimelineService id="mediaInTimelineService"
+													   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+													   showBusyCursor="true"/>
+		<s:CallResponder id="getAllMediaResult"  result="getAllMediaInTimelineResult_resultHandler(event)"/>
+		<mediaservice:MediaService id="mediaService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:List>

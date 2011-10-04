@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<timeline:CurseurBase direction="horizontal"
+	xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ui.trace.timeline.*">
+	
+	<mx:Style>
+		
+		.Lock 
+		{
+			upSkin: Embed("timeline/curseurClockLockOff.png");
+			overSkin: Embed("timeline/curseurClockLockOff.png");
+			downSkin: Embed("timeline/curseurClockLockOff.png");
+			selected-up-skin: Embed("timeline/curseurClockLockOn.png");
+			selected-down-skin: Embed("timeline/curseurClockLockOn.png");
+			selected-over-skin: Embed("timeline/curseurClockLockOn.png");
+			
+		}
+		.Zoom 
+		{
+			upSkin: Embed("timeline/search_16.png");
+			overSkin: Embed("timeline/search_16.png");
+			downSkin: Embed("timeline/search_16.png");
+			selected-up-skin: Embed("timeline/search_16.png");
+			selected-down-skin: Embed("timeline/search_16.png");
+			selected-over-skin: Embed("timeline/search_16.png");
+			
+		}		
+		.Grid{
+			upSkin:Embed("timeline/curseurThinVerticalGrip.png");
+			overSkin:Embed("timeline/curseurThinVerticalGrip.png");
+			downSkin:Embed("timeline/curseurThinVerticalGrip.png");
+		}
+		
+		.MiddleHorizontalGrid{
+			upSkin:Embed("/Users/nilebma/Documents/Adobe Flash Builder Beta 2/ldt/client/src/assets/timeline/curseurBigHorizontalGrip.png");
+			overSkin:Embed("timeline/curseurBigHorizontalGrip.png");
+			downSkin:Embed("timeline/curseurBigHorizontalGrip.png");
+		}
+		
+		
+	</mx:Style>
+	
+	<mx:Script>
+		<![CDATA[
+			/* *******************************************************************
+			**********					ASSETS EMBEDING			******************
+			*********************************************************************/
+			
+			//Embedding an 9-slice scaling background image for this component
+			[Embed(source="timeline/curseurFondHorizontal.png",
+				scaleGridTop="23", scaleGridBottom="38", 
+                scaleGridLeft="48", scaleGridRight="55"
+			)]
+			[Bindable]
+			private var curseurFond:Class;
+		]]>
+	</mx:Script>
+	
+	
+	<mx:Image source="{curseurFond}" width="100%" maintainAspectRatio="false" scaleContent="true"/>
+	
+	<mx:Button id="middleGripGraphic" styleName="MiddleHorizontalGrid" horizontalCenter="0" y="4"/>
+	
+	<mx:Button id="middleGrip" horizontalCenter="-1"  y="0" height="18" minWidth="40" mouseDown="centerStartDrag(event)"  
+			   buttonMode="true"  alpha="0" left="40" right="40"
+			   />
+	
+	<mx:Button id="startGrip" x="0" y="16"  mouseDown="startGripStartDrag(event)" buttonMode="true" 
+			   useHandCursor="true"  width="8" height="20" alpha="0.0"
+			   />
+	
+	<mx:Button id="endGrip"  y="16" right="0" mouseDown="endGripStartDrag(event)" 
+			   buttonMode="true" useHandCursor="true" width="8" height="20" alpha="0.0" 
+			   />
+	
+	<mx:Button id="checkZoom" toggle="true" styleName="Zoom" useHandCursor="true" buttonMode="true"
+			   y="0" click="onClickZoomButton()" left="5" />
+			   
+	<mx:Button id="checkLock" toggle="true" styleName="Lock" useHandCursor="true" buttonMode="true"
+			   y="-4" change="onLockButton()" selected="{_locked}" right="5" />
+	
+
+	
+</timeline:CurseurBase>

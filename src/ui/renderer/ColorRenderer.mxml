@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx" clipAndEnableScrolling="true">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.ColorPickerEvent;
+			override public function prepare(hasBeenRecycled:Boolean):void {
+				cpData.selectedColor = data[column.dataField]
+			}
+			
+			protected function cpData_changeHandler(event:ColorPickerEvent):void
+			{
+				// TODO Auto-generated method stub
+				data[column.dataField] = cpData.selectedColor;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:ColorPicker id="cpData" change="cpData_changeHandler(event)" />
+	
+</s:GridItemRenderer>

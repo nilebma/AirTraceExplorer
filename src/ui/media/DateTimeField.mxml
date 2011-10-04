@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This code  is distributed under Apache License. For more information see
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+The source is Copyright 2010 TJ Downes http://www.tjdownes.com. All Rights Reserved.
+
+TJ Downes shall have no responsibility, financial or otherwise, for
+any consequences arising out of the use of this material. The program
+material is provided on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	
+	<s:layout>
+		<s:HorizontalLayout gap="4"
+							verticalAlign="middle"/>
+	</s:layout>
+	
+	<fx:Metadata>
+		[Event("dateChange", type="flash.events.Event")]
+	</fx:Metadata>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.PropertyChangeEvent;
+			import mx.events.PropertyChangeEventKind;
+			import mx.events.ValidationResultEvent;
+			import mx.validators.NumberValidatorDomainType;
+			
+			private static const TIME_HOURS_VALIDATION_ERROR:String = "Hours must be between 1 and 12";
+			
+			private static const TIME_MINUTES_VALIDATION_ERROR:String = "Minutes must be between 0 and 59";
+			
+			private static const TIME_SECONDS_VALIDATION_ERROR:String = "Seconds must be between 0 and 59";
+			
+			[Bindable]public var isValid:Boolean;
+			
+			[Bindable]public var enableSeconds:Boolean;
+			
+			[Bindable]private var _selectedDate:Date;
+			
+			public function set selectedDate(value:Date):void {
+				if (value != _selectedDate) {
+					_selectedDate = value;
+					hoursField.text = _selectedDate.hours > 12 ? String(_selectedDate.hours - 12) : _selectedDate.hours.toString();
+					minutesField.text = _selectedDate.minutes < 10 ? "0" + _selectedDate.minutes.toString() : _selectedDate.minutes.toString();
+					secondsField.text = _selectedDate.seconds < 10 ? "0" + _selectedDate.seconds.toString() : _selectedDate.seconds.toString();
+					ampmList.selectedItem = _selectedDate.hours > 11 ? "PM" : "AM";
+					dateField.selectedDate = _selectedDate;
+					
+					dispatchEvent(new Event("propertyChange"));
+					dispatchEvent(new Event("dateChange"));
+					
+					//check validaty
+					var hoursValid:Boolean = hoursValidator.validate(hoursField.text).type != ValidationResultEvent.INVALID;
+					var minutesValid:Boolean = minutesValidator.validate(minutesField.text).type != ValidationResultEvent.INVALID;
+					var secondsValid:Boolean = secondsValidator.validate(secondsField.text).type != ValidationResultEvent.INVALID;
+					
+					isValid = (hoursValid && minutesValid && secondsValid);
+				}
+			}
+			
+			[Bindable("propertyChange")]
+			public function get selectedDate():Date {
+				return _selectedDate;
+			}
+			
+			private function setSelectedDate():void {
+				var hrs:Number = Number(hoursField.text);
+				var mins:Number = Number(minutesField.text);
+				var secs:Number = Number(secondsField.text);
+				
+				hrs = ampmList.selectedItem == "PM" ? hrs + 12 : hrs;
+				_selectedDate = new Date(dateField.selectedDate.fullYear, dateField.selectedDate.month, dateField.selectedDate.date, hrs, mins, secs, 0);
+				dispatchEvent(new Event("propertyChange"));
+				dispatchEvent(new Event("dateChange"));
+				
+				//check validaty
+				var hoursValid:Boolean = hoursValidator.validate(hoursField.text).type != ValidationResultEvent.INVALID;
+				var minutesValid:Boolean = minutesValidator.validate(minutesField.text).type != ValidationResultEvent.INVALID;
+				var secondsValid:Boolean = secondsValidator.validate(secondsField.text).type != ValidationResultEvent.INVALID;
+				
+				isValid = (hoursValid && minutesValid && secondsValid);
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<mx:NumberValidator id="hoursValidator"
+							required="true"
+							allowNegative="false"
+							minValue="1"
+							maxValue="12"
+							exceedsMaxError="{DateTimeField.TIME_HOURS_VALIDATION_ERROR}"
+							integerError="{DateTimeField.TIME_HOURS_VALIDATION_ERROR}"
+							lowerThanMinError="{DateTimeField.TIME_HOURS_VALIDATION_ERROR}"
+							negativeError="{DateTimeField.TIME_HOURS_VALIDATION_ERROR}"
+							requiredFieldError="{DateTimeField.TIME_HOURS_VALIDATION_ERROR}"
+							domain="{NumberValidatorDomainType.INT}" />
+		<mx:NumberValidator id="minutesValidator"
+							required="true"
+							allowNegative="false"
+							minValue="0"
+							maxValue="59"
+							exceedsMaxError="{DateTimeField.TIME_MINUTES_VALIDATION_ERROR}"
+							integerError="{DateTimeField.TIME_MINUTES_VALIDATION_ERROR}"
+							lowerThanMinError="{DateTimeField.TIME_MINUTES_VALIDATION_ERROR}"
+							negativeError="{DateTimeField.TIME_MINUTES_VALIDATION_ERROR}"
+							requiredFieldError="{DateTimeField.TIME_MINUTES_VALIDATION_ERROR}"
+							domain="{NumberValidatorDomainType.INT}" />
+		<mx:NumberValidator id="secondsValidator"
+							required="true"
+							allowNegative="false"
+							minValue="0"
+							maxValue="59"
+							exceedsMaxError="{DateTimeField.TIME_SECONDS_VALIDATION_ERROR}"
+							integerError="{DateTimeField.TIME_SECONDS_VALIDATION_ERROR}"
+							lowerThanMinError="{DateTimeField.TIME_SECONDS_VALIDATION_ERROR}"
+							negativeError="{DateTimeField.TIME_SECONDS_VALIDATION_ERROR}"
+							requiredFieldError="{DateTimeField.TIME_SECONDS_VALIDATION_ERROR}"
+							domain="{NumberValidatorDomainType.INT}" />
+	</fx:Declarations>
+	
+	<mx:DateField id="dateField"
+				  change="setSelectedDate()" />
+	
+	<s:TextInput id="hoursField"
+				 textAlign="right"
+				 width="20"
+				 maxChars="2"
+				 restrict="0-9"
+				 change="setSelectedDate()" />
+	
+	<s:Label text=":"
+			 color="#000000" />
+	<s:TextInput id="minutesField"
+				 maxChars="2"
+				 restrict="0-9"
+				 width="20"
+				 change="setSelectedDate()" />
+	
+	<s:Label text=":"
+			 color="#000000"
+			 visible="{enableSeconds}"
+			 includeInLayout="{enableSeconds}" />
+	<s:TextInput id="secondsField"
+				 maxChars="2"
+				 restrict="0-9"
+				 width="20"
+				 visible="{enableSeconds}"
+				 includeInLayout="{enableSeconds}"
+				 change="setSelectedDate()" />
+	
+	<s:DropDownList id="ampmList"
+					width="55"
+					change="setSelectedDate()">
+		<s:ArrayCollection>
+			<fx:String>AM</fx:String>
+			<fx:String>PM</fx:String>
+		</s:ArrayCollection>
+	</s:DropDownList>
+	
+</s:Group>

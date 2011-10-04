@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="41" height="40">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.formatters.DateFormatter;
+			
+			[Bindable]
+			private var _currentTime:Number;
+			
+			[Bindable]
+			private var strTime:String;
+
+			[Bindable]
+			public var headColor:uint = 0xA60000;
+
+			[Bindable]
+			public var headThickness:uint = 4;
+			
+			
+			
+			private var theDateFormatter:DateFormatter = new DateFormatter();
+			
+			[Bindable]
+			public function get currentTime():Number
+			{
+				return _currentTime;
+			}
+
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+				
+				setCurrentTime(value);
+			}
+
+			public function setCurrentTime(time:Number):void
+			{
+				if(!isNaN(time))
+				{
+
+					
+					theDateFormatter.formatString = "NN:SS";
+					
+					if(time < 0)
+					{
+						time *= -1;
+						strTime = "-" + theDateFormatter.format(new Date(time));
+					}
+					else
+						strTime = theDateFormatter.format(new Date(time));
+	
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas x="0" width="40.64" height="18" borderColor="{headColor}" backgroundColor="{headColor}"  borderStyle="solid"  cornerRadius="5" 
+			   y="0" horizontalCenter="0">
+	</mx:Canvas>
+	<mx:Canvas width="{headThickness}" borderColor="{headColor}" backgroundColor="{headColor}" top="4" bottom="0" horizontalCenter="0">
+	</mx:Canvas>
+	<mx:Label x="-0.75" text="{strTime}" color="#FFFFFF" fontWeight="bold" fontSize="10" y="0" width="41.4" height="19" textAlign="center"  horizontalCenter="0"/>
+</mx:Canvas>

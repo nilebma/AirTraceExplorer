@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="300" height="10" creationComplete="init()" resize="init()">
+	
+	<mx:Script>
+		<![CDATA[
+			public var fillColors:Array = [0x000000,0x000000];
+			public var fillAlphas:Array  = [1,0];
+			public var fillRatios:Array  = [0,255];
+			public var fillRotation:Number = 0;
+			
+			
+			private function init():void
+			{
+				var myMatrix:Matrix = new Matrix();
+				myMatrix.createGradientBox(this.width,this.height,fillRotation);
+				
+				this.graphics.clear();
+				this.graphics.beginGradientFill(GradientType.LINEAR,
+												fillColors,fillAlphas,fillRatios,
+												myMatrix);
+				this.graphics.drawRect(0,0,300,this.height);
+				this.graphics.endFill();
+			}
+		]]>
+	</mx:Script>
+	
+
+	
+</mx:Canvas>

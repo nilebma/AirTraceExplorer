@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="65" height="20"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off" >
+	<mx:Style>
+		Button.Play 
+		{
+			upSkin: Embed("timeline/timeControlPause.png");
+			overSkin: Embed("timeline/timeControlPause.png");
+			downSkin: Embed("timeline/timeControlPause.png");
+			selected-up-skin: Embed("timeline/timeControlPlay.png");
+			selected-down-skin: Embed("timeline/timeControlPlay.png");
+			selected-over-skin: Embed("timeline/timeControlPlay.png");
+			
+		}
+	</mx:Style>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.Image;
+			import mx.formatters.DateFormatter;
+			[Embed(source="timeline/timeControlFond.png",
+				scaleGridTop="5", scaleGridBottom="14", 
+                scaleGridLeft="7", scaleGridRight="59"
+			)]
+			
+			[Bindable]
+			private var timeControlFond:Class;	
+			
+			[Bindable]
+			private var _model:TimelineModel;
+			
+			[Bindable]
+			private var srtTime:String;
+			
+
+			[Bindable]
+			public function get model():TimelineModel
+			{
+				return _model;
+			}
+
+			public function set model(value:TimelineModel):void
+			{
+				_model = value;
+				
+				if(_model)
+					BindingUtils.bindSetter(updateTime,_model,"currentTime");
+			}
+			
+			protected function updateTime(value:Number):void
+			{
+				srtTime = theDateFormatter.format(new Date( _model.currentTime - _model.startTime  ));
+			}
+			
+			protected function onPlayPauseClick():void
+			{
+				if(playPauseButton.selected)
+					_model.firePauseEvent();
+				else
+					_model.firePlayEvent();
+			}
+
+		]]>
+	</mx:Script>
+
+	<mx:Image source="{timeControlFond}" width="100%" height="100%" scaleContent="true" maintainAspectRatio="false" />
+	
+	<mx:Button id="playPauseButton" styleName="Play" toggle="true" x="6" y="4" useHandCursor="true" buttonMode="true"
+			   click="onPlayPauseClick()" selected="{!_model.isPlaying}"/>
+	<mx:Image source="@Embed('timeline/timeControlDivide.png')" x="16" y="3" />
+	<mx:Label x="20" y="1" text="{srtTime}" color="#FFFFFF" fontWeight="bold" fontSize="10"/>
+	
+	<mx:DateFormatter formatString="NN:SS" id="theDateFormatter"/>
+	<mx:filters>
+		<mx:DropShadowFilter blurX="5" blurY="5" distance="0" strength="1"/>
+	</mx:filters>
+	
+</mx:Canvas>

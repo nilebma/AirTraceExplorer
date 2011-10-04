@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<timeline:CurseurBase direction="vertical"
+	xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ithaca.traces.timeline.*">
+	
+	<mx:Style>
+		
+		Button.Lock 
+		{
+			upSkin: Embed("timeline/curseurClockLockOff.png");
+			overSkin: Embed("timeline/curseurClockLockOff.png");
+			downSkin: Embed("timeline/curseurClockLockOff.png");
+			selected-up-skin: Embed("timeline/curseurClockLockOn.png");
+			selected-down-skin: Embed("timeline/curseurClockLockOn.png");
+			selected-over-skin: Embed("timeline/curseurClockLockOn.png");
+			
+		}
+		
+		.Grid{
+			upSkin:Embed("timeline/curseurThinHorizontalGrip.png");
+			overSkin:Embed("timeline/curseurThinHorizontalGrip.png");
+			downSkin:Embed("timeline/curseurThinHorizontalGrip.png");
+		}
+		
+		.MiddleVerticalGrid{
+			upSkin:Embed("timeline/curseurBigVerticalGrip.png");
+			overSkin:Embed("timeline/curseurBigVerticalGrip.png");
+			downSkin:Embed("timeline/curseurBigVerticalGrip.png");
+		}
+		
+	</mx:Style>
+	
+	<mx:Script>
+		<![CDATA[
+			/* *******************************************************************
+			**********					ASSETS EMBEDING			******************
+			*********************************************************************/
+			
+			//Embedding an 9-slice scaling background image for this component
+			[Embed(source="timeline/curseurFondVertical.png",
+				scaleGridTop="46", scaleGridBottom="60", 
+                scaleGridLeft="26", scaleGridRight="32"
+			)]
+			[Bindable]
+			private var curseurFond:Class;
+		]]>
+	</mx:Script>
+	
+	
+	<mx:Image source="{curseurFond}" height="100%" maintainAspectRatio="false" scaleContent="true"/>
+	
+	<mx:Button id="middleGripGraphic" styleName="MiddleVerticalGrid" verticalCenter="0"  x="29"/>
+	
+	<mx:Button id="middleGrip" verticalCenter="-1" top="40" bottom="40" x="26" width="30" minHeight="50" mouseDown="centerStartDrag(event)"  
+			   buttonMode="true" fillAlphas="[1.0, 1.0]" fillColors="[#420A0A, #420A0A]" alpha="0"
+			   />
+	
+	<mx:Button id="startGrip" x="0" y="0"  mouseDown="startGripStartDrag(event)" buttonMode="true" 
+			   useHandCursor="true"  width="70" height="20.4" alpha="0.0"
+			   />
+	
+	<mx:Button id="endGrip"  x="0" bottom="0" mouseDown="endGripStartDrag(event)" 
+			   buttonMode="true" useHandCursor="true" width="70" height="20" alpha="0.0" 
+			   />
+	
+	<mx:Button id="checkLock" toggle="true" styleName="Lock" useHandCursor="true" buttonMode="true"
+			   x="23" change="onLockButton()" selected="{_locked}" y="{this.height*.65}"/>
+	
+
+	
+</timeline:CurseurBase>

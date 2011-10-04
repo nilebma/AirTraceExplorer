@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="84" height="40" backgroundColor="#FFFFFF">
+	<mx:Image horizontalCenter="0" verticalCenter="0" source="@Embed('timeline/cursor/move.png')">
+	</mx:Image>
+	
+</mx:Canvas>

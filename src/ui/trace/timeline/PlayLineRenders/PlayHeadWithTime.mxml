@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="300" height="18">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			import mx.formatters.DateFormatter;
+			
+			[Bindable]
+			private var strTime:String;
+			
+			private var theDateFormatter:DateFormatter = new DateFormatter();
+			
+			public function setCurrentTime(time:Number):void
+			{
+				if(!isNaN(time))
+				{
+
+					theDateFormatter.formatString = "NN:SS";
+					
+					if(time < 0)
+					{
+						time *= -1;
+						strTime = "-" + theDateFormatter.format(new Date(time));
+					}
+					else
+						strTime = theDateFormatter.format(new Date(time));
+					
+						
+				}
+			}
+		]]>
+	</mx:Script>
+	<mx:Canvas x="0" width="40.64" height="18" backgroundColor="#FFFFFF" backgroundAlpha="0.85" borderStyle="solid" cornerRadius="5" verticalCenter="0">
+	</mx:Canvas>
+	<mx:Canvas height="3" borderColor="#A60000" backgroundColor="#AE0000" left="38.8" right="9" verticalCenter="0">
+	</mx:Canvas>
+	<mx:Label x="-0.75" text="{strTime}" color="#AE0000" fontWeight="bold" fontSize="10" verticalCenter="1" width="41.4" height="19" textAlign="center"/>
+	
+	
+</mx:Canvas>

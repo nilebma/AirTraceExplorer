@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:media="ui.media.*" close="form_closeHandler(event)"> 
+	
+	<fx:Script>
+		<![CDATA[
+			import valueObjects.Media;
+			
+			private var _media:Media;
+			
+			import mx.managers.PopUpManager;
+
+			[Bindable]
+			public function get media():Media
+			{
+				return _media;
+			}
+
+			public function set media(value:Media):void
+			{
+				_media = value;
+				form.media = value;
+			}
+
+			protected function form_submitHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				this.dispatchEvent(new Event("onSubmit"));
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function form_closeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<media:MediaEditorForm id="form" submit="form_submitHandler(event)" close="form_closeHandler(event)" media="{media}"/>
+</s:TitleWindow>

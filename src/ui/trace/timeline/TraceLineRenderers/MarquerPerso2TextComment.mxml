@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off" width="126" 
+		 verticalAlign="middle" 
+		 creationComplete="init()" horizontalGap="2">
+
+	<mx:Script>
+		<![CDATA[
+			import ithaca.traces.Obsel;
+			import ithaca.traces.timeline.TimelineModel;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.formatters.DateFormatter;
+			
+			private var _model:TimelineModel;
+			private var _traceData:Obsel;
+			private var _trashButtonVisible:Boolean;
+			
+			
+			
+			public function get traceData():Obsel
+			{
+				return _traceData;
+			}
+
+			public function set traceData(value:Obsel):void
+			{
+				_traceData = value;
+				
+				setStartTimeText();
+				setEndTimeText();
+			}
+
+			public function get model():TimelineModel
+			{
+				return _model;
+			}
+
+			public function set model(value:TimelineModel):void
+			{
+				_model = value;
+				
+				if(_model && _model.startTime)
+					BindingUtils.bindSetter(setStartTimeText,_model,"startTime");
+				
+				if(_model)
+					BindingUtils.bindSetter(setGotoButtonVisibility,_model,"modeReplay");
+				
+				setGotoButtonVisibility();
+				setStartTimeText();
+				setEndTimeText();
+			}
+			
+			public function init():void
+			{
+				setStartTimeText();
+				setEndTimeText();
+				setGotoButtonVisibility();
+				trashButton.visible = _trashButtonVisible;
+			}
+			public function setDeleteImage(value:Boolean):void{
+				_trashButtonVisible = value;
+			}
+			public function setStartTimeText(dummyParam:* = null):void
+			{
+				if(_traceData && !isNaN(_traceData.begin) && _model && !isNaN(_model.startTime) && timeStartText)
+				{
+					var date:Date = new Date(_traceData.begin - _model.startTime);
+
+					var df:DateFormatter = new DateFormatter();
+					
+					if(date.hoursUTC < 1)
+						df.formatString = "NN:SS";
+					else
+						df.formatString = "JJ:NN:SS";
+					
+					timeStartText.text = df.format(date.toUTCString());
+				}
+			}
+			public function setEndTimeText(dummyParam:* = null):void
+			{
+				if(_traceData && !isNaN(_traceData.end) && _model && !isNaN(_model.startTime) && timeEndText)
+				{
+					var date:Date = new Date(_traceData.end - _model.startTime);
+
+					var df:DateFormatter = new DateFormatter();
+					
+					if(date.hoursUTC < 1)
+						df.formatString = "NN:SS";
+					else
+						df.formatString = "JJ:NN:SS";
+					
+					timeEndText.text = df.format(date.toUTCString());
+				}
+			}
+			
+			public function setGotoButtonVisibility(dummyParam:* = null):void
+			{
+				if(model && gotoButton)
+					gotoButton.visible = model.modeReplay;
+			}
+			private function onClickPlayButton(event:Event):void
+			{
+				event.stopPropagation();
+				this.dispatchEvent(new Event('goto'));
+			}
+			private function onClickDeleteButton(event:Event):void
+			{
+				event.stopPropagation();
+				this.dispatchEvent(new Event('delete'))
+			}
+			public function setPlayButtonVisible(value:Boolean):void
+			{
+				gotoButton.visible = value;
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Label id="timeStartText" fontSize="10" width="44" height="16" fontStyle="italic" fontWeight="bold"/>
+	<mx:Label id="timeEndText" fontSize="10" width="44" height="16" fontStyle="italic" fontWeight="bold"/>
+	<mx:Image id="gotoButton" source="@Embed('timeline/playButtonRed_16.png')" 
+			  buttonMode="true" useHandCursor="true" click="onClickPlayButton(event)" width="16" height="16"/>
+	 <mx:Image source="@Embed('timeline/trash_16.png')" id="trashButton"
+			  buttonMode="true" useHandCursor="true" click="onClickDeleteButton(event)" width="16" height="16"/>
+</mx:HBox>
+

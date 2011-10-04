@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:ttlservice="services.ttlservice.*"
+		   xmlns:timeline="ui.trace.timeline.*"
+		   xmlns:traceservice1="services.traceservice1.*"
+		   width="100%" height="100%" creationComplete="creationCompleteHandler(event)" xmlns:traceservice="services.traceservice.*" xmlns:screenshot="ui.screenshot.*">
+	<mx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Base;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.Trace;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.collections.IList;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.controls.Alert;
+			import mx.controls.dataGridClasses.DataGridItemRenderer;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.formatters.DateFormatter;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectProxy;
+			
+			import services.TtlLoader;
+			
+			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+			import ui.trace.timeline.events.TimelineEvent;
+			
+			import valueObjects.Ttl;
+			import valueObjects.VOTrace;
+			
+			protected var theTtlLoader:TtlLoader = new TtlLoader();
+			
+			[Bindable]
+			public var arMedia:Array; 
+			
+			[Bindable]
+			public var arTraceUrisToDisplay:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var theTraceBase:Base = null;
+			
+			[Bindable]
+			public var tracesRelatedToSelectedTtl:ArrayCollection = new ArrayCollection(); 
+
+			
+			[Bindable]
+			protected var obselCollectionToDisplay:ObselCollection = new ObselCollection();
+			
+			[Bindable]
+			protected var obselSelection:ObselCollection = new ObselCollection();
+			
+			protected var traceGridSortFields:Array = [new SortField("type", false, false), new SortField("begin", false, false, true)];
+			
+			protected function addNewTTL(event:MouseEvent):void
+			{
+				urlTTL_ti.enabled = true;
+				titleTTL_ti.enabled = true;
+				var newttl:Ttl = new Ttl();
+				newttl.url = "http://";
+				newttl.title = "new TTL"; 
+				createTtlResult.token = ttlService.createTtl(newttl);
+				ttlService.commit();
+			}
+			
+			protected function loadTTL(ttl:Ttl):void
+			{
+				if(theTraceBase)
+					theTtlLoader.loadTTL(ttl_list.selectedItem as Ttl,theTraceBase);
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
+				updateTraceFromServer();
+			}
+			
+			protected function onTtlLoaded(e:ResultEvent):void
+			{
+				if(e.result && getAllTraceResult.lastResult)
+				{
+					for each(var newtr:com.ithaca.traces.Trace in e.result["loadedTraces"])
+					{
+						var isNewTrace:Boolean = false; 
+						var correspondinfVOTrace:VOTrace = null;
+						for each(var extr:VOTrace in getAllTraceResult.lastResult)
+						{
+							if(newtr.uri == extr.uri)
+								correspondinfVOTrace = extr;
+						}
+						
+						if(!correspondinfVOTrace)
+						{
+							correspondinfVOTrace = new VOTrace();
+							isNewTrace = true;
+						}
+						
+						correspondinfVOTrace.begin = newtr.getEarliestObsel().begin;
+						correspondinfVOTrace.end = newtr.getLatestObsel().end;
+						correspondinfVOTrace.size = newtr.obsels.length;
+						correspondinfVOTrace.uri = newtr.uri;
+						correspondinfVOTrace.subject = newtr.getEarliestObsel().subject;
+						correspondinfVOTrace.idTtl = (e.result["theTtl"] as Ttl).id;
+						
+						if(isNewTrace)
+							createTraceResult.token = traceService1.createTrace(correspondinfVOTrace);
+						
+						traceService1.commit();
+						
+					}
+					
+					displaySubTrace();
+				}
+			}
+			
+			static public function searchArrayCollection(array:ArrayCollection, property:String, value:*):Number
+			{
+				for each(var elt:* in array)
+					if(elt is Object && (elt as Object).hasOwnProperty(property) && elt[property] == value)
+						return elt;
+					
+				return null;
+			}
+			
+			protected function displaySubTrace(event:Event = null):void
+			{	
+				obselCollectionToDisplay = new ObselCollection();
+				
+				var globalBegin:Number = NaN;
+				var globalEnd:Number = NaN;
+				
+				var loadedTraces:Array = [];
+				var unloadedTtl:Array = [];
+				
+				arTraceUrisToDisplay.removeAll();
+				
+				//we check if all the trace to display are loaded
+				for each(var tr:VOTrace in subTraces_grid.selectedItems)
+				{
+					var realTrace:com.ithaca.traces.Trace = theTraceBase.get(tr.uri) as com.ithaca.traces.Trace;
+					
+					if(realTrace)
+						loadedTraces.push(realTrace);
+					else
+					{
+						var theTtl:Ttl = searchArrayCollection(getAllTtlResult.lastResult as ArrayCollection, "id", tr.idTtl) as Ttl;					
+						unloadedTtl.push(theTtl);			
+					}
+					
+					arTraceUrisToDisplay.addItem(tr.uri);	
+				}
+				
+				//if some are not loaded, we load them
+				if(unloadedTtl.length > 0)
+				{
+					for each(var t:Ttl in unloadedTtl)
+						loadTTL(t);
+				}
+				else //if all the traces to display are loaded
+				{
+					
+					for each(var aTrace:com.ithaca.traces.Trace in loadedTraces)
+					{
+						for each(var o:Obsel in aTrace.obsels._obsels)
+							obselCollectionToDisplay.push(o);
+						
+						if(isNaN(globalBegin))
+							globalBegin = aTrace.getEarliestObsel().begin;
+						else
+							globalBegin = Math.min(globalBegin, aTrace.getEarliestObsel().begin);
+						
+						if(isNaN(globalEnd))
+							globalEnd = aTrace.getLatestObsel().end;
+						else
+							globalEnd = Math.max(globalEnd, aTrace.getLatestObsel().end);	
+					}
+					
+					subTraceLine.traceData = obselCollectionToDisplay;
+					contextTraceLine.traceData = obselCollectionToDisplay;
+					contextSelectionTraceLine.startTime = globalBegin;
+					contextSelectionTraceLine.stopTime = globalEnd;
+					contextTraceLine.startTime = globalBegin;
+					contextTraceLine.stopTime = globalEnd;
+					curseurTraceLine.startTime = globalBegin;
+					curseurTraceLine.stopTime = globalEnd;
+					curseurTraceLine.currentTime = 0;
+					
+					
+					trace_grid.invalidateList();
+				}
+	
+				
+				
+
+			}
+			
+
+			
+			private function beginTraceLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var timeFormatter:DateFormatter = new DateFormatter();
+				timeFormatter.formatString = "JJ:NN:SS";
+				return timeFormatter.format(new Date(item.begin));
+			}
+
+			private function beginObselLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var timeFormatter:DateFormatter = new DateFormatter();
+				timeFormatter.formatString = "JJ:NN:SS";
+				return timeFormatter.format(new Date(item.begin));
+			}
+			
+			private function endTraceLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var timeFormatter:DateFormatter = new DateFormatter();
+				timeFormatter.formatString = "JJ:NN:SS";
+				return timeFormatter.format(new Date(item.end));
+			}
+			
+			private function endObselLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var timeFormatter:DateFormatter = new DateFormatter();
+				timeFormatter.formatString = "JJ:NN:SS";
+				return timeFormatter.format(new Date(item.end));
+			}
+			
+			private function diffLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var itemRenderer:DataGridItemRenderer = trace_grid.itemToItemRenderer(item) as DataGridItemRenderer;
+				
+				if(itemRenderer)
+				{
+					var indice:Number = trace_grid.mx_internal::convertIndexToRow(trace_grid.itemRendererToIndex(itemRenderer));
+					
+					if(indice > 0)
+					{
+						var index:Number = trace_grid.indicesToIndex(indice-1,0);
+						if(!isNaN(index))
+						{
+							var previousObs:Obsel = ((trace_grid.dataProvider as IList).getItemAt(index) as Obsel)
+							var diff:Number = item.begin - previousObs.end;
+							var thre:Number = Number(blocThreshold_ti.text)
+							
+							if(diff < thre)
+								itemRenderer.setStyle("color","red");
+							else
+								itemRenderer.setStyle("color","black");
+							
+							return (item.begin - previousObs.end).toString();
+							
+						}
+					}
+				}
+				
+				return "NaN";
+			}
+			
+			protected function onDelete(e:Event):void
+			{
+				//TODO : make the two next commented lines work
+				//for each(var item:Object in trace_grid.selectedItems)
+					//(ttl_list.selectedItem["trace"] as Trace).delObsel(item as Obsel);
+				
+				displaySubTrace();
+			}
+			
+			protected function onObselLineSelectionChange(e:TimelineEvent):void
+			{
+				//les obsel selectionné sont stocké dans une variable gloable, on vide celle-ci
+				obselSelection = new ObselCollection();
+				
+				//les obsel selectionné sont affichés dans la box "obseleditorZone", on vide aussi celle-ci
+				obselEditorZone.removeAllChildren();
+				
+				if(e && e.obselSet) 
+					for each(var obs:Obsel in e.obselSet)
+					obselSelection.push(obs);
+				
+				//we update the display of the obselEditorZone
+				fillObselEditorZoneWithObselSelection();
+				
+				//on affiche les obsels selectionnées dans les traceline
+				selectionTraceLine.traceData = obselSelection;
+				contextSelectionTraceLine.traceData = obselSelection;
+			}
+			
+			protected function onObselGridSelectionChange(e:ListEvent):void
+			{
+				
+				//les obsel selectionné sont stocké dans une variable gloable, on vide celle-ci
+				obselSelection = new ObselCollection();
+				
+				//les obsel selectionné sont affichés dans la box "obseleditorZone", on vide aussi celle-ci
+				obselEditorZone.removeAllChildren();
+				
+				//on affiche le timing de l'élément selectionné en dernier
+				if(trace_grid.selectedItem)
+					time_ti.text = trace_grid.selectedItem.begin;
+				
+				var d:Date = new Date();
+				d.setTime(trace_grid.selectedItem.begin);
+				timing_lbl.text = "Timing : " + d.toUTCString();
+				
+				//on récupère une liste ordonnée des obsels selectionnées
+				var sortedSelectedIndices:Array = [];
+				
+				for each(var y:int in trace_grid.selectedIndices)
+				sortedSelectedIndices.push(y);
+				
+				sortedSelectedIndices.sort(Array.NUMERIC);
+				
+				//we fill the obsel selection with the selected obsel
+				for each(var index:int in sortedSelectedIndices)
+				{
+					var obsel:Object = trace_grid.indexToItemRenderer(trace_grid.indicesToIndex(index,0)).data;
+					
+					obselSelection.push(obsel as Obsel);
+				}	
+				
+				//we update the display of the obselEditorZone
+				fillObselEditorZoneWithObselSelection();
+				
+				//on affiche les obsels selectionnées dans les traceline
+				selectionTraceLine.traceData = obselSelection;
+				contextSelectionTraceLine.traceData = obselSelection;
+			}
+			
+			protected function fillObselEditorZoneWithObselSelection(e:Event = null):void
+			{
+				//we fill the obselEditorZone
+				var beginValueOfPreviousItem:Number = NaN;
+				
+				//pour tous les obsels selectionnée
+				for each(var obsel:Obsel in obselSelection._obsels)
+				{
+					//var obsel:Object = trace_grid.indexToItemRenderer(trace_grid.indicesToIndex(index,0)).data;
+					
+					if(!isNaN(beginValueOfPreviousItem))
+					{
+						var a:Label = new Label();
+						var diff:Number = obsel.begin - beginValueOfPreviousItem;
+						if(diff < 500)
+							a.setStyle("color","red");
+						
+						a.text = diff + " ms";
+						
+						obselEditorZone.addChild(a);
+						
+					}	
+					
+					var obsEditor:ObselEditor = new ObselEditor();
+					obsEditor.data = obsel;
+					obselEditorZone.addChild(obsEditor);
+					beginValueOfPreviousItem = obsel.begin;
+				}
+			}
+			
+			protected function setTiming(e:Event):void
+			{
+				
+				var diff:Number = Number(time_ti.text) - trace_grid.selectedItem.begin;
+				
+				for each(var obs:Obsel in (ttl_list.selectedItem["trace"] as com.ithaca.traces.Trace).obsels)
+				{
+					obs.begin += diff;
+					obs.end += diff;
+				}
+				
+				displaySubTrace();
+			}
+			
+			
+			protected function getMediaByTitle(t:String):Object
+			{
+				var theMedia:Object = null;
+				
+				if(t != null)
+				{
+					for each(var m:Object in arMedia)
+					{
+						if(m["title"] == t)
+						{
+							theMedia = m;
+							break;
+						}
+					}
+				}
+				
+				return theMedia;				
+			}
+			
+			protected function sortTraceGridByTypeAndBegin(event:MouseEvent):void
+			{
+				var srt:Sort = new Sort();
+				srt.fields = traceGridSortFields;
+				obselCollectionToDisplay._obsels.sort(function(x:Obsel, y:Obsel)
+												{
+													var r:Number;
+													if(x.obselType.label == y.obselType.label)
+														r = x.begin - y.begin;
+													else 
+														r = x.obselType.label < y.obselType.label ? -1 : 1;
+													
+													return r;
+												});
+
+			}
+			
+			public function updateAfterTTLLoading():void
+			{
+				subTraces_grid.invalidateDisplayList();
+				subTraces_grid.invalidateList();
+				loading_lbl.invalidateDisplayList();
+			}
+			
+			
+			protected function updateTtlFromServer(event:Event):void
+			{
+				getAllTtlResult.token = ttlService.getAllTtl();
+			}
+			
+			protected function save_btn_clickHandler(event:MouseEvent):void
+			{
+				ttlService.commit();
+			}
+			
+			
+			protected function updateTraceFromServer(e:Event=null):void
+			{
+				getAllTraceResult.token = traceService1.getAllTrace();
+			}
+			
+			protected function updateTraceListDisplay(event:Event=null):void
+			{
+				if(ttl_list.selectedItem && getAllTraceResult.lastResult)
+				{
+					tracesRelatedToSelectedTtl.removeAll();
+					for each(var tr:VOTrace in getAllTraceResult.lastResult)
+					{
+						if(tr.idTtl == (ttl_list.selectedItem as Ttl).id)
+							tracesRelatedToSelectedTtl.addItem(tr);
+					}
+					
+					displaySubTrace();
+				}
+			}
+			
+			
+			protected function loadTTL_btn_clickHandler(event:MouseEvent):void
+			{
+				if(ttl_list.selectedItem)
+					loadTTL(ttl_list.selectedItem as Ttl);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Metadata>
+		[Event(name="addTTLEvent", type="flash.events.Event")]
+		[Event(name="loadTTLEvent", type="flash.events.Event")]
+	</mx:Metadata>
+	<mx:TextInput id="titleTTL_ti" x="43" y="10" width="215"
+				  text="{ttl_list.selectedItem.title}" change="ttl_list.selectedItem.title = titleTTL_ti.text; ttl_list.invalidateList();" enabled="true"/>
+	<mx:TextInput id="urlTTL_ti" x="43" y="38" width="276"
+				  text="{ttl_list.selectedItem.url}" change="ttl_list.selectedItem.url = urlTTL_ti.text; " enabled="true"/>
+	<mx:Label x="10" y="12" text="Title"/>
+	<mx:Label x="10" y="40" text="Url"/>
+	<mx:Button x="10" label="Add TTL" id="addTL_btn" click="addNewTTL(event)" top="210" height="22"/>
+	<mx:Button label="Load" id="loadTTL_btn" click="loadTTL_btn_clickHandler(event)" top="10" left="266"/>
+	
+	<mx:TabNavigator  left="345" right="10" top="9" height="223">
+		<mx:Canvas width="100%" height="100%" label="Traces">
+			<mx:DataGrid id="subTraces_grid" x="0" y="0" width="100%" height="100%"
+						 allowMultipleSelection="true"
+						 dataProvider="{tracesRelatedToSelectedTtl}" itemClick="displaySubTrace(event)">
+				<mx:columns>
+					<mx:DataGridColumn headerText="uri" dataField="uri"/>
+					<mx:DataGridColumn dataField="title" headerText="title"/>
+					<mx:DataGridColumn dataField="begin" headerText="begin" labelFunction="beginTraceLabelFunction"/>
+					<mx:DataGridColumn dataField="end" headerText="end" labelFunction="endTraceLabelFunction"/>
+					<mx:DataGridColumn dataField="size" headerText="size"/>
+					<mx:DataGridColumn dataField="subject" headerText="subject"/>
+				</mx:columns>
+			</mx:DataGrid>
+		</mx:Canvas>
+		<mx:Canvas width="100%" height="100%" label="Screenshot">
+			<screenshot:ScreenshotViewer id="theScreenshotViewer" currentTime="{curseurTraceLine.zoomStartTime}" traceUris="{arTraceUrisToDisplay}" width="100%" height="100%"/>
+		</mx:Canvas>	
+	</mx:TabNavigator>
+
+	
+	<!--Display the selected traces-->
+	
+	<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
+						top="260" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+	
+	<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						rendererFunctionParams="{{'color':0xFF0000}}"
+						top="260" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>
+	
+	<timeline:CurseurHorizontal id="curseurTraceLine" top="235" height="49" x="10" width="{contextTraceLine.width}" 
+								startEdge="5" endEdge="{contextTraceLine.width}"  
+								minimumSize="70" lockSize="200" lockPosition="100"
+								startAndEndDelta="1"
+								locked="false"/>
+	
+	<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+						rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+						top="275" height="10" left="10" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+	
+	<!--Display the selected obsels in the traces (stored in obselSelection Array)-->
+	
+	<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
+						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+						top="275" height="10" left="10" right="10" renderAlign="middle" mouseEnabled="false"/>	
+	
+	<mx:HBox label="Table" top="320" bottom="40" left="10" right="10" id="traceHBox" >
+		<mx:DataGrid id="trace_grid"
+					 width="70%" height="100%"
+					 dataProvider="{ obselCollectionToDisplay }"
+					 rollOverColor="haloSilver"
+					 selectionColor="haloOrange"
+					 allowMultipleSelection="true"
+					 change="onObselGridSelectionChange(event)"
+					 > 
+			<mx:columns>
+				<mx:DataGridColumn headerText="trace"   dataField="trace.label" />
+				<mx:DataGridColumn headerText="type"   dataField="obselType.label" />
+				<mx:DataGridColumn headerText="uri"   dataField="uri" />
+				<mx:DataGridColumn headerText="begin"  width="70" dataField="begin" dataTipFunction="beginObselLabelFunction" editable="true"/>
+				<mx:DataGridColumn headerText="end"    width="70" dataField="end" dataTipFunction="endObselLabelFunction" editable="true" />
+				<mx:DataGridColumn headerText="diff"  width="70" labelFunction="diffLabelFunction" />
+			</mx:columns>
+		</mx:DataGrid>
+		
+		<mx:VBox width="{traceHBox.width/3}" id="obselEditorZone" verticalScrollPolicy="on" horizontalScrollPolicy="on" height="{traceHBox.height}"/>
+		
+	</mx:HBox>		
+	<mx:List id="ttl_list" x="10" y="66" width="327" height="136"
+			 creationComplete="updateTtlFromServer(event)"
+			 dataProvider="{getAllTtlResult.lastResult}"
+			 change="updateTraceListDisplay()" labelField="title"></mx:List>
+	<mx:Label x="140" y="209" text="Loading..." id="loading_lbl" visible="{theTtlLoader.loading}"  />
+	<mx:Button x="446" label="Set (all traces in TTL)" click="setTiming(event)" bottom="10"/>
+	<mx:TextInput id="time_ti" x="313" width="125" bottom="10"/>
+	<mx:Button x="598" label="Delete" click="onDelete(event)" bottom="10"/>
+	<mx:Label id="timing_lbl" x="10" text="Timing" bottom="12" width="295" textAlign="right"/>
+	<mx:Button label="Sort by type/begin" click="sortTraceGridByTypeAndBegin(event)" bottom="10" right="20"/>
+	<mx:Label text="Bloc Threshold (ms)" bottom="10" right="225"/>
+	<mx:TextInput width="55" right="162" text="500" id="blocThreshold_ti" bottom="10"/>
+	<mx:CallResponder id="getAllTtlResult"/>
+	<ttlservice:TtlService id="ttlService"
+						   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+						   showBusyCursor="true"/>
+	<mx:CallResponder id="createTtlResult" result="updateTtlFromServer(event)"/>
+	<mx:CallResponder id="createTraceResult" result="updateTraceFromServer(event)"/>
+	<mx:Button id="save_btn" x="266" y="207" label="Save" click="save_btn_clickHandler(event)"/>
+	<mx:CallResponder id="getAllTraceResult" result="updateTraceListDisplay(event)"/>
+	<traceservice:TraceService id="traceService1"
+								 fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								 showBusyCursor="true"/>
+
+	
+</mx:Canvas>

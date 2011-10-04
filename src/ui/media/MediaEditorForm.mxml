@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Form xmlns:fx="http://ns.adobe.com/mxml/2009"
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		xmlns:valueObjects="valueObjects.*"
+		xmlns:media="ui.media.*"
+		width="391" height="290" defaultButton="{submitButton}">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Metadata>
+		[Event(name="submit", type="flash.events.Event")]
+		[Event(name="close", type="flash.events.Event")]
+	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import spark.layouts.BasicLayout;
+			
+			[Bindable]
+			public var showButton:Boolean = false;
+			
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				this.dispatchEvent(new Event("submit"));
+			}
+			
+			protected function canceBUtton_clickHandler(event:MouseEvent):void
+			{
+				this.dispatchEvent(new Event("close"));
+			}
+			
+		]]>
+	</fx:Script>
+	
+		<fx:Declarations>
+			<valueObjects:Media id="media"/>
+			<!-- Place non-visual elements (e.g., services, value objects) here -->
+			<s:NumberValidator id="lengthValidator" source="{lengthTextInput}" property="text" trigger='{lengthTextInput}'
+							   triggerEvent="change" allowNegative="false" domain="int" />
+			
+		</fx:Declarations>
+	<s:FormItem x="10" y="2" width="349" label="Title">
+		<s:TextInput id="titleTextInput" width="292" text="{media.title}" change="{media.title = titleTextInput.text}"/>
+	</s:FormItem>
+	<s:FormItem x="11" y="140" width="348" label="Description">
+		<s:TextArea id="descriptionTextInput" width="251" height="100"
+					change="{media.description = descriptionTextInput.text}"
+					text="{media.description}"/>
+	</s:FormItem>
+	
+		<s:FormItem x="121" y="35" width="238" label="Length(ms): ">
+			<s:TextInput id="lengthTextInput" width="141"
+						 change="{media.length = parseInt(lengthTextInput.text)}"
+						 text="{media.length}"/>
+		</s:FormItem>
+		<s:FormItem x="9" y="70" width="350" label="StartDate">
+			<media:DateTimeField id="startDateDateField" width="268" selectedDate="{media.startDate}" enableSeconds="true"
+								 		dateChange="{media.startDate = startDateDateField.selectedDate}"/>
+		</s:FormItem>
+		<s:FormItem x="10" y="35" label="Color">
+			<mx:ColorPicker id="colorInput" selectedColor="{media.color}" change="{media.color = colorInput.selectedColor}"/>
+		</s:FormItem>
+		<s:FormItem x="11" y="105" width="348" label="Url">
+			<s:TextInput id="urlTextInput" width="303" text="{media.url}" change="{media.url = urlTextInput.text}"/>
+		</s:FormItem>
+		<s:Button id="submitButton" x="289" y="254" label="Submit" click="button_clickHandler(event)" visible="{showButton}"/>
+		<s:Button id="canceBUtton" x="9" y="254" label="Cancel"
+				  click="canceBUtton_clickHandler(event)" visible="{showButton}"/>
+</s:Form>

@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="70" height="300" 
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="enableGripCursor()">
+
+	<mx:Metadata>
+		[Event(name="zoomChange", type="flash.events.Event")]
+		[Event(name=CurseurBase.ZOOM_MOVE_EVENT, type="flash.events.Event")]
+		[Event(name=CurseurBase.ZOOM_FROM_PROG_COMPLETE_EVENT, type="flash.events.Event")]
+	</mx:Metadata>
+	
+	<mx:Script>
+		<![CDATA[
+
+			import mx.events.FlexEvent;
+			import com.greensock.*;
+			import com.greensock.easing.*;
+			
+			import mx.controls.Button; 
+			import mx.formatters.DateFormatter; 
+			
+			public static const ZOOM_CHANGE_EVENT: String='zoomChange';
+			public static const ZOOM_MOVE_EVENT: String='zoomMove';
+			public static const ZOOM_FROM_PROG_COMPLETE_EVENT: String='zoomChange';
+			
+			public static const DIRECTION_HORIZONTAL: String='horizontal';
+			public static const DIRECTION_VERTICAL: String='vertical';
+			
+			
+			/* *******************************************************************
+			**********					PROPERTIES 			**********************
+			*********************************************************************/
+			
+			public var startEdge:Number;
+			
+			public var endEdge:Number;
+			
+			public var minimumSize:Number = 60;
+			
+			[Bindable]
+			public var lockPosition:Number = 80;
+			
+			public var lockSize:Number = 160;
+			
+			[Bindable]
+			protected var _locked:Boolean = false;
+			
+			[Bindable]
+			protected var _startTime:Number = 0;
+			
+			[Bindable]
+			public var zoomStartTime:Number = 0;
+			
+			[Bindable]
+			protected var _stopTime:Number = 2000;
+			
+			[Bindable]
+			public var zoomStopTime:Number = 2000;
+
+			[Bindable]
+			protected var _currentTime:Number = 0;
+			
+			public var startAndEndDelta:Number = 	0;
+			
+			protected var realStartTime:Number;
+			
+			protected var realStopTime:Number;
+			
+			protected var _direction:String = CurseurBase.DIRECTION_HORIZONTAL;
+			
+			protected var currentCenterDragingPoint:Point;
+			
+			/* *******************************************************************
+			**********	GRAPHICAL PARTS (to be implemented in subclasses **********
+			*********************************************************************/
+			
+			public var middleGrip:Button;
+			
+			public var startGrip:Button;
+			
+			public var endGrip:Button;
+			
+			public var checkLock:Button;
+
+			/* *******************************************************************
+			**********					ASSETS EMBEDING			******************
+			*********************************************************************/
+			
+			[Embed(source="timeline/cursor/openhandCursor.png")]
+			protected var openHandCursorSymbol:Class; 
+			
+			[Embed(source="timeline/cursor/closehandCursor.png")]
+			protected var closeHandCursorSymbol:Class; 
+			
+			[Embed(source="timeline/cursor/horizontal_resize.png")]  
+			protected var horizontalResizeCursorSymbol:Class; 
+			
+			[Embed(source="timeline/cursor/vertical_resize.png")]  
+			protected var verticalResizeCursorSymbol:Class; 
+			
+	
+			/* *******************************************************************
+			**********	GETTER / SETTER									 **********
+			*********************************************************************/
+			
+			public function get direction():String
+			{
+				return _direction;
+			}
+
+			public function set direction(value:String):void
+			{
+				_direction = value;
+			}
+
+			public function setZoomTime(start:Number, stop:Number):void
+			{
+				zoomStartTime = start;
+				zoomStopTime = stop;
+				updateFromProg();
+			}
+
+			public function get stopTime():Number
+			{
+				return _stopTime;
+			}
+
+			public function set stopTime(value:Number):void
+			{
+				_stopTime = value;
+				updateFromProg();
+			}
+
+			public function get startTime():Number
+			{
+				return _startTime;
+			}
+
+			public function set startTime(value:Number):void
+			{
+				_startTime = value;
+				updateFromProg();
+			}
+
+			public function get currentTime():Number
+			{
+				return _currentTime;
+			}
+
+			public function set currentTime(value:Number):void
+			{
+				_currentTime = value;
+				updateFromLock();
+			}
+
+			public function get locked():Boolean
+			{
+				return _locked;
+			}
+
+			public function set locked(value:Boolean):void
+			{
+				_locked = value;
+				
+				if(_locked)
+					updateFromLock();
+			}
+			
+			public function onLockButton():void
+			{
+				locked = checkLock.selected;
+			}
+			
+			public function onClickZoomButton():void{
+				this.addEventListener(FlexEvent.UPDATE_COMPLETE , onUpdateFromUserComplet);
+				this.x = this.startEdge;
+				this.width = this.endEdge;
+				locked = false;
+			}
+
+			public function updateFromLock():void
+			{
+				if(locked)
+				{
+					/*var toHeight:Number =  lockHeight ;
+					
+					toHeight = Math.max(minimumHeight, toHeight);
+					
+					var toY:Number = getYFromTime(currentTime) - lockPosition ;
+					toY = Math.max(toY, topEdge);
+					toY = Math.min(toY, bottomEdge - toHeight);
+					
+					zoomStartTime = Math.max(getTimeFromY(toY), realStartTime);
+					zoomStopTime = Math.min(getTimeFromY(toY + toHeight), realStopTime);*/
+					
+					var sizeAndPos:Object = getSizeAndPosToZoomOnTime(currentTime);
+					this.addEventListener(FlexEvent.UPDATE_COMPLETE , onUpdateFromUserComplet);
+					if(direction == CurseurBase.DIRECTION_VERTICAL)
+					{
+						this.height = sizeAndPos["size"];
+						this.y = sizeAndPos["pos"];
+					}
+					else
+					{
+						this.width = sizeAndPos["size"];
+						this.x = sizeAndPos["pos"];
+					}
+					
+					
+					/*TweenMax.killTweensOf(this);
+					TweenMax.to(this,1,{height:heightAndY["height"], ease:Linear.easeNone, onUpdate:updateFromUser});
+					
+					TweenMax.to(this,1,{y:heightAndY["y"],  ease:Linear.easeNone});*/
+				}
+				
+			}
+			private function onUpdateFromUserComplet(event:Event):void
+			{
+				this.removeEventListener(FlexEvent.UPDATE_COMPLETE , onUpdateFromUserComplet);
+				updateFromUser();
+			}
+			public function setZoomOnATimePos(t:Number):void
+			{
+				var sizeAndPos:Object = getSizeAndPosToZoomOnTime(t);
+				
+				TweenMax.killTweensOf(this);
+				
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+				{
+					TweenMax.to(this,.2,{height:sizeAndPos["size"],
+						onComplete:function(curseur:CurseurBase):void
+						{
+							curseur.dispatchEvent(new Event("zoomFromProgComplete"));
+							curseur.updateFromUser();
+						},
+						onCompleteParams:[this],
+						onUpdate:updateFromUser
+						});
+						
+						
+					TweenMax.to(this,.2,{y:sizeAndPos["pos"],  ease:Linear.easeNone});
+				}
+				else
+				{
+					TweenMax.to(this,.2,{width:sizeAndPos["size"], 
+							onComplete:function(curseur:CurseurBase):void
+							{
+								curseur.dispatchEvent(new Event("zoomFromProgComplete"));
+								curseur.updateFromUser();
+							},
+							onCompleteParams:[this],
+							onUpdate:updateFromUser
+							});
+							
+							
+					TweenMax.to(this,.2,{x:sizeAndPos["pos"],  ease:Linear.easeNone});
+				}
+			}
+						
+			
+			public function calculateRealTimes():void
+			{
+				// Calculate real stop and start time
+				
+				var size:Number = endEdge;
+				
+				var timeSize:Number = size - 2*startAndEndDelta;
+				
+				var length:Number = (_stopTime - _startTime) * (size / timeSize);
+				
+				var diff:Number = length - (_stopTime - _startTime);
+				
+				realStartTime = _startTime - diff/2;
+				
+				realStopTime = _stopTime + diff/2;
+			
+			}
+			
+			
+			public function updateFromProg(e:Event = null):void
+			{
+
+				calculateRealTimes();
+				
+				//Updating display
+				
+				var toSize:Number =  getPosFromTime(zoomStopTime) - getPosFromTime(zoomStartTime);
+				
+				toSize = Math.max(minimumSize, toSize);
+				
+				var toPos:Number = getPosFromTime(zoomStartTime);
+				
+				toPos = Math.min(toPos, endEdge  + startEdge - toSize);
+				toPos = Math.max(toPos, startEdge);
+				
+				TweenMax.killTweensOf(this);
+				
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+				{
+					TweenMax.to(this,.5,{height:toSize, ease:Linear.easeNone, onUpdate:fireZoomChange});
+				
+					TweenMax.to(this,.5,{y:toPos,  ease:Linear.easeNone});
+				}
+				else
+				{
+					TweenMax.to(this,.5,{width:toSize, ease:Linear.easeNone, onUpdate:fireZoomChange});
+						
+					TweenMax.to(this,.5,{x:toPos,  ease:Linear.easeNone});					
+				}
+			}
+			
+			public function updateFromUser():void
+			{
+				calculateRealTimes();
+				
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+				{
+					zoomStartTime = Math.max(getTimeFromPos(this.y), realStartTime);
+					zoomStopTime = getTimeFromPos(this.y+this.height);
+				}
+				else
+				{
+					zoomStartTime = Math.max(getTimeFromPos(this.x), realStartTime);
+					zoomStopTime = getTimeFromPos(this.x+this.width);
+				}
+				
+
+				fireZoomChange();
+			}
+
+			protected function fireZoomChange(e:Event = null):void
+			{
+				this.dispatchEvent(new Event("zoomChange"));
+			}
+			
+			protected function userZoom(e:Event = null):void
+			{
+				_locked = false;
+				updateFromUser();
+				fireZoomChange();
+			}
+			
+			protected function userMove(e:Event = null):void
+			{
+				_locked = false;
+				updateFromUser();
+				this.dispatchEvent(new Event("zoomMove"));
+			}
+			
+			public function getPosFromTime(t:Number):Number
+			{
+				if(!isNaN(_startTime) && !isNaN(_stopTime))
+				{
+					calculateRealTimes();
+					
+					var size:Number = endEdge;
+					
+					var timeSize:Number = size - 2*startAndEndDelta;
+					
+					var length:Number = (_stopTime - _startTime) * (size / timeSize);
+
+					//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+					var pos:Number = ( ( size / length) * (t - realStartTime) ) + startEdge;
+					
+					return pos;
+				}
+				
+				return NaN;
+			}
+			
+			public function getTimeFromPos(pos:Number):Number
+			{
+				if(!isNaN(_startTime) && !isNaN(_stopTime))
+				{
+					calculateRealTimes();
+					
+					var size:Number = endEdge;
+					
+					var timeSize:Number = size - 2*startAndEndDelta;
+					
+					var length:Number = (_stopTime - _startTime) * (size / timeSize);
+					
+					//we calculate the pos, we consider "t plus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+					var pos:Number = ((length / size) * (pos - startEdge)) + (realStartTime);
+
+					return pos;
+				}
+				
+				return NaN;
+			}
+			
+			public function getDurationFromSpace(space:Number):Number
+			{
+				if(!isNaN(_startTime) && !isNaN(_stopTime))
+				{
+					var size:Number = endEdge;
+					
+					var timeSize:Number = size - 2*startAndEndDelta;
+					
+					var length:Number = (_stopTime - _startTime) * (size / timeSize);
+					
+					var duration:Number = ( size / length) * space;
+					
+					
+					return duration;
+				}
+				
+				return NaN;
+			}
+			
+			public function getSizeAndPosToZoomOnTime(t:Number):Object
+			{
+				var toSize:Number =  lockSize ;
+				
+				toSize = Math.max(minimumSize, toSize);
+				
+				var toPos:Number = getPosFromTime(currentTime) - lockPosition ;
+				toPos = Math.max(toPos, startEdge);
+				toPos = Math.min(toPos, endEdge + startEdge - toSize);
+				
+			
+				return {"size":toSize, "pos":toPos};
+			}
+			
+			protected function setOpenHandCursor(e:Event = null):void
+			{
+				cursorManager.setCursor(openHandCursorSymbol,2,-8,-8);
+			}
+
+			protected function setCloseHandCursor(e:Event = null):void
+			{
+				cursorManager.setCursor(closeHandCursorSymbol,2,-8,-8);
+			}
+			
+			protected function setResizeCursor(e:Event = null):void
+			{
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+					cursorManager.setCursor(verticalResizeCursorSymbol,2,-12,-20);
+				else
+					cursorManager.setCursor(horizontalResizeCursorSymbol,2,-12,-20);
+				
+			}
+			
+			protected function setSystemCursor(e:Event = null):void
+			{
+				cursorManager.removeAllCursors();
+			}
+			
+			protected function enableGripCursor(e:Event = null):void
+			{
+				startGrip.addEventListener(MouseEvent.MOUSE_OVER, setResizeCursor);
+				endGrip.addEventListener(MouseEvent.MOUSE_OVER, setResizeCursor);
+				middleGrip.addEventListener(MouseEvent.MOUSE_OVER, setOpenHandCursor);
+				
+				startGrip.addEventListener(MouseEvent.MOUSE_OUT, setSystemCursor);
+				endGrip.addEventListener(MouseEvent.MOUSE_OUT, setSystemCursor);
+				middleGrip.addEventListener(MouseEvent.MOUSE_OUT, setSystemCursor);
+			}
+			
+			protected function disableGripCursor(e:Event = null):void
+			{
+				startGrip.removeEventListener(MouseEvent.MOUSE_OVER, setResizeCursor);
+				endGrip.removeEventListener(MouseEvent.MOUSE_OVER, setResizeCursor);
+				middleGrip.removeEventListener(MouseEvent.MOUSE_OVER, setOpenHandCursor);
+				
+				startGrip.removeEventListener(MouseEvent.MOUSE_OUT, setSystemCursor);
+				endGrip.removeEventListener(MouseEvent.MOUSE_OUT, setSystemCursor);
+				middleGrip.removeEventListener(MouseEvent.MOUSE_OUT, setSystemCursor);
+
+			}
+			
+			/************************************************************/
+			/*			Handling of the Resize from the Center				*/
+			/************************************************************/
+			
+			
+			protected function centerStartDrag(e:MouseEvent):void
+			{
+				//this.startDrag(false,new Rectangle(this.x,topEdge,0,bottomEdge - topEdge - this.height));				
+				
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,centerDraging);
+				stage.addEventListener(MouseEvent.MOUSE_UP,centerStopDrag);
+				
+				locked = false;
+				
+				disableGripCursor();
+				setSystemCursor();
+				setCloseHandCursor();
+				
+				currentCenterDragingPoint = new Point(e.localX, e.localY);
+			}
+			
+			protected function centerDraging(e:MouseEvent):void
+			{
+
+				//We are here intersted in the Y of the mouse in the context of the parent of our object
+				//We then egt the coordinates of the mouse in this context
+				var parentMouse:Point = this.parent.globalToLocal(new Point(e.stageX, e.stageY));
+				var localMouse:Point = this.globalToLocal(new Point(e.stageX, e.stageY));
+				
+				var toPos:Number;
+				
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+					toPos = parentMouse.y - currentCenterDragingPoint.y;// (middleGrip.y + middleGrip.height/2);
+				else
+					toPos = parentMouse.x - currentCenterDragingPoint.x;// (middleGrip.x + middleGrip.width/2);
+				
+				//We check if we are not above the defined topEdge
+				toPos = Math.max(startEdge,toPos);
+				
+				//We also check that we are not after the endEdge
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+					toPos = Math.min(toPos, endEdge + startEdge  - this.height);
+				else	
+					toPos = Math.min(toPos, endEdge + startEdge  - this.width);
+
+				//Finally we set the new X/Y value to our object (with a tween effect)
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+					TweenMax.to(this,.6,{y:toPos, ease:Back.easeOut, onUpdate:userMove});
+				else
+					TweenMax.to(this,.6,{x:toPos, ease:Back.easeOut, onUpdate:userMove});
+			}
+			
+			protected function centerStopDrag(e:MouseEvent):void
+			{
+				
+				this.stopDrag();
+				
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,centerDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,centerStopDrag);
+				
+				setSystemCursor();
+				enableGripCursor();
+			}
+			
+			
+			/************************************************************/
+			/*			Handling of the Resize from the Start Grip		*/
+			/************************************************************/
+			
+			protected function startGripStartDrag(e:MouseEvent):void
+			{		
+				//we will now update our objet when the mouse will move (via the topDragingFunction)
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,startGripDraging);
+				
+				//when the mouse button will be released, we stop to listen the mouse (via the topStopDrag)
+				stage.addEventListener(MouseEvent.MOUSE_UP,startGripStopDrag);
+				
+				locked = false;
+				
+				disableGripCursor();
+				setResizeCursor();
+			}
+			
+			protected function startGripDraging(e:MouseEvent):void
+			{
+				//Note : Here the comments apply to the vertical case, it is the same process for the horizontal case
+				
+				//We are here intersted in the Y of the mouse in the context of the parent of our object
+				//We then egt the coordinates of the mouse in this context
+				var parentMouse:Point = this.parent.globalToLocal(new Point(e.stageX, e.stageY));
+
+				var toPos:Number;
+				var toSize:Number;
+				
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+				{	
+					// We calculate the futur Y value for our object
+					
+					// We initialize this value with the Y value of the mouse on Stage 
+					//(minus the gap from the top of our object and the control in use in the resize)
+					
+					toPos = parentMouse.y - startGrip.y;
+					
+					//We check if we are not above the defined topEdge
+					toPos = Math.max(startEdge,toPos);
+				
+					//We also check that we are not under the implicit value implied by the minimumHeight public var
+					toPos = Math.min(toPos, this.y + this.height - minimumSize);
+
+					// Knowing the futur Y value of our object, we can change its height, then the resize can occur	
+					//(adding the gap from the top of our object and the control in use in the resize)
+					toSize = this.height + (this.y - toPos);// + topGrip.y;
+					TweenMax.to(this,.6,{height:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					
+					//Finally we set the new Y value to our object (with a tween)
+					TweenMax.to(this,.6,{y:toPos, ease:Back.easeOut});
+				}
+				//The same for horizontal direction
+				else
+				{
+					toPos = parentMouse.x - startGrip.x;
+					toPos = Math.max(startEdge,toPos);
+					toPos = Math.min(toPos, this.x + this.width - minimumSize);
+					
+					toSize = this.width + (this.x - toPos);// + topGrip.y;
+					
+					TweenMax.to(this,.6,{width:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					TweenMax.to(this,.6,{x:toPos, ease:Back.easeOut});
+				}
+			}
+			
+			protected function startGripStopDrag(e:MouseEvent):void
+			{				
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,startGripDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,startGripStopDrag);
+				
+				setSystemCursor();
+				enableGripCursor();
+			}
+			
+			
+			/************************************************************/
+			/*			Handling of the Resize from the Bottom				*/
+			/************************************************************/
+			
+			protected function endGripStartDrag(e:MouseEvent):void
+			{		
+				//we will now update our objet when the mouse will move (via the bottomDragingFunction)
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,endGripDraging);
+				
+				//when the mouse button will be released, we stop to listen the mouse (via the bottomStopDrag)
+				stage.addEventListener(MouseEvent.MOUSE_UP,endGripStopDrag);
+				
+				locked = false;
+				
+				disableGripCursor();
+				setResizeCursor();
+			}
+			
+			protected function endGripDraging(e:MouseEvent):void
+			{
+				//Note : Here the comments apply to the vertical case, it is the same process for the horizontal case
+				
+				//We are here intersted in the Y of the mouse in the context of the parent of our object
+				//We then egt the coordinates of the mouse in this context
+				var parentMouse:Point = this.parent.globalToLocal(new Point(e.stageX, e.stageY));
+				
+				var toSize:Number;
+				
+				if(direction == CurseurBase.DIRECTION_VERTICAL)
+				{
+					// We calculate the futur bottom (y + height) value for the all object
+					
+					// We initialize this value with the bottom value of the mouse on Stage 
+					//(minus the gap from the bottom of our object and the control in use in the resize)
+					var toB:Number = parentMouse.y + (this.height - (endGrip.y + endGrip.height)); 		
+					
+					//We check if we are not under the defined bottomEdge
+					toB = Math.min(endEdge + startEdge,toB);
+					
+					//We also check that we are not under the implicit value implied by the minimumHeight public var
+					toB = Math.max(toB, this.y + minimumSize);
+					
+					// Knowing the futur bottom value of our object, we can change its height, then the resize can occur	
+					//(adding the gap from the bottom of our object and the control in use in the resize)
+					toSize = this.height - (this.y + this.height) + toB;
+					TweenMax.to(this,.6,{height:toSize, onUpdate:userZoom, ease:Back.easeOut});
+				}
+				else
+				{
+					var toD:Number = parentMouse.x + (this.width - (endGrip.x + endGrip.width));
+			
+					toD = Math.min(endEdge + startEdge,toD);
+					
+					toD = Math.max(toD, this.x + minimumSize);
+					
+					toSize = this.width - (this.x + this.width) + toD;
+					
+					TweenMax.to(this,.6,{width:toSize, onUpdate:userZoom, ease:Back.easeOut});
+				}
+			}
+			
+			protected function endGripStopDrag(e:MouseEvent):void
+			{				
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,endGripDraging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,endGripStopDrag);
+				
+				setSystemCursor();
+				enableGripCursor();
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:filters>
+		<mx:DropShadowFilter blurX="8" blurY="8" distance="0" strength="1"/>
+	</mx:filters>
+	
+</mx:Canvas>

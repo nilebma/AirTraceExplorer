@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"  xmlns:ns1="*"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"  xmlns:Utils="Utils.*"  
+				backgroundAlpha="0.0" xmlns:Utils1="ithaca.traces.timeline.Utils.*"
+				horizontalAlign="right"
+				creationComplete="init()" resize="onResize()" xmlns:PlayLineRenders="ithaca.traces.timeline.PlayLineRenders.*"
+				xmlns:timeline="ithaca.traces.timeline.*" xmlns:timeline1="ithaca.traces.timeline.*"  >
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.DragSource;
+			import mx.core.UIComponent;
+			import com.lyon2.visu.model.VisuModelLocator;
+			import com.lyon2.visu.model.TraceModel;
+			import com.greensock.*;
+			import ithaca.traces.timeline.*;
+			import ithaca.traces.timeline.PlayLineRenders.*;
+			import ithaca.traces.timeline.TraceLineRenderers.*;
+			import ithaca.traces.timeline.events.InternalTimelineEvent;
+			import ithaca.traces.timeline.tickRenderers.*;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.containers.TitleWindow;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.PropertyChangeEvent;
+			import mx.formatters.DateFormatter;
+			import mx.utils.ObjectProxy;
+			import mx.events.ItemClickEvent;
+			import com.ithaca.traces.Obsel;
+			import com.lyon2.visu.events.TimelineEvent;	
+			import com.lyon2.visu.views.retrospection.ExportTraceShemergerRetrospectionRoom;
+			import mx.controls.Alert;
+			
+			import mx.managers.PopUpManager;
+			import mx.events.DragEvent;
+			import mx.managers.DragManager;
+			
+			
+			[Bindable]
+			public var _traceData:ArrayCollection;
+			
+			[Bindable]
+			public var tickData:ArrayCollection; //dummy obsel to generate time ruler
+
+			[Bindable]
+			public var traceTypeData:ArrayCollection;
+
+			[Bindable]
+			private var _model:TimelineModel;			
+			
+			private var theDateFormatter:DateFormatter;
+			
+			private var theMask:Canvas = new Canvas();
+			
+			private var curseurWasLockedBeforePause:Boolean;
+			
+			private var dynamicTraceLines:ArrayCollection = new ArrayCollection();
+			
+			private var dynamicRowHeaders:ArrayCollection = new ArrayCollection();
+			
+			private var filterPopup:TimelineFilterWindow;
+			
+			public var traceLineLayout:String = "byUser"; // or "byType"
+			
+			private var popupExportTrace:TitleWindow;
+			
+			private var obselRendererRendering:uint = 0;
+			
+			[Bindable]
+			public var traceLineHeight:int = 70;
+			
+
+			private var targetPlaceObsel:TargetObsel = new TargetObsel(); 
+			
+			//Embeding assets
+			[Bindable]
+			[Embed(source="timeline/traceIcons/chatMessage.png")]
+			public var messageTraceIcon:Class;
+			
+			[Bindable]
+			[Embed(source="timeline/traceIcons/consigne.png")]
+			public var consigneTraceIcon:Class;
+			
+			[Bindable]
+			[Embed(source="timeline/traceIcons/fichier.png")]
+			public var fichierTraceIcon:Class;
+			
+			[Bindable]
+			[Embed(source="timeline/traceIcons/marqueur.png")]
+			public var marqueurTraceIcon:Class;
+			
+			[Bindable]
+			[Embed(source="timeline/traceIcons/motCle.png")]
+			public var motCleTraceIcon:Class;
+
+			private var playLine:PlayLine;
+			
+			
+			public function init():void
+			{
+				
+				//updateTunnelEffect();
+				theDateFormatter = new DateFormatter();
+				theDateFormatter.formatString = "NN:SS";
+				
+				traceTypeData = new ArrayCollection();
+				
+				var a:ObjectProxy = new ObjectProxy({"name":"Message","receiveTypes":["ReceiveChatMessage"], "sendTypes":["ReceiveChatMessage"], "iconClass":messageTraceIcon, "dataField":"message", "visible":true});
+				traceTypeData.addItem(a);
+				
+				a = new ObjectProxy({"name":"Marqueur","receiveTypes":["ReceiveMark"], "sendTypes":["SetMark"],"iconClass":marqueurTraceIcon, "dataField":"text", "visible":true});
+				traceTypeData.addItem(a);
+				
+				a = new ObjectProxy({"name":"Document","receiveTypes":["ReceiveDocument"],"sendTypes":["SendDocument"], "iconClass":fichierTraceIcon, "dataField":"url", "visible":true});
+				traceTypeData.addItem(a);
+				
+				a = new ObjectProxy({"name":"Mot Clé","receiveTypes":["ReceiveKeyword"],"sendTypes":["SendKeyword"], "iconClass":motCleTraceIcon, "dataField":"keyword", "visible":true});
+				traceTypeData.addItem(a);
+
+				a = new ObjectProxy({"name":"Questions","receiveTypes":["ReceiveInstructions"], "sendTypes":["SendInstructions"], "iconClass":consigneTraceIcon, "dataField":"instructions", "visible":true});
+				traceTypeData.addItem(a);
+				
+				drawDynamicTraceLines();
+				
+				generateTickData();
+				
+				initPopupFilter();
+				updateZoomToContextEffect();
+				// listener of the triceLine comment
+				this.comments.addEventListener(MouseEvent.DOUBLE_CLICK, onClickTraceComment) 
+				
+				BindingUtils.bindProperty(this.comments,"startTime",curseur,"zoomStartTime");
+				BindingUtils.bindProperty(this.comments,"stopTime",curseur,"zoomStopTime"); 
+				
+				this.comments.addEventListener(InternalTimelineEvent.ITEM_ZOOM_ON, onItemZoomOn);
+				this.comments.addEventListener(InternalTimelineEvent.ITEM_EDIT_START, pauseCurseurLock);
+				this.comments.addEventListener(InternalTimelineEvent.ITEM_EDIT_STOP, unPauseCurseurLock);
+				this.comments.addEventListener(InternalTimelineEvent.ITEM_GOTO_AND_PLAY, onItemGotoAndPlay); 
+				var arVisuModeBar:Array = new Array();
+				arVisuModeBar.push({value:"byUser", label:"Timeline par Utilisateurs"});
+				arVisuModeBar.push({value:"byType", label:"Timeline par Types d'observés"});
+				if(VisuModelLocator.getInstance().getModeDebug())
+				{
+					arVisuModeBar.push({value:"all", label:"Timeline All Traces (debug)"});
+					arVisuModeBar.push({value:"debugGrid", label:"Table (debug)"});
+				}
+				this.visuModeBar.dataProvider = arVisuModeBar;
+				this.visuModeBar.selectedIndex = 0;
+				
+				playLine = new PlayLine();
+				playLine.RendererType = PlayHeadForHorizontalPlayLine;
+				playLine.direction = "horizontal";
+				BindingUtils.bindProperty(playLine,"startTime",curseur,"zoomStartTime");
+				BindingUtils.bindProperty(playLine,"stopTime",curseur,"zoomStopTime");
+				playLine.x = comments.x;
+				playLine.y = comments.y;
+				playLine.width = comments.width;
+				playLine.percentHeight = 100;
+				timelines.addChild(playLine);
+				
+						
+			}
+			
+			
+			private function onClickTraceComment(event:MouseEvent):void{
+				if(event.target == this.comments && model.getLastEditObselComment() == null){
+					var timeStamp:Number = this.comments.startTime+(this.comments.stopTime - this.comments.startTime)*(event.localX/this.comments.width);
+					timeStamp = new Number(timeStamp.toString().split('.')[0]);
+					onAddTextComment(timeStamp);
+				}
+			}
+			
+			private function onAddTextComment(timeStamp:Number = 0, textObsel:String = null):void
+			{
+				if (timeStamp == 0)
+				{
+					timeStamp = this.model.currentTime.toString().split('.')[0];
+				}
+				if (textObsel == null)
+				{
+					textObsel = "";
+				}
+				var newObs:Obsel = new Obsel(TraceModel.TextComment, model.currentUserId, {sender: model.currentUserId.toString(),
+					                                                                                      text:textObsel,
+					                                                                                      parentTrace: VisuModelLocator.getInstance().selectedRecordObsel.traceUri,
+					                                                                                      parentTraceObselBegin: VisuModelLocator.getInstance().selectedRecordObsel.begin },
+					                                                                                      timeStamp, timeStamp);
+				model.commentData.addItem(newObs);
+				model.setLastEditObselComment(newObs);
+				comments.traceData = model.commentData;
+			}
+
+			public function onResize(e:Event = null):void
+			{
+				//updateTunnelEffect();
+				updateZoomToContextEffect();
+				curseur.updateFromProg();
+			}
+			
+			[Bindable]
+			public function get model():TimelineModel
+			{
+				return _model;
+			}
+			
+			public function set model(value:TimelineModel):void
+			{
+				_model = value;
+				
+				
+				if(_model)
+				{
+					_model.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, modelUpdate);	
+					
+					//_model.usersData.addEventListener(CollectionEvent.COLLECTION_CHANGE, onUserDataUpdate);	
+					
+					BindingUtils.bindSetter(onUserDataUpdate,_model,"usersData");
+					
+					traceData = _model.traceData;
+					
+					onUserDataUpdate();	
+					
+					initCurseur();
+					
+					initPopupFilter();
+					
+					generateTickData();
+					
+					this._model.addEventListener("textCommentObselComplet", onGetObselTextComment);
+					
+					BindingUtils.bindProperty(this.playLine,"currentTime",_model,"currentTime");
+				}
+			}
+			
+			private function onGetObselTextComment(event:Event):void
+			{
+				// show textComment obsels on the traceLines
+				this.currentUserTextCommet.traceData = this.model.commentData;
+				this.comments.traceData = this.model.commentData;
+			}
+			
+			[Bindable]
+			public function get traceData():ArrayCollection
+			{
+				return _traceData;
+			}
+			
+			public function set traceData(value:ArrayCollection):void
+			{
+				_traceData = value;
+				
+				if(_traceData)
+					_traceData.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, traceDataUpdate);
+				
+				drawDynamicTraceLines();
+				
+				initPopupFilter();
+			}
+			
+			public function modelUpdate(e:PropertyChangeEvent = null):void
+			{
+				if(e.property == "currentTime")
+					setRemainingTime();
+				
+				if(e.property == "startTime" || e.property == "stopTime")
+				{
+					initCurseur();
+					generateTickData();
+				}
+				
+				if(e.property == "usersData" || e.property == "visibleUsers" )
+					initPopupFilter();
+				
+			}
+			
+			public function traceDataUpdate(e:PropertyChangeEvent = null):void
+			{
+				;
+			}
+			
+			public function onUserDataUpdate(dummyVar:* = null):void
+			{
+
+				if(dummyVar is ArrayCollection)
+				{
+					(dummyVar as ArrayCollection).addEventListener(CollectionEvent.COLLECTION_CHANGE, onUserDataUpdate);
+					drawDynamicTraceLines();
+					initPopupFilter();
+				}
+				
+				if(dummyVar is CollectionEvent)
+				{
+					var kind:String  = (dummyVar as CollectionEvent).kind;
+					if( kind == CollectionEventKind.ADD || kind == CollectionEventKind.RESET)
+					{
+						drawDynamicTraceLines();
+						initPopupFilter();
+					}
+				}
+				
+				
+			}
+
+			public function initCurseur():void
+			{
+				if( !isNaN(model.startTime) && !isNaN(model.stopTime) )
+				{
+					curseur.setZoomTime(model.startTime, model.stopTime);
+				}
+			}
+			
+			
+			public function setRemainingTime():void
+			{
+				if(!isNaN(model.stopTime) && !isNaN(model.currentTime) && model.stopTime  > model.currentTime)
+				{
+					var remainTime:Number = model.stopTime - model.currentTime;
+					
+					remainTimeLabel.text = "-" + theDateFormatter.format(new Date(remainTime));
+				}
+			}
+
+			protected function onItemZoomOn(e:InternalTimelineEvent):void
+			{
+				zoomOnATimePos(e.timeStamp);
+				
+				if (e.callBackFunc != null)
+					curseur.addEventListener("zoomFromProgComplete",e.callBackFunc);
+			}
+			
+			protected function onItemGotoAndPlay(e:InternalTimelineEvent):void
+			{
+				model.setCurrentTime(e.timeStamp);
+				
+				//model.firePlayEvent(e.timeStamp);
+			}
+			
+			protected function pauseCurseurLock(e:Event = null):void
+			{
+				if(curseur.locked)
+					curseurWasLockedBeforePause = true;
+				else
+					curseurWasLockedBeforePause = false;
+				
+				curseur.locked = false;	
+			}
+
+			protected function unPauseCurseurLock(e:Event = null):void
+			{
+				if(curseurWasLockedBeforePause)	
+					curseur.locked = true;	
+			}
+			
+			
+			
+			public function zoomOnATimePos(t:Number):void
+			{
+				curseur.setZoomOnATimePos(t);
+			}
+			
+			
+			
+
+			protected function onTraceTypeToDisplayChange(event:MouseEvent):void
+			{
+				;
+			}
+
+			
+			/////////////////////////////////////////////////////////////////////////////////////////////
+			/////////////			TIMELINE DRAWING									/////////////////
+			/////////////////////////////////////////////////////////////////////////////////////////////
+			
+			
+			public function createTraceLineWithGenericRenderer(usr:ObjectProxy, traceType:ObjectProxy):void
+			{
+				var newTraceLine:TraceLine = new TraceLine();
+				newTraceLine.RendererType = GenericRenderer;	
+				
+				if(usr.id == model.currentUserId)
+					newTraceLine.traceFilter = {"type":traceType["sendTypes"],"uid":[usr["id"]]};
+				else
+					newTraceLine.traceFilter = {"type":traceType["receiveTypes"],"sender":[usr["id"]]};
+				
+				newTraceLine.width = mainTimelineContainer.width;
+				newTraceLine.height = traceLineHeight;
+				newTraceLine.x = 0;
+				newTraceLine.y = 0;
+				
+				newTraceLine.direction = "horizontal"
+				newTraceLine.iconClassForGenericRenderer = traceType["iconClass"];
+				newTraceLine.dataFieldForGenericRenderer = traceType["dataField"];
+				
+				
+				if(traceType["name"] == "Marqueur")
+				{
+					newTraceLine.traceData = _model.markerData;
+					BindingUtils.bindProperty(newTraceLine,"traceData",this._model,"markerData");
+				}
+				else
+				{
+					newTraceLine.traceData = traceData;
+					BindingUtils.bindProperty(newTraceLine,"traceData",this,"_traceData");
+				}
+				
+				newTraceLine.model = model;
+				
+
+				BindingUtils.bindProperty(newTraceLine,"startTime",curseur,"zoomStartTime");
+				BindingUtils.bindProperty(newTraceLine,"stopTime",curseur,"zoomStopTime");
+
+				BindingUtils.bindSetter(updateDynamicTraceLineDisplay,usr,"visible");
+				BindingUtils.bindSetter(updateDynamicTraceLineDisplay,traceType,"visible");
+					
+				newTraceLine.addEventListener(InternalTimelineEvent.ITEM_ZOOM_ON, onItemZoomOn);
+				newTraceLine.addEventListener(InternalTimelineEvent.ITEM_EDIT_START, pauseCurseurLock);
+				newTraceLine.addEventListener(InternalTimelineEvent.ITEM_EDIT_STOP, unPauseCurseurLock);
+				newTraceLine.addEventListener(InternalTimelineEvent.ITEM_GOTO_AND_PLAY, onItemGotoAndPlay);
+					
+				newTraceLine.visible = usr["visible"] && traceType["visible"];
+				
+				mainTimelineContainer.addChild(newTraceLine);		
+				
+				dynamicTraceLines.addItem({"usr":usr,"traceType":traceType,"traceLine":newTraceLine});
+			}
+		
+			
+			public function updateDynamicTraceLineDisplay(dummyVar:* = null):void
+			{
+				for each(var line:Object in dynamicTraceLines)
+				{
+					var toVisible:Boolean
+					//We first calculate visibility
+					toVisible = line["usr"]["visible"] && line["traceType"]["visible"]; 
+					
+					if(traceLineLayout == "all")
+						toVisible = false;
+					
+					var usrIndex:int;						
+					var toY:int;	
+					var toColor:uint;
+					
+					//Then position (if the traceline is visible)
+					if(toVisible)//(line["traceLine"] as TraceLine).visible)
+					{
+
+						if(traceLineLayout == "byUser")
+						{
+							usrIndex = model.usersData.getItemIndex(line["usr"]);
+							toY = usrIndex * traceLineHeight + 5;
+						}
+						else if(traceLineLayout == "byType")
+						{
+							usrIndex = traceTypeData.getItemIndex(line["traceType"]);
+							toY = usrIndex * traceLineHeight + 5;
+						}
+					}
+					
+					//We apply the values with tweenings effect
+					
+					//appear effect
+					if(toVisible && !line["traceLine"].visible)
+					{
+						line["traceLine"].alpha = 0;
+						line["traceLine"].visible = true;
+					
+						TweenMax.to(line["traceLine"], 1,{alpha:1});
+					}
+					
+					//disappear effect
+					if(!toVisible && line["traceLine"].visible)
+					{
+						TweenMax.to(line["traceLine"], 1,{alpha:0,
+										onComplete: function(elt:DisplayObject):void
+										{
+											elt.visible = false;	
+										},
+										onCompleteParams:[line["traceLine"]]	
+									});
+					}
+					
+					//moving effect	
+					TweenMax.to((line["traceLine"] as TraceLine), 1,{y:toY});
+					
+				}
+					
+					
+				updateDynamicRowHeaders();
+				
+			}
+			
+			public function drawDynamicTraceLines():void
+			{
+				clearDynamicTraceLines();
+				
+				if(!(model && model.usersData && model.currentUserId && _traceData && traceTypeData))
+					return;
+				
+				for each(var type:ObjectProxy in traceTypeData)
+				{
+					for each(var usr:ObjectProxy in model.usersData)
+					{
+						createTraceLineWithGenericRenderer(usr,type);
+					}
+				}
+				
+				drawDynamicRowHeaders();
+				
+				updateDynamicTraceLineDisplay();
+				
+				
+			}
+
+			
+			public function drawDynamicRowHeaders():void
+			{
+				clearDynamicRowHeaders();
+				
+				for each(var type:ObjectProxy in traceTypeData)
+				{
+					var typeHeader:TypeItem = new TypeItem();
+					typeHeader.data = type;
+					typeHeader.scaleX = 1.5;
+					typeHeader.scaleY = 1.5;
+					typeHeader.x = 10;
+					
+					typeHeader.visible = (traceLineLayout == "byType");
+					
+					mainTimelineRowHeaders.addChild(typeHeader);
+					
+					dynamicRowHeaders.addItem({"viewMode":"byType","traceType":type,"header":typeHeader});
+				}
+						
+				for each(var usr:ObjectProxy in model.usersData)
+				{
+					var usrHeader:UserListItem = new UserListItem();
+					usrHeader.data = usr;
+					usrHeader.scaleX = 1.25;
+					usrHeader.scaleY = 1.25;
+					usrHeader.x = 10;
+					
+					usrHeader.visible = (traceLineLayout == "byUsr");
+					
+					mainTimelineRowHeaders.addChild(usrHeader);
+
+					dynamicRowHeaders.addItem({"viewMode":"byUser","usr":usr,"header":usrHeader});
+
+				}
+				
+				updateDynamicRowHeaders();
+			}
+			
+			
+			public function updateDynamicRowHeaders():void
+			{
+				for each(var header:Object in dynamicRowHeaders)
+				{
+					var toVisible:Boolean;
+					var toY:int = -1000;
+					var usrIndex:int;	
+					
+					//We first calculate visibility
+					toVisible = (traceLineLayout ==  header["viewMode"]); 
+
+					
+					//Then position (if the traceline is visible)
+					if(toVisible)
+					{
+						if(traceLineLayout == "byUser")
+						{
+							usrIndex = model.usersData.getItemIndex(header["usr"]);
+							toY = usrIndex * traceLineHeight + 5;
+						}
+						else if(traceLineLayout == "byType")
+						{
+							usrIndex = traceTypeData.getItemIndex(header["traceType"]);
+							toY = usrIndex * traceLineHeight + 5;
+						}
+					}
+					
+					//We apply the values (with tweenings effect for visible)
+					if(toY != -1000)
+						header["header"].y = toY;
+					
+					//appear effect
+					if(toVisible && !header["header"].visible)
+					{
+						header["header"].alpha = 0;
+						header["header"].visible = true;
+						
+						TweenMax.to(header["header"], 1,{alpha:1});
+					}
+					
+					//disappear effect
+					if(!toVisible && header["header"].visible)
+					{
+						TweenMax.to(header["header"], 1,{alpha:0,
+							onComplete: function(elt:DisplayObject):void
+							{
+								elt.visible = false;	
+							},
+							onCompleteParams:[header["header"]]	
+							});
+					}
+		
+				}	
+
+			}
+			
+			public function clearDynamicRowHeaders():void
+			{
+				while(dynamicRowHeaders.length > 0)
+				{
+					var h:DisplayObject = dynamicRowHeaders[0]["header"] as DisplayObject;
+					h.parent.removeChild(h);
+					dynamicRowHeaders.removeItemAt(0);
+				}
+			}
+
+			
+			public function clearDynamicTraceLines():void
+			{
+				while(dynamicTraceLines.length > 0)
+				{
+					var tl:TraceLine = dynamicTraceLines[0]["traceLine"] as TraceLine;
+					tl.parent.removeChild(tl);
+					dynamicTraceLines.removeItemAt(0);
+				}
+			}
+
+			protected function onTraceViewTypeChange(event:Event = null):void
+			{	
+				if(traceLineLayout == "all")
+					traceLineAll.visible = true;
+				else
+					traceLineAll.visible = false;
+				
+				updateDynamicTraceLineDisplay();
+			}
+
+			/* *******************************************************************
+			**********					DEBUG				**********************
+			*********************************************************************/
+			
+			private function beginLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var timeFormatter:DateFormatter = new DateFormatter();
+				timeFormatter.formatString = "JJ:NN:SS";
+				return timeFormatter.format(new Date(item['begin'] - model.startTime));
+			}
+			
+			private function endLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				var timeFormatter:DateFormatter = new DateFormatter();
+				timeFormatter.formatString = "JJ:NN:SS";
+				return timeFormatter.format(new Date(item['end'] - model.startTime));
+			}
+			 
+			private function propsLabelFunction(item: Object, column: DataGridColumn): String
+			{
+				return item.toString();
+			}
+			
+			private function initPopupFilter():void
+			{
+				if(!filterPopup && traceTypeData && model && model.usersData)
+				{
+					filterPopup = new TimelineFilterWindow();
+					filterPopup.traceTypes = traceTypeData;
+					filterPopup.model  = model;
+					
+					BindingUtils.bindProperty(filterPopup,"traceTypes",this,"traceTypeData");
+					BindingUtils.bindProperty(filterPopup,"model",this,"model");
+					
+					filterPopup.validateNow();
+					
+					btnShowFilter.popUp = filterPopup;
+				}
+					
+			}
+			
+			private function showPopupFilter():void
+			{
+				initPopupFilter();
+			}	
+				
+				
+			private function onTraceViewUsrSelection(e:ItemClickEvent):void
+			{
+				//this 3 silly lines beacause the adobe LinkBar component is buggy (!!)
+				var tempDataProvider:ArrayCollection = visuModeBar.dataProvider as ArrayCollection;
+				visuModeBar.dataProvider = null;
+				visuModeBar.dataProvider = tempDataProvider;
+				
+				visuModeBar.selectedIndex = e.index;
+				
+				if(e.item.value == "debugGrid")
+					vsDebug.selectedChild = debugDataGrid;
+				else
+					vsDebug.selectedChild = timelines;
+				
+				if(e.item.value == "byUser")
+					traceLineLayout = "byUser";
+				else if(e.item.value == "byType")
+					traceLineLayout = "byType";
+				else if(e.item.value == "all")
+					traceLineLayout = "all";
+				
+				onTraceViewTypeChange();
+			}
+			
+			
+			
+			/////////////////// Time Ruler /////////////////////
+			
+			public function generateTickData():void
+			{
+				if(_model && _model.startTime && _model.stopTime)
+				{
+					tickData = new ArrayCollection();
+					
+
+					
+					var littleTickGap:Number = 1;
+					var mediumTickGap:Number = 5;
+					var bigTickGap:Number = 10;
+					
+					var timeUnit:Number = 60 * 1000;
+					
+
+					
+					//we add special obsel from start and end
+					var startObsel:Obsel = new Obsel("boundaryTick");
+					startObsel.begin = _model.startTime;
+					startObsel.type = "boundaryTick"; 
+					tickData.addItem(startObsel);
+
+					var stopObsel:Obsel = new Obsel("boundaryTick");
+					stopObsel.begin = _model.stopTime;
+					stopObsel.type = "boundaryTick"; 
+					tickData.addItem(stopObsel);
+					
+					var i:int = 1;
+					
+					var t:Number = _model.startTime + i*timeUnit;
+					
+					while( t < _model.stopTime)
+					{
+						var type:String;
+						
+						if(i % bigTickGap == 0)
+							type = "bigTick";
+						else if(i % mediumTickGap == 0)
+							type = "mediumTick";
+						else
+							type = "littleTick";
+						
+						var o:Obsel = new Obsel(type);
+						o.begin = t;
+						
+						tickData.addItem(o);
+						
+						i++;
+						t = _model.startTime + i*timeUnit;
+					}
+				
+				}
+			}
+			
+			public function updateZoomToContextEffect():void
+			{ 			
+				//We first get the position of the curseur, the coordinate space is "this".
+				
+				curseur.validateNow();
+				
+				var globalCurseur:Rectangle = curseur.getRect(timelines);
+				
+				
+				globalCurseur.height = curseur.height; //we here fix a bug in the getRect method that lead sometime to incredible height
+				
+				//Then we get the position of the mainTimeline, the coordinate space is "this".
+				
+				//we don't use the getRect method here, indeed it doesn't work if the DisplayObject is empty, and it is the case for the mainTimelineContainer at the begining
+				var globalStartIndicator:Rectangle =  zoomStartTimeIndicator.getRect(timelines);
+				var globalStopIndicator:Rectangle =  zoomStopTimeIndicator.getRect(timelines);
+				
+				var globalTimeline:Rectangle = new Rectangle();
+				
+				globalTimeline.x = globalStartIndicator.x + globalStartIndicator.width/2;
+				globalTimeline.y = globalStartIndicator.y;
+				globalTimeline.right = globalStopIndicator.x + globalStopIndicator.width/2;
+				globalTimeline.bottom = mainTimeline.getRect(timelines).y;
+				
+				
+				//globalTimeline.top = Math.max(4, globalTimeline.top);
+				//globalTimeline.bottom = Math.min(timelines.height-4, globalTimeline.bottom);
+				
+				
+				//We are going to draw
+				theZoomToContextCanvas.graphics.clear();
+				
+				//We set up a gradient matrix
+				var effectWidth:int = globalTimeline.width;
+				var effectHeight:int = globalTimeline.top - globalCurseur.top;
+				var gradientMatrix:Matrix = verticalGradientMatrix( globalTimeline.x, globalCurseur.y, effectWidth, effectHeight);
+				
+				//We set up the gradient fill
+				theZoomToContextCanvas.graphics.beginGradientFill(GradientType.LINEAR,[0x1470B3, 0x1470B3],[0, .3],[0,255],gradientMatrix);
+				
+				//We then draw
+				
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.left,	globalTimeline.bottom);
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.left,	globalTimeline.top);
+				
+				theZoomToContextCanvas.graphics.curveTo(globalCurseur.left,	globalTimeline.top,
+					globalCurseur.left,		globalCurseur.bottom);
+				
+				theZoomToContextCanvas.graphics.lineTo(	globalCurseur.left, 	globalCurseur.top);
+				theZoomToContextCanvas.graphics.lineTo(	globalCurseur.right,	globalCurseur.top);
+				theZoomToContextCanvas.graphics.lineTo(	globalCurseur.right,		globalCurseur.bottom);
+				
+				theZoomToContextCanvas.graphics.curveTo(globalCurseur.right,	globalTimeline.top,
+					globalTimeline.right,	globalTimeline.top);
+				
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.right,	globalTimeline.bottom);
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.left,	globalTimeline.bottom);
+				
+				theZoomToContextCanvas.graphics.endFill();
+			}
+            private function exportTraceFormatShemerger():void
+            {
+                 popupExportTrace = TitleWindow(PopUpManager.createPopUp(this, ExportTraceShemergerRetrospectionRoom, true ));
+                 PopUpManager.centerPopUp(popupExportTrace);
+            }
+            public function onDragEnterCommentTraceLine(event:DragEvent):void
+            {
+
+                	DragManager.acceptDragDrop(event.currentTarget as UIComponent);
+                	comments.addChild(targetPlaceObsel);
+                	var ds:DragSource = event.dragSource;
+                	var timeStamp:Number = ds.dataForFormat('beginTimeObsel') as Number;
+                	var positionX:Number = ((timeStamp - this.comments.startTime)/(this.comments.stopTime - this.comments.startTime))*this.comments.width
+                	targetPlaceObsel.x = positionX;
+                	targetPlaceObsel.y = (comments.height-targetPlaceObsel.height)/2;
+           
+            }
+            public function onDragDropCommentTraceLine(event:DragEvent):void
+            {
+                	var ds:DragSource = event.dragSource;
+                	var timeStamp:Number = ds.dataForFormat('beginTimeObsel') as Number;
+                	var textObsel:String = ds.dataForFormat('textObsel') as String;
+                	onAddTextComment(timeStamp ,textObsel);
+            }
+          
+            private function onDragExit(event:DragEvent):void
+            {
+            	comments.removeChild(targetPlaceObsel);
+            }
+		]]>
+	</mx:Script>
+	
+	<mx:HBox horizontalAlign="left" width="100%">
+		<mx:HBox horizontalAlign="right" width="100%">
+			<mx:LinkBar id="visuModeBar" itemClick="onTraceViewUsrSelection(event)"/>
+			<mx:PopUpButton  id="btnShowFilter" label="Filtre / Légende" creationComplete="showPopupFilter()" open="showPopupFilter()" />	
+	</mx:HBox>
+	</mx:HBox>
+    <mx:HBox width="100%" height="{height}" >
+		<mx:ViewStack id="vsDebug" width="100%" height="100%" creationPolicy="all">
+				
+				<mx:Canvas id="timelines" label="Timeline" width="100%" height="100%"
+						   horizontalScrollPolicy="off" verticalScrollPolicy="off" resize="onResize()">
+					
+					<mx:Canvas id="theZoomToContextCanvas" width="100%" height="100%"/>
+					
+					<mx:Canvas id="zoomTimelineContainer" x="185" y="0" width="100%" height="90"
+							   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+							  
+						
+						<timeline1:TraceLine id="activityZoomLine" model="{_model}" direction="horizontal" 
+											   RendererType="{ActivityRenderer}" traceData="{_model.traceData}"
+											   traceFilter="{{'type':['ActivityStart']}}" endTraceFilter="{{'type':['ActivityEnd']}}" 
+											   startEndMatchingProperty="id"
+											   startTime="{_model.startTime}" stopTime="{_model.stopTime}" 
+											   width="{zoomTimelineContainer.width - 40}" height="20" x="20" y="29"/>
+						
+						<timeline1:TraceLine id="currentUserTextCommet" model="{_model}" direction="horizontal" startPadding="20" endPadding="20"
+											   RendererType="{CurseurContextObselTick}" traceData="{_model.commentData}" traceFilter="{{'type':[TraceModel.TextComment]}}" 
+											   startTime="{_model.startTime}" stopTime="{_model.stopTime}"
+											   width="{zoomTimelineContainer.width}" height="10" x="0" y="19" renderAlign="after"/>	
+											   						
+						<timeline1:TraceLine id="currentUserMarqueurLine" model="{_model}" direction="horizontal" startPadding="20" endPadding="20"
+											   RendererType="{CurseurContextObselTick}" traceData="{_model.traceData}" traceFilter="{{'type':[TraceModel.ReceiveChatMessage, TraceModel.ReceiveDocument, TraceModel.ReceiveInstructions, TraceModel.ReceiveKeyword, TraceModel.ReceiveKeyword, TraceModel.ReceiveMark, TraceModel.SetMark, TraceModel.SendDocument ]}}" 
+											   startTime="{_model.startTime}" stopTime="{_model.stopTime}"
+											   width="{zoomTimelineContainer.width}" height="10" x="0" y="34" renderAlign="after"/>							
+
+						
+						<timeline1:TraceLine id="littleTickZoomLine" model="{_model}" direction="horizontal" startPadding="20" endPadding="20"
+												   RendererType="{littleTick}" traceData="{tickData}" traceFilter="{{'type':['littleTick']}}"  
+												   startTime="{_model.startTime}" stopTime="{_model.stopTime}" 
+												   width="{zoomTimelineContainer.width}" height="40" x="0" y="40" renderAlign="middle"/>
+					
+						<timeline1:TraceLine id="mediumTickZoomLine" model="{_model}" direction="horizontal" startPadding="20" endPadding="20"
+												   RendererType="{mediumTick}" traceData="{tickData}" traceFilter="{{'type':['mediumTick']}}"  
+												   startTime="{_model.startTime}" stopTime="{_model.stopTime}" 
+												   width="{zoomTimelineContainer.width}" height="40" x="0" y="40" renderAlign="middle"/>
+					
+						<timeline1:TraceLine id="bigTickZoomLine" model="{_model}" direction="horizontal" startPadding="20" endPadding="20"
+												   RendererType="{bigTick}" traceData="{tickData}" traceFilter="{{'type':['bigTick','boundaryTick']}}"  
+												   startTime="{_model.startTime}" stopTime="{_model.stopTime}" 
+												   width="{zoomTimelineContainer.width}" height="40" x="0" y="40" renderAlign="middle"/>
+								
+						<timeline1:PlayLine RendererType="{ControlHeadForHorizontal}" direction="horizontal" model="{_model}"
+											  startPadding="20" endPadding="20" renderAlign="middle"
+											  startTime="{_model.startTime}" stopTime="{_model.stopTime}" currentTime="{_model.currentTime}" 
+											  x="0" height="70" y="14" width="{zoomTimelineContainer.width}" />
+						
+						<timeline:CurseurHorizontal id="curseur" x="0" y="0" height="49" width="{zoomTimelineContainer.width}" 
+													   startEdge="15" endEdge="{zoomTimelineContainer.width - 33}"  
+													   minimumSize="70" lockSize="200" lockPosition="100"
+													   startTime="{_model.startTime}"
+													   stopTime="{_model.stopTime}" 
+													   startAndEndDelta="1"
+													   currentTime="{_model.currentTime}"
+													   zoomChange="updateZoomToContextEffect()"
+													   locked="false">
+						
+						</timeline:CurseurHorizontal>
+	
+					</mx:Canvas>
+				<mx:Canvas  x="0"  id="headerComment" width="{mainTimelineContainer.x-x}" y="90" height="{traceLineHeight}" horizontalScrollPolicy="off" verticalScrollPolicy="off" backgroundColor="#2F8B96">
+
+						<mx:Button id="btAddTextComment" label="Poser commentaire" icon="@Embed(source='timeline/marqueurBlanc-bas-40px.png')" click="onAddTextComment(0)" labelPlacement="left" horizontalCenter="0" verticalCenter="0"/>
+
+				</mx:Canvas>
+				<timeline1:TraceLine id="comments" x="{mainTimelineContainer.x}" model="{_model}" direction="horizontal" startPadding="0" endPadding="0"
+												   RendererType="{MarqueurComment}" traceData="{_model.commentData}" traceFilter="{{'type':[TraceModel.TextComment]}}"  
+												   startTime="{_model.startTime}" stopTime="{_model.stopTime}" 
+												   width="{mainTimeline.width - 200}" height="{traceLineHeight}" y="90" renderAlign="middle" backgroundColor="#2F8B96"
+												    dragEnter="onDragEnterCommentTraceLine(event)" dragDrop="onDragDropCommentTraceLine(event)"  dragExit="onDragExit(event)" verticalScrollPolicy="auto" doubleClickEnabled="true">
+				</timeline1:TraceLine>		
+				<mx:Canvas id="mainTimeline" y="{comments.y + comments.height}" height="{timelines.height - zoomTimelineContainer.height - comments.height}" 
+						   width="{timelines.width - 20}" 
+						   horizontalScrollPolicy="off"  borderColor="0x00F" borderStyle="solid" verticalScrollPolicy="auto">
+
+					<mx:Canvas id="mainTimelineBackGround" y="0" width="100%" height="100%"
+						   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+						
+						<!-- Line Background, TODO : draw programmaticaly -->
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 0}" backgroundColor="#E2ECE2"/>
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 1}" backgroundColor="#CCE1B9"/>
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 2}" backgroundColor="#E2ECE2"/>
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 3}" backgroundColor="#CCE1B9"/>
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 4}" backgroundColor="#E2ECE2"/>
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 5}" backgroundColor="#CCE1B9"/>
+						<mx:Canvas width="100%" height="{traceLineHeight}" y="{traceLineHeight * 6}" backgroundColor="#E2ECE2"/>
+
+					</mx:Canvas>
+						
+					<mx:Canvas id="mainTimelineRowHeaders" y="0" width="200" height="100%" borderStyle="solid"
+						   horizontalScrollPolicy="off" verticalScrollPolicy="off">						
+						<mx:Canvas width="100%" height="100%" backgroundColor="0x000000" alpha=".3" />
+						<!-- Dynamic row header will be added dynamically here -->
+					</mx:Canvas>
+						
+						
+					
+					<mx:Canvas id="mainTimelineContainer" x="200" y="0" width="{mainTimeline.width - 200}"
+							   minHeight="{mainTimeline.height - 5}" 
+							   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+						
+							
+							
+							<!-- Remaining time displayer, TODO : move -->
+							<mx:Canvas id="bottom" width="60" height="20" right="0" bottom="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+								<mx:Image x="0" y="0" source="@Embed(source='timeline/HorlogeRouge-01.png')" width="15" height="15"/>
+								<mx:Label id="remainTimeLabel" x="16" y="0" text="00:00" color="#AE0000" fontWeight="bold" fontSize="9"/>
+							</mx:Canvas>
+														 
+							<timeline1:TraceLine id="traceLineAll" model="{_model}" direction="horizontal" visible="false"
+												   RendererType="{GenericRenderer}" traceData="{_model.traceData}" traceFilter="{{}}"  dataFieldForGenericRenderer="rdf"
+												   startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}"
+												   width="{zoomTimelineContainer.width - 30}" height="40" x="0" y="5" renderAlign="after"
+												   itemZoomOn="onItemZoomOn(event)" itemStartEdit="pauseCurseurLock()" itemStopEdit="unPauseCurseurLock()"
+												   itemGotoAndPlay="onItemGotoAndPlay(event)"
+												    />
+						
+					</mx:Canvas>
+			<!--		<mx:Image id="ombreHautTunnel" source="@Embed(source='timeline/ombreHautTunnel.png')" maintainAspectRatio="false" scaleContent="true" 
+							  width="{mainTimelineContainer.width + 20}" y="{mainTimelineContainer.y}"/>	
+					
+					<mx:Image id="ombreBasTunnel" source="@Embed(source='timeline/ombreBasTunnel.png')" y="7" maintainAspectRatio="false" scaleContent="true" 
+							  width="{mainTimelineContainer.width + 20}" bottom="0"/> -->
+					
+					
+				</mx:Canvas>
+					
+				<PlayLineRenders:PlayHeadWithTimeHorizontalTop id="zoomStartTimeIndicator" x="180" y="85" height="100%" 
+																   currentTime="{curseur.zoomStartTime - _model.startTime}" headColor="#1470B3" headThickness="6" />
+					
+				<PlayLineRenders:PlayHeadWithTimeHorizontalTop  id="zoomStopTimeIndicator" y="85" right="0" height="100%"
+																	currentTime="{curseur.zoomStopTime - _model.startTime}" headColor="#1470B3" headThickness="6" />
+					
+
+			</mx:Canvas>
+
+			
+			
+			<mx:HBox id="debugDataGrid" label="Table" width="100%" height="100%">
+				<mx:DataGrid id="grid"
+							 width="40%" height="100%"
+							 dataProvider="{ _model.traceData }"
+							 selectable="true"
+							 >
+					<mx:columns>
+						<mx:DataGridColumn headerText="type"   dataField="type" />
+						<mx:DataGridColumn headerText="begin"  width="70" dataField="begin" labelFunction="beginLabelFunction"/>
+						<mx:DataGridColumn headerText="end"    width="70" dataField="end" labelFunction="endLabelFunction" />
+					</mx:columns>
+				</mx:DataGrid>
+				
+				<mx:DataGrid id="gridProps"
+							 width="60%" height="100%"
+							 dataProvider="{ grid.selectedItem.props }"
+							 selectable="true"
+							 >
+				</mx:DataGrid>
+				<mx:VBox>
+					<mx:Label text=" Export :"/>
+					<mx:Button label="Shemerger" click="exportTraceFormatShemerger()" toolTip="Export le Trace en format 'Shemerger'"/>
+					<mx:Button label="Advene"/>
+				</mx:VBox>
+				
+			</mx:HBox>	
+				
+				
+		</mx:ViewStack>	
+			
+		
+    </mx:HBox>
+
+</mx:VBox>

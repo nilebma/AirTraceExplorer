@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="2" height="20">
+	<mx:Canvas backgroundColor="0x999999" width="2" height="10" y="10"/>
+</mx:Canvas>

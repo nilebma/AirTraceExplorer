@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:List xmlns:fx="http://ns.adobe.com/mxml/2009"
+			xmlns:s="library://ns.adobe.com/flex/spark"
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+			width="300" height="260" creationComplete="updateFromServer(event)"
+			labelField="title" itemRenderer="ui.traceInTimeline.traceListItem"
+			dataProvider="{traces}" xmlns:traceintimelineservice="services.traceintimelineservice.*" xmlns:traceservice="services.traceservice.*">
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Trace;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.PropertyChangeEvent;
+			import mx.events.PropertyChangeEventKind;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectProxy;
+			
+			import valueObjects.Media;
+			import valueObjects.MediaInTimeline;
+			import valueObjects.Timeline;
+			import valueObjects.TraceInTimeline;
+			import valueObjects.VOTrace;
+			
+			private var _timeline:Timeline;
+			
+			[Bindable]
+			public var traces:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public function get timeline():Timeline
+			{
+				return _timeline;
+			}
+
+			public function set timeline(value:Timeline):void
+			{
+				_timeline = value;
+				getAllTraceInTimelineResult_resultHandler();
+			}
+
+			protected function updateFromServer(event:Event = null):void
+			{
+				getAllTraceInTimelineResult.token = traceInTimelineService.getAllTraceInTimeline();
+				getAllTraceResult.token = traceService.getAllTrace();
+			}
+			
+			protected function getAllTraceInTimelineResult_resultHandler(event:Event = null):void
+			{
+				traces.removeAll();
+				
+				if(timeline && getAllTraceResult.lastResult && getAllTraceInTimelineResult.lastResult)
+				{
+					for each(var t:VOTrace in getAllTraceResult.lastResult)
+					{
+						var traceInTimeline:TraceInTimeline = null;
+					
+						for each(var tit:TraceInTimeline in getAllTraceInTimelineResult.lastResult)
+						{	
+							if(tit.idTimeline == timeline.id && tit.idTrace == t.id)
+								traceInTimeline = tit;
+						}
+						
+						var dataItem:ObjectProxy = new ObjectProxy({"trace":t, "traceInTimeline":traceInTimeline, "related":traceInTimeline!=null, "title":t.title});
+						
+						dataItem.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, onDataItemChange);
+	
+					
+						traces.addItem(dataItem);
+					}
+				}
+				
+				this.invalidateDisplayList();
+				
+			}
+			
+			protected function onDataItemChange(e:PropertyChangeEvent):void
+			{
+				if(e.kind == PropertyChangeEventKind.UPDATE && e.property == "related")
+				{
+					if(e.newValue == true)
+					{
+						var mit:TraceInTimeline = new TraceInTimeline();
+						mit.idTimeline = timeline.id;
+						mit.idTrace = (e.currentTarget.trace as VOTrace).id;
+						mit.delay = 0;
+						mit.position = -1;
+						mit.visible = 1;
+						
+						createTraceInTimeline.token = traceInTimelineService.createTraceInTimeline(mit);
+						traceInTimelineService.commit();
+					}
+					else
+					{
+						deleteTraceInTimeline.token = traceInTimelineService.deleteTraceInTimeline((e.currentTarget.traceInTimeline as TraceInTimeline).id);
+						traceInTimelineService.commit();
+					}
+				}
+			}
+			
+			protected function createTraceInTimeline_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				updateFromServer();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:CallResponder id="getAllTraceInTimelineResult" result="getAllTraceInTimelineResult_resultHandler(event)"/>
+		<s:CallResponder id="createTraceInTimeline" result="createTraceInTimeline_resultHandler(event)"/>
+		<s:CallResponder id="deleteTraceInTimeline" result="updateFromServer(event)"/>
+		<traceintimelineservice:TraceInTimelineService id="traceInTimelineService"
+													   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+													   showBusyCursor="true"/>
+		<s:CallResponder id="getAllTraceResult"  result="getAllTraceInTimelineResult_resultHandler(event)"/>
+		<traceservice:TraceService id="traceService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:List>

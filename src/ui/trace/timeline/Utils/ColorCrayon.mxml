@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="25" height="25">
+	<mx:Script>
+		<![CDATA[
+			[Bindable]
+			public var theColor:uint = 0x00FF00
+		]]>
+	</mx:Script>
+	<mx:Image source="@Embed('assets/timeline/marqueurFondBlanc.png')" x="0" y="0" width="100%" height="100%" scaleContent="true"/>
+	<mx:Canvas id="coloriage" x="0" y="0" backgroundColor="{theColor}" mask="{theMask}" width="100%" height="100%" cacheAsBitmap="true"/>
+	<mx:Image id="theMask" source="@Embed('assets/timeline/marqueurBlancTrans.png')" x="0" y="0" width="100%" height="100%" scaleContent="true" cacheAsBitmap="true"/>
+	
+	<mx:filters>
+		<mx:DropShadowFilter blurX="6" blurY="6" distance="0" alpha=".5"/>
+	</mx:filters>
+	
+
+</mx:Canvas>

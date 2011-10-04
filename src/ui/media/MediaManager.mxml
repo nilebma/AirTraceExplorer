@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:media="ui.media.*"
+		 xmlns:mediaservice="services.mediaservice.*"
+		 width="100%" height="100%" resize="group1_resizeHandler(event)" creationComplete="group1_resizeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.events.ResizeEvent;
+			
+			public var medias:ArrayCollection;
+			
+			import mx.containers.TitleWindow;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import services.mediaservice.MediaService;
+			
+			import spark.events.GridSelectionEvent;
+			import spark.events.IndexChangeEvent;
+			
+			import ui.media.MediaEditorForm;
+			import ui.media.MediaEditorWindow;
+			
+			import valueObjects.Media;
+			
+			private var mediaInfoWindow:TitleWindow;
+			
+			public var aNewMedia:Media;
+			public var editedMedia:Media;
+			
+			protected function newMediaBtn_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				aNewMedia = new Media();
+				
+				var mediaWindow:MediaEditorWindow = showMediaInfo(aNewMedia);
+				
+				mediaWindow.addEventListener("onSubmit",onNewMediaEdited);
+			}
+			
+			private function showMediaInfo(pmedia:Media):MediaEditorWindow {
+				// Create the TitleWindow container.
+				var mediaInfoWindow:MediaEditorWindow = 
+					PopUpManager.createPopUp(this, MediaEditorWindow,true) as MediaEditorWindow;
+				
+				PopUpManager.centerPopUp(mediaInfoWindow);
+				
+				// Add title to the title bar.
+				mediaInfoWindow.title="Enter Media Information";
+				mediaInfoWindow.form.showButton = true;
+				mediaInfoWindow.media = pmedia;
+				
+				// Make title bar slightly transparent.
+				mediaInfoWindow.setStyle("borderAlpha", 0.9);
+				
+				return mediaInfoWindow;
+			}
+			
+			protected function onNewMediaEdited(e:Event = null):void
+			{
+				createMediaResult.token = mediaService.createMedia(aNewMedia);
+				mediaService.commit();
+			}
+			
+			
+			protected function onMediaUpdated(e:Event = null):void
+			{
+				updateMediaResult.token = mediaService.updateMedia(editedMedia);
+			}
+			
+			
+			protected function saveBtn_clickHandler(event:MouseEvent):void
+			{
+				mediaService.commit();
+			}
+			
+			protected function updateMedia(event:Event):void
+			{
+				getAllMediaResult.token = mediaService.getAllMedia(); 	
+			}
+			
+			protected function group1_resizeHandler(event:Event):void
+			{
+				theVideoPlayer.width = topBox.width - mediaForm.width;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<mediaservice:MediaService id="mediaService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<s:CallResponder id="createMediaResult" result="updateMedia(event)"/>
+		<s:CallResponder id="updateMediaResult"/>
+		<s:CallResponder id="getAllMediaResult"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<mx:DividedBox direction="vertical" width="100%" height="100%">
+		<mx:HBox id="topBox" width="100%">
+			<s:VideoPlayer id="theVideoPlayer" height="100%" width="200"
+						   source="{dataGrid.selectedItem.url}"/>
+			<media:MediaEditorForm id="mediaForm" media="{dataGrid.selectedItem as Media}"/>
+		</mx:HBox>
+		<mx:VBox width="100%">
+			<s:DataGrid id="dataGrid" height="100%" width="100%"
+						editable="true" creationComplete="updateMedia(event)"
+						requestedRowCount="4">
+				<s:columns>
+					<s:ArrayList>
+						<s:GridColumn dataField="id" headerText="id"></s:GridColumn>
+						<s:GridColumn dataField="length" headerText="length"></s:GridColumn>
+						<s:GridColumn dataField="startDate" headerText="startDate"></s:GridColumn>
+						<s:GridColumn dataField="title" headerText="title"></s:GridColumn>
+						<s:GridColumn dataField="description" headerText="description"></s:GridColumn>
+						<s:GridColumn dataField="color" headerText="color" itemRenderer="ui.renderer.ColorRenderer" rendererIsEditable="true"></s:GridColumn>
+						<s:GridColumn dataField="url" headerText="url"></s:GridColumn>
+					</s:ArrayList>
+				</s:columns>
+				<s:typicalItem>
+					<fx:Object id="id1" color="color1" description="description1" length="length1"
+							   startDate="startDate1" title="title1" url="url1"></fx:Object>
+				</s:typicalItem>
+				<s:AsyncListView list="{getAllMediaResult.lastResult}"/>
+			</s:DataGrid>
+			<mx:HBox>
+				<s:Button id="newMediaBtn" label="New Media" click="newMediaBtn_clickHandler(event)"/>
+				<s:Button id="saveBtn" label="Save" click="saveBtn_clickHandler(event)"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:DividedBox>
+</s:Group>

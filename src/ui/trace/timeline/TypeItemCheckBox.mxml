@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="170" height="24" 
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off" verticalAlign="center">
+
+	<mx:CheckBox id="theCheckBox" selected="{data.visible}" click="{data.visible = theCheckBox.selected}"/>	
+	<mx:Image id="theIcon" source="{data.iconClass as Class}" width="22" height="22" scaleContent="true" />
+	<mx:Label text="{data.name}" fontSize="11" height="21" y="0" width="100%" textAlign="left" 
+			  fontWeight="bold" fontFamily="Arial" color="0x000000"/>
+
+	
+</mx:HBox>

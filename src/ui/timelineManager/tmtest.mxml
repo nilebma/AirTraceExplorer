@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:timelineservice="services.timelineservice.*"
+		 width="400" height="300">
+	<fx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import org.osmf.events.TimeEvent;
+			
+			import valueObjects.Timeline;
+			
+			protected function button_clickHandler(event:MouseEvent):void
+			{
+				var nt:Timeline = new Timeline();
+				nt.title = "y";
+				createTimelineResult.token = timelineService.createTimeline(nt);
+				timelineService.commit();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:CallResponder id="createTimelineResult"/>
+		<timelineservice:TimelineService id="timelineService"
+										 fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+										 showBusyCursor="true"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Button id="button" x="86" y="61" label="Button" click="button_clickHandler(event)"/>
+</s:Group>

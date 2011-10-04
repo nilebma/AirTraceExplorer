@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="390" horizontalGap="10" cornerRadius="20" borderStyle="solid" borderThickness="0"
+		 backgroundColor="#EEEEEE" verticalScrollPolicy="off" horizontalScrollPolicy="off" paddingTop="10" paddingLeft="10" paddingBottom="10" paddingRight="10" xmlns:timeline="ithaca.traces.timeline.*"
+		 click="hbox1_clickHandler(event)">
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.events.PropertyChangeEvent;
+			
+			[Bindable]
+			public var traceTypes:ArrayCollection;
+			
+			[Bindable]
+			private var _model:TimelineModel
+			
+			[Bindable]
+			public function get model():TimelineModel
+			{
+				return _model;
+			}
+
+			public function set model(value:TimelineModel):void
+			{
+				_model = value;
+				listenUsersData();
+			}
+			
+			public function listenUsersData(dummyVar:* = null):void
+			{
+				if(model && model.usersData && usrList)
+				{
+					usrList.dataProvider = model.usersData;
+					BindingUtils.bindProperty(usrList,"dataProvider",model,"usersData");
+				}
+				else if(model)
+				{
+					model.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, listenUsersData);
+				}
+			}
+
+			protected function hbox1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				;
+			}
+
+		]]>
+	</mx:Script>
+		
+	<mx:Panel title="Types d'observés" width="180" verticalScrollPolicy="off" horizontalScrollPolicy="off" click="hbox1_clickHandler(event)">
+		<mx:TileList  id="typeList"  maxColumns="1" rowCount="7" selectable="false"
+					  dataProvider="{traceTypes}" itemRenderer="ithaca.traces.timeline.TypeItemCheckBox"  />
+	</mx:Panel>
+	
+	<mx:Panel title="Utilisateurs" width="180" verticalScrollPolicy="off" horizontalScrollPolicy="off" >
+	<mx:TileList dataProvider="{model.usersData}" id="usrList" rowCount="7" creationComplete="listenUsersData()"		
+							 columnCount="1" itemRenderer="ithaca.traces.timeline.UserListItemCheckBox"  />
+	</mx:Panel>
+
+	<mx:filters>
+		<mx:DropShadowFilter alpha=".7" distance="0" blurX="20" blurY="20" />
+	</mx:filters>
+</mx:HBox>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="300" height="24">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.greensock.*;
+			import com.greensock.easing.*;
+			import ui.trace.timeline.PlayLine;
+			import ui.trace.timeline.TimelineModel;
+			
+			public var model:TimelineModel;
+			
+			public var parentLine:PlayLine;
+			
+			
+			private function startDraging(e:MouseEvent):void
+			{
+				//this.startDrag(false,new Rectangle(this.x,topEdge,0,bottomEdge - topEdge - this.height));				
+				
+				stage.addEventListener(MouseEvent.MOUSE_MOVE,draging);
+				stage.addEventListener(MouseEvent.MOUSE_UP,stopDraging);
+
+			}
+			
+			private function draging(e:MouseEvent):void
+			{
+				
+				//We are here intersted in the Y of the mouse in the context of the parent of our object
+				//We then egt the coordinates of the mouse in this context
+				var parentMouse:Point = this.parent.globalToLocal(new Point(e.stageX, e.stageY));
+				
+				var toY:Number = parentMouse.y;
+				
+				//We check if we are not above the defined topEdge
+				toY = Math.max(-this.height/2,toY);
+				
+				//We also check that we are not under the bottomEdge
+				toY = Math.min(toY, parent.height + this.height/2);
+				
+				//Finally we set the new Y value to our object (with a tween)
+				TweenMax.to(this,.6,{y:toY, ease:Back.easeOut, onUpdate:userMove});
+				
+			}
+			
+			private function stopDraging(e:MouseEvent):void
+			{
+				
+				this.stopDrag();
+				
+				stage.removeEventListener(MouseEvent.MOUSE_MOVE,draging);
+				stage.removeEventListener(MouseEvent.MOUSE_UP,stopDraging);
+			}
+			
+			private function userMove(e:Event = null):void
+			{
+				model.setCurrentTime(parentLine.getTimeFromPos(this.y + this.height/2));
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Canvas height="3" borderColor="#A60000" backgroundColor="#AE0000" left="13.6" right="9" verticalCenter="0">
+	</mx:Canvas>
+
+	<mx:Image source="@Embed('timeline/ControlableHeadGrip.png')" x="0" y="0" 
+			  mouseDown="startDraging(event)" useHandCursor="true" buttonMode="true"/>
+	
+</mx:Canvas>

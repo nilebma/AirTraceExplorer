@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="225" height="100%" xmlns:ns1="*"
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"  xmlns:Utils="Utils.*" xmlns:timeline="ithaca.traces.timeline.*" 
+				backgroundAlpha="0.0" xmlns:Utils1="ithaca.traces.timeline.Utils.*"
+				horizontalAlign="center"
+				creationComplete="init()" resize="onResize()" xmlns:timeline1="ithaca.traces.timeline.*">
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.CheckBox;
+			import ithaca.traces.timeline.*;
+			import ithaca.traces.timeline.PlayLineRenders.*;
+			import ithaca.traces.timeline.TraceLineRenderers.*;
+			import ithaca.traces.timeline.events.InternalTimelineEvent;
+			import com.lyon2.visu.model.TraceModel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.PropertyChangeEvent;
+			import mx.formatters.DateFormatter;
+			
+			import com.lyon2.visu.model.VisuModelLocator;
+			import com.lyon2.visu.model.VisuConstants;
+			
+			[Bindable]
+			public var _traceData:ArrayCollection;
+			
+			[Bindable]
+			public var _model:TimelineModel;			
+			
+			private var theDateFormatter:DateFormatter;
+			
+			private var theMask:Canvas = new Canvas();
+			
+			private var curseurWasLockedBeforePause:Boolean;
+			
+			
+			public function init():void
+			{
+				
+				updateTunnelEffect();
+				theDateFormatter = new DateFormatter();
+				theDateFormatter.formatString = "NN:SS";
+				
+				updateZoomToContextEffect();
+				
+			}
+			
+			public function onResize(e:Event = null):void
+			{
+				updateTunnelEffect();
+				updateZoomToContextEffect();
+				curseur.updateFromProg();
+			}
+			
+			[Bindable]
+			public function get model():TimelineModel
+			{
+				return _model;
+			}
+			
+			public function set model(value:TimelineModel):void
+			{
+				_model = value;
+				
+				
+				if(_model)
+				{
+					_model.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, modelUpdate);			
+					
+					traceData = _model.traceData;
+					
+					initCurseur();
+				}
+			}
+			
+			public function get traceData():ArrayCollection
+			{
+				return _traceData;
+			}
+			
+			public function set traceData(value:ArrayCollection):void
+			{
+				_traceData = value;
+				
+				if(_traceData)
+					_traceData.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, traceDataUpdate);
+			}
+			
+			public function updateTunnelEffect():void
+			{	
+				var topTimeline:Number = mainTimelineContainer.y;
+				var bottomTimeline:Number = mainTimelineContainer.height + mainTimelineContainer.y;
+				var leftTimeline:Number = mainTimelineContainer.x;
+				var widthTimeline:Number = mainTimelineContainer.width;
+				var heightTimeline:Number = mainTimelineContainer.height;
+				
+				theMask.width = widthTimeline;
+				theMask.height = heightTimeline;
+				
+				theMask.x = leftTimeline;
+				theMask.y = topTimeline;
+				
+				theMask.graphics.clear();
+				
+				theMask.graphics.beginFill(0x000000);
+				theMask.graphics.drawEllipse(0, 1, widthTimeline,12);
+				theMask.graphics.endFill();
+				
+				theMask.graphics.beginFill(0x000000);
+				theMask.graphics.drawRect(0, 7, widthTimeline, heightTimeline-14);
+				theMask.graphics.endFill(); 
+				
+				theMask.graphics.beginFill(0x000000);
+				theMask.graphics.drawEllipse(0,heightTimeline-13,widthTimeline,12);
+				theMask.graphics.endFill();
+				
+				
+				timelines.addChild(theMask);
+				
+				mainTimelineContainer.mask = theMask;
+			}
+			
+			public function updateZoomToContextEffect():void
+			{ 			
+				//We first get the position of the curseur, the coordinate space is "this".
+				
+				var globalCurseur:Rectangle = curseur.getRect(timelines);
+				
+				
+				globalCurseur.height = curseur.height; //we here fix a bug in the getRect method that lead sometime to incredible height
+				
+				//Then we get the position of the mainTimeline, the coordinate space is "this".
+				
+				//we don't use the getRect method here, indeed it doesn't work if the DisplayObject is empty, and it is the case for the mainTimelineContainer at the begining
+				var globalTimeline:Rectangle =  new Rectangle();
+				
+				var globalTimelineGlobalPoint:Point = mainTimelineContainer.localToGlobal(new Point(0,0));
+				var globalTimelineLocalPoint:Point = timelines.globalToLocal(globalTimelineGlobalPoint);
+				
+				globalTimeline.x = globalTimelineLocalPoint.x;
+				globalTimeline.y = globalTimelineLocalPoint.y;
+				globalTimeline.width = mainTimelineContainer.width;
+				globalTimeline.height = mainTimelineContainer.height;
+				
+				
+				globalTimeline.top = Math.max(4, globalTimeline.top);
+				globalTimeline.bottom = Math.min(timelines.height-4, globalTimeline.bottom);
+				
+				
+				//We are going to draw
+				theZoomToContextCanvas.graphics.clear();
+				
+				//We set up a gradient matrix
+				var effectWidth:int = globalCurseur.right - globalTimeline.left;
+				var effecthHeight:int = globalTimeline.height;
+				var gradientMatrix:Matrix = horizontalGradientMatrix( globalTimeline.x, globalTimeline.y, effectWidth, effecthHeight);
+				
+				//We set up the gradient fill
+				theZoomToContextCanvas.graphics.beginGradientFill(GradientType.LINEAR,[0xCCCCCC, 0xCCCCCC, 0xCCCCCC],[0, .6, .8],[0,80,255],gradientMatrix);
+				
+				//We then draw
+				
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.left,	globalTimeline.top);
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.right,	globalTimeline.top);
+				
+				theZoomToContextCanvas.graphics.curveTo(globalTimeline.right,	globalCurseur.top,
+					globalCurseur.left,		globalCurseur.top);
+				
+				theZoomToContextCanvas.graphics.lineTo(	globalCurseur.right,	globalCurseur.top);
+				theZoomToContextCanvas.graphics.lineTo(	globalCurseur.right,	globalCurseur.bottom);
+				theZoomToContextCanvas.graphics.lineTo(	globalCurseur.left,		globalCurseur.bottom);
+				
+				theZoomToContextCanvas.graphics.curveTo(globalTimeline.right,	globalCurseur.bottom,
+					globalTimeline.right,	globalTimeline.bottom);
+				
+				theZoomToContextCanvas.graphics.lineTo(	globalTimeline.left,	globalTimeline.bottom);
+				
+				theZoomToContextCanvas.graphics.endFill();
+			}
+			
+			
+			
+			public function modelUpdate(e:PropertyChangeEvent = null):void
+			{
+				if(e.property == "currentTime")
+					setRemainingTime();
+				
+				if(e.property == "startTime" || e.property == "stopTime")		
+					initCurseur();
+				
+			}
+			
+			public function initCurseur():void
+			{
+				if( !isNaN(model.startTime) && !isNaN(model.stopTime) )
+				{
+					curseur.setZoomTime(model.startTime, model.stopTime);
+				}
+			}
+			
+			
+			public function setRemainingTime():void
+			{
+				if(!isNaN(model.stopTime) && !isNaN(model.currentTime))
+				{
+					var remainTime:Number = model.stopTime - model.currentTime;
+					
+					remainTimeLabel.text = "-" + theDateFormatter.format(new Date(remainTime));
+				}
+			}
+			
+			public function traceDataUpdate(e:PropertyChangeEvent = null):void
+			{
+				;
+			}
+			
+			protected function onItemZoomOn(e:InternalTimelineEvent):void
+			{
+				zoomOnATimePos(e.timeStamp);
+				
+				if (e.callBackFunc != null)
+					curseur.addEventListener("zoomFromProgComplete",e.callBackFunc);
+			}
+			
+			protected function onItemGotoAndPlay(e:InternalTimelineEvent):void
+			{
+				model.setCurrentTime(e.timeStamp);
+				//model.firePlayEvent(e.timeStamp);
+			}
+			
+			protected function pauseCurseurLock(e:Event = null):void
+			{
+				if(curseur.locked)
+					curseurWasLockedBeforePause = true;
+				else
+					curseurWasLockedBeforePause = false;
+				
+				curseur.locked = false;	
+			}
+
+			protected function unPauseCurseurLock(e:Event = null):void
+			{
+				if(curseurWasLockedBeforePause)	
+					curseur.locked = true;	
+			}
+			
+			
+			
+			public function zoomOnATimePos(t:Number):void
+			{
+				curseur.setZoomOnATimePos(t);
+			}	
+			public function setVisibleTraceLineShowDocument(value:Boolean):void
+			{
+				otherUsersReadDocument.visible = value;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	
+	
+
+<!--    <mx:Panel title="Utilisateurs inscrits" width="100%">
+		<timeline:UserList width="95%" model="{model}" id="usrList" maxVisibleRows="3"
+							  itemRenderer="ithaca.traces.timeline.UserListItemWithStatus"/>
+    </mx:Panel>-->
+
+	
+     <!-- <timeline:Timelines height="100%" width="100%" traceData="{model.traceData}" model="{model}"/>-->
+      
+		
+		
+		
+		
+	<mx:Canvas id="timelines" height="100%" width="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off" resize="onResize()">
+		
+		<mx:Canvas id="theZoomToContextCanvas" width="100%" height="100%"/> 
+		
+		<timeline:TimeControl x="156" y="0" model="{_model}" visible="{model.modeReplay}"/>
+		
+		<mx:Canvas id="mainTimelineContainer" x="10" y="0" width="140" height="{timelines.height}"
+				   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			
+			<timeline1:TraceLine id="activityLine" model="{_model}"
+								   RendererType="{ActivityRenderer}" traceData="{_model.traceData}" 
+								   traceFilter="{{'type':['ActivityStart']}}" endTraceFilter="{{'type':['ActivityEnd']}}" 
+								   startEndMatchingProperty="id"
+								   startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}" 
+								   width="100" height="{timelines.height}" x="15" y="0"/>	
+			
+			<timeline1:PlayLine RendererType="{PlayHead}" startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}" currentTime="{_model.currentTime}"
+								  x="10" width="110" height="{timelines.height}" y="0"/>
+			
+			<timeline1:TraceLine id="activityTitleLine" model="{_model}"
+								   RendererType="{ActivityTitleRenderer}" traceData="{_model.traceData}" traceFilter="{{'type':['ActivityStart']}}" 
+								   startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}" 
+								   width="100" height="{timelines.height}" x="15" y="0"/>
+			
+			<timeline1:TraceLine id="ownMarqueurLine" model="{_model}"
+								   RendererType="{MarqueurPerso2}" traceData="{_model.markerData}" traceFilter="{{'type':['SetMark']}}" 
+								   startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}" 
+								   width="110" height="{timelines.height}" x="10" y="0" renderAlign="after"
+								   itemZoomOn="onItemZoomOn(event)" itemStartEdit="pauseCurseurLock()" itemStopEdit="unPauseCurseurLock()"
+								   itemGotoAndPlay="onItemGotoAndPlay(event)"/>
+			
+			<timeline1:TraceLine id="otherUsersMarqueurLine" model="{_model}"
+								   RendererType="{Marqueur}" traceData="{_model.markerData}" traceFilter="{{'type':['ReceiveMark']}}" 
+								   startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}" 
+								   width="30" height="{timelines.height}" x="12" y="0" renderAlign="after"/>
+								   
+			<timeline1:TraceLine id="otherUsersReadDocument" model="{_model}"
+								   RendererType="{ShowDocument}" traceData="{_model.traceData}" traceFilter="{{'type':[TraceModel.ShowDocument]}}" 
+								   startTime="{curseur.zoomStartTime}" stopTime="{curseur.zoomStopTime}" 
+								   width="30" height="{timelines.height}" x="42" y="0" renderAlign="after" />
+			
+		</mx:Canvas>
+		
+		
+		<mx:Canvas id="previewTimelineContainer" x="140" y="0" width="85" height="{timelines.height - 20}" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+			
+			<mx:Canvas x="39" y="25" width="16" height="{previewTimelineContainer.height - 32}"
+					   borderColor="#000000" borderStyle="solid"/>
+			
+			<timeline1:TraceLine id="activityZoomLine" model="{_model}"
+								   RendererType="{ActivityRenderer}" traceData="{_model.traceData}"
+								   traceFilter="{{'type':['ActivityStart']}}" endTraceFilter="{{'type':['ActivityEnd']}}" 
+								   startEndMatchingProperty="id"
+								   startTime="{_model.startTime}" stopTime="{_model.stopTime}" 
+								   width="12" height="{previewTimelineContainer.height - 36}" x="41" y="27"/>
+			
+			<timeline1:PlayLine RendererType="{PlayHeadWithTime}" startTime="{_model.startTime}" 
+								  stopTime="{_model.stopTime}" currentTime="{_model.currentTime}" 
+								  x="-2" width="60" height="{previewTimelineContainer.height - 36}" y="27" visible="{model.modeRecord}"/>
+			
+			<timeline1:PlayLine RendererType="{ControlHead}" startTime="{_model.startTime}" model="{_model}"
+								  stopTime="{_model.stopTime}" currentTime="{_model.currentTime}" 	
+								  x="8" width="50" height="{previewTimelineContainer.height - 36}" y="27" visible="{model.modeReplay}"/>
+			
+			
+			<timeline1:TraceLine id="ownMarqueurZoomLine"  model="{_model}"
+								   RendererType="{MarqueurLittle}" traceData="{_model.markerData}" traceFilter="{{'type':['SetMark']}}" 
+								   startTime="{_model.startTime}" stopTime="{_model.stopTime}"  renderAlign="after"
+								   width="20" height="{previewTimelineContainer.height - 36}" x="37" y="27"/>
+			
+			
+			<timeline:CurseurVertical id="curseur" x="33" y="24" width="43" height="{previewTimelineContainer.height - 28}" 
+								 startEdge="24" endEdge="{previewTimelineContainer.height - 28}"  
+								 minimumSize="70" lockSize="70" lockPosition="35"
+								 startTime="{_model.startTime}"
+								 stopTime="{_model.stopTime}" 
+								 startAndEndDelta="3"
+								 currentTime="{_model.currentTime}"
+								 zoomChange="updateZoomToContextEffect()"
+								 locked="true"/>
+		</mx:Canvas>	
+		
+		<mx:Canvas id="bottom" width="100%" height="20" bottom="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+			<mx:Image x="160" y="0" source="@Embed(source='timeline/HorlogeRouge-01.png')" width="15" height="15"/>
+			<mx:Label id="remainTimeLabel" x="176" y="0" text="00:00" color="#AE0000" fontWeight="bold" fontSize="9"/>
+		</mx:Canvas>
+		
+		
+		<mx:Image id="ombreHautTunnel" source="@Embed(source='timeline/ombreHautTunnel.png')" maintainAspectRatio="false" scaleContent="true" 
+				  width="{mainTimelineContainer.width + 20}" y="{mainTimelineContainer.y}"/>	
+		
+		<mx:Image id="ombreBasTunnel" source="@Embed(source='timeline/ombreBasTunnel.png')" y="7" maintainAspectRatio="false" scaleContent="true" 
+				  width="{mainTimelineContainer.width + 20}" bottom="0"/>
+		
+	</mx:Canvas>
+	    <mx:Button label="Poser marqueur" icon="@Embed(source='timeline/marqueurBlanc-bas-40px.png')"
+	                 click="{model.addMarqueurFromCurrentUserNow()}" id="addCommentButton"
+	                 enabled="{model.modeRecord}"/>
+ </mx:VBox>

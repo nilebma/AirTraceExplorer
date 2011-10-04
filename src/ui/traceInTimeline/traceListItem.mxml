@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				width="226" height="52" autoDrawBackground="true">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import spark.events.TextOperationEvent;
+			protected function checkbox_changeHandler(event:Event):void
+			{
+				data.related = checkbox.selected;
+			}
+			
+			protected function delayTextInput_changeHandler(event:TextOperationEvent):void
+			{
+					data.traceInTimeline.delay = parseInt(delayTextInput.text);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:NumberValidator id="delayValidator" source="{delayTextInput}" property="text" trigger='{delayTextInput}'
+						   triggerEvent="change" allowNegative="true" domain="int" />
+	</fx:Declarations>
+	
+	
+	<s:CheckBox id="checkbox" x="6" y="6" change="checkbox_changeHandler(event)"
+				selected="{data.related}"/>
+	
+	<s:Label x="32" y="8" width="200" fontSize="15" fontWeight="bold" text="{data.trace.title}"
+			 verticalAlign="middle"/>
+	<s:FormItem x="22" y="17" width="193" height="37" label="Delay" fontSize="10">
+		<s:TextInput id="delayTextInput" text="{data.traceInTimeline.delay}" change="delayTextInput_changeHandler(event)" enabled="{data.related}"/>
+	</s:FormItem>
+	
+</s:ItemRenderer>

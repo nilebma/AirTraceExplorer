@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:timeline="ui.trace.timeline.*" xmlns:screenshot="ui.screenshot.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Base;
+			import com.ithaca.traces.Trace;
+			
+			import mx.collections.ArrayCollection;
+			
+			import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
+			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+			import ui.trace.timeline.events.TimelineEvent;
+			
+			import valueObjects.VOTrace;
+			
+			[Bindable]
+			public var theVOTrace:VOTrace;
+			
+			[Bindable]
+			public var theTraceBase:Base;			
+			
+			protected function subTraceLine_obselClickHandler(event:TimelineEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<!--Display the selected traces-->
+	
+	<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true"
+						traceData="{(theTraceBase.get(theVOTrace.uri) as Trace).obsels}" startTime="{theVOTrace.begin}" stopTime="{theVOTrace.end}"
+						rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}" 
+						top="35" height="10" left="10" right="10" renderAlign="middle" obselClick="subTraceLine_obselClickHandler(event)"/>
+	
+	<timeline:CurseurHorizontal id="curseurTraceLine" top="10" height="49" x="10" width="{contextTraceLine.width}" 
+								startEdge="5" endEdge="{contextTraceLine.width}"  
+								startTime="{theVOTrace.begin}" stopTime="{theVOTrace.end}" currentTime="0"
+								minimumSize="70" lockSize="200" lockPosition="100"
+								startAndEndDelta="1" 
+								locked="false"/>
+	
+	<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+						RendererType="{RectangleRenderer}" useRendererFunction="true" 
+						traceData="{(theTraceBase.get(theVOTrace.uri) as Trace).obsels}"
+						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+						rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+						top="50" height="10" left="10" right="10" renderAlign="middle" obselClick="subTraceLine_obselClickHandler(event)"/>
+	
+	<timeline:PlayLine id="playLine" RendererType="{ControlHeadForHorizontal}" direction="horizontal"
+					   startPadding="10" endPadding="10" renderAlign="middle"
+					   currentTime="{theVOTrace.begin}"
+					   startTime="{theVOTrace.begin}" stopTime="{theVOTrace.end}"
+					   top="30" height="60" left="10" right="10" />
+	
+	<screenshot:ScreenshotViewer id="theScreenshotViewer" left="10" right="10" top="100" bottom="10"
+								 currentTime="{playLine.currentTime}"
+								 traceUris="{new ArrayCollection([theVOTrace.uri])}"/>
+	
+</s:Group>

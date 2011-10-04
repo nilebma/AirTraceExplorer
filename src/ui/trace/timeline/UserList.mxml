@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:List xmlns:mx="http://www.adobe.com/2006/mxml"
+		 dataProvider="{sortedUserCollection}" horizontalScrollPolicy="auto"
+		 selectable="false" backgroundAlpha="0" width="100%" borderStyle="none">
+	
+	<mx:Script>
+		<![CDATA[
+			import com.lyon2.visu.model.vo.*;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.events.CollectionEvent;
+			
+			[Bindable]
+			private var _userCollection: ArrayCollection;
+			
+			[Bindable]
+			public var groupIdFilter:int = -1; //-1 in order to not apply the group filter
+			
+			public var userSelectable:Boolean = false;
+			
+			[Bindable]
+			public function get userCollection():ArrayCollection
+			{
+				return _userCollection;
+			}
+
+			public function set userCollection(value:ArrayCollection):void
+			{
+				_userCollection = value;
+				
+				listenUserCollection();
+			}
+
+			private function listenUserCollection():void
+			{
+				if(userCollection)
+				{
+					_userCollection.addEventListener(CollectionEvent.COLLECTION_CHANGE, onUserCollectionChange);
+				}
+			}
+			
+			private function onUserCollectionChange(e:CollectionEvent = null):void
+			{
+				updateSortedUserCollection();
+			}
+			
+			public function updateSortedUserCollection():void
+			{
+				sortedUserCollection.refresh();
+			}
+			
+			public function filterGroup(item:Object):Boolean
+			{
+				if(item is User)
+				{
+					if(!isNaN(groupIdFilter) && groupIdFilter >= 0)
+					{
+						if((item as User).groupe_id == groupIdFilter)
+							return true;
+						else
+							return false;
+					}
+					else
+						return true;
+				}
+				
+				return false;
+			}
+
+            ]]>
+	</mx:Script>
+
+	<mx:ListCollectionView id="sortedUserCollection" list="{_userCollection}" filterFunction="filterGroup">
+		<mx:sort>
+			<mx:Sort id="sortUser">
+				<mx:fields>
+					<mx:SortField id="sortUserField" name="status" numeric="true" descending="true"/>
+				</mx:fields>
+			</mx:Sort>	
+		</mx:sort>
+	</mx:ListCollectionView>
+	
+</mx:List>

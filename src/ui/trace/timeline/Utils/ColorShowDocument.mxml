@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="50" height="50" >
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.URLUtil;
+			
+			[Embed(source="icons/video.jpg")]
+			private var videoImg:Class;
+			
+			private static var URL_YOU_TUBE:String = "www.youtube.com";
+			 			
+			[Bindable]
+			public var theColor:uint = 0x00FF00
+			public function setUrlMedia(url:String):void
+			{
+				var serveurName:String = URLUtil.getServerName(url);
+				if (serveurName == URL_YOU_TUBE)
+				{
+					loaderMedia.source = videoImg;
+				} else
+				{
+					loaderMedia.load(url);
+				}
+			}
+
+		]]>
+	</mx:Script>
+	<!--<mx:Image source="@Embed('timeline/marqueurFondBlancDoc.png')" x="0" y="0" width="100%" height="100%" scaleContent="true"/>
+	<mx:Canvas id="coloriage" x="0" y="0" backgroundColor="{theColor}" mask="{theMask}" width="100%" height="100%" cacheAsBitmap="true"/>
+	<mx:Image id="theMask" source="@Embed('timeline/marqueurBlancTransDoc.png')" x="0" y="0" width="100%" height="100%" scaleContent="true" cacheAsBitmap="true"/>-->
+	<mx:SWFLoader  id="loaderMedia" x="0" y="0" width="25" height="25"  scaleContent="true"/>
+	<mx:filters>
+		<mx:DropShadowFilter blurX="6" blurY="6" distance="0" alpha=".5"/>
+	</mx:filters>
+	
+
+</mx:Canvas>

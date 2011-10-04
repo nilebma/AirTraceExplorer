@@ -1,0 +1,1112 @@
+
+<model xmlns="http://ns.adobe.com/Fiber/1.0">
+  <annotation name="ActionScriptGeneration">
+    <item name="FullyQualifyReferences">true</item>
+  </annotation>
+  <service name="MediaService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">MediaService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.mediaservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">MediaService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/MediaService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/MediaService.php</item>
+      <item name="LINKED_FILE">MediaService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">MediaService</item>
+    </annotation>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="createMedia" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Media"/>
+    </function>
+    <function name="deleteMedia" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="getAllMedia" return-type="Media[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getMedia_paged" return-type="Media[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+    <function name="getMediaByID" return-type="Media">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="updateMedia" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Media"/>
+    </function>
+  </service>
+  <entity name="Media" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Media</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">MediaService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createMedia</item>
+      <item name="update">updateMedia</item>
+      <item name="get">getMediaByID</item>
+      <item name="delete">deleteMedia</item>
+      <item name="fillFunc">getAllMedia,getMedia_paged</item>
+      <item name="managingService">MediaService</item>
+    </annotation>
+    <annotation name="getMediaByID">
+      <item name="propertySpecifier">id,length,startDate,title,description,color,url</item>
+    </annotation>
+    <annotation name="getAllMedia">
+      <item name="propertySpecifier">id,length,startDate,title,description,color,url</item>
+    </annotation>
+    <annotation name="getMedia_paged">
+      <item name="propertySpecifier">id,length,startDate,title,description,color,url</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="length" type="integer"/>
+    <property name="startDate" type="date"/>
+    <property name="title" type="string"/>
+    <property name="description" type="string"/>
+    <property name="color" type="integer"/>
+    <property name="url" type="string"/>
+  </entity>
+  <service name="MediaInTimelineService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">MediaInTimelineService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.mediaintimelineservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">MediaInTimelineService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/MediaInTimelineService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/MediaInTimelineService.php</item>
+      <item name="LINKED_FILE">MediaInTimelineService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">MediaInTimelineService</item>
+    </annotation>
+    <function name="getAllMediaInTimeline" return-type="MediaInTimeline[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getMediaInTimelineByID" return-type="MediaInTimeline">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="createMediaInTimeline" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="MediaInTimeline"/>
+    </function>
+    <function name="updateMediaInTimeline" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="MediaInTimeline"/>
+    </function>
+    <function name="deleteMediaInTimeline" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getMediaInTimeline_paged" return-type="MediaInTimeline[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+  </service>
+  <entity name="MediaInTimeline" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">MediaInTimeline</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">MediaInTimelineService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createMediaInTimeline</item>
+      <item name="update">updateMediaInTimeline</item>
+      <item name="get">getMediaInTimelineByID</item>
+      <item name="delete">deleteMediaInTimeline</item>
+      <item name="fillFunc">getAllMediaInTimeline,getMediaInTimeline_paged</item>
+      <item name="managingService">MediaInTimelineService</item>
+    </annotation>
+    <annotation name="getMediaInTimelineByID">
+      <item name="propertySpecifier">id,idMedia,idTimeline,position,delay,visible</item>
+    </annotation>
+    <annotation name="getAllMediaInTimeline">
+      <item name="propertySpecifier">id,idMedia,idTimeline,position,delay,visible</item>
+    </annotation>
+    <annotation name="getMediaInTimeline_paged">
+      <item name="propertySpecifier">id,idMedia,idTimeline,position,delay,visible</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="idMedia" type="integer"/>
+    <property name="idTimeline" type="integer"/>
+    <property name="position" type="integer"/>
+    <property name="delay" type="integer"/>
+    <property name="visible" type="integer"/>
+  </entity>
+  <service name="TimelineService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">TimelineService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.timelineservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">TimelineService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/TimelineService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TimelineService.php</item>
+      <item name="LINKED_FILE">TimelineService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">TimelineService</item>
+    </annotation>
+    <function name="getAllTimeline" return-type="Timeline[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getTimelineByID" return-type="Timeline">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="createTimeline" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Timeline"/>
+    </function>
+    <function name="updateTimeline" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Timeline"/>
+    </function>
+    <function name="deleteTimeline" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getTimeline_paged" return-type="Timeline[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+  </service>
+  <entity name="Timeline" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Timeline</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">TimelineService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createTimeline</item>
+      <item name="update">updateTimeline</item>
+      <item name="get">getTimelineByID</item>
+      <item name="delete">deleteTimeline</item>
+      <item name="fillFunc">getAllTimeline,getTimeline_paged</item>
+      <item name="managingService">TimelineService</item>
+    </annotation>
+    <annotation name="getTimelineByID">
+      <item name="propertySpecifier">id,title,description,zoomStart,zoomEnd,position</item>
+    </annotation>
+    <annotation name="getAllTimeline">
+      <item name="propertySpecifier">id,title,description,zoomStart,zoomEnd,position</item>
+    </annotation>
+    <annotation name="getTimeline_paged">
+      <item name="propertySpecifier">id,title,description,zoomStart,zoomEnd,position</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="title" type="string"/>
+    <property name="description" type="string"/>
+    <property name="zoomStart" type="integer"/>
+    <property name="zoomEnd" type="integer"/>
+    <property name="position" type="integer"/>
+  </entity>
+  <service name="IntervalleService1">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">IntervalleService1</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.intervalleservice1</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">IntervalleService1</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/IntervalleService1.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/IntervalleService1.php</item>
+      <item name="LINKED_FILE">IntervalleService1.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">IntervalleService1</item>
+    </annotation>
+    <function name="getAllIntervalle" return-type="Intervalle[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getIntervalleByID" return-type="Intervalle">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="createIntervalle" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Intervalle"/>
+    </function>
+    <function name="updateIntervalle" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Intervalle"/>
+    </function>
+    <function name="deleteIntervalle" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getIntervalle_paged" return-type="Intervalle[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+  </service>
+  <entity name="Intervalle" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Intervalle</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">IntervalleService1</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createIntervalle</item>
+      <item name="update">updateIntervalle</item>
+      <item name="get">getIntervalleByID</item>
+      <item name="delete">deleteIntervalle</item>
+      <item name="fillFunc">getAllIntervalle,getIntervalle_paged</item>
+      <item name="managingService">IntervalleService1</item>
+    </annotation>
+    <annotation name="getIntervalleByID">
+      <item name="propertySpecifier">id,idTimeline,title,description,start,end</item>
+    </annotation>
+    <annotation name="getAllIntervalle">
+      <item name="propertySpecifier">id,idTimeline,title,description,start,end</item>
+    </annotation>
+    <annotation name="getIntervalle_paged">
+      <item name="propertySpecifier">id,idTimeline,title,description,start,end</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="idTimeline" type="integer"/>
+    <property name="title" type="string"/>
+    <property name="description" type="string"/>
+    <property name="start" type="date"/>
+    <property name="end" type="date"/>
+  </entity>
+  <service name="TtlService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">TtlService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.ttlservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">TtlService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/TtlService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TtlService.php</item>
+      <item name="LINKED_FILE">TtlService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">TtlService</item>
+    </annotation>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="createTtl" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Ttl"/>
+    </function>
+    <function name="deleteTtl" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="getAllTtl" return-type="Ttl[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getTtl_paged" return-type="Ttl[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+    <function name="getTtlByID" return-type="Ttl">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="updateTtl" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Ttl"/>
+    </function>
+  </service>
+  <entity name="Ttl" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Ttl</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">TtlService,TtlServiceDummy</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createTtl</item>
+      <item name="update">updateTtl</item>
+      <item name="get">getTtlByID</item>
+      <item name="delete">deleteTtl</item>
+      <item name="fillFunc">getAllTtl,getTtl_paged</item>
+      <item name="managingService">TtlService</item>
+    </annotation>
+    <annotation name="getTtlByID">
+      <item name="propertySpecifier">id,url,title,description,begin,end,size</item>
+    </annotation>
+    <annotation name="getAllTtl">
+      <item name="propertySpecifier">id,url,title,description,begin,end,size</item>
+    </annotation>
+    <annotation name="getTtl_paged">
+      <item name="propertySpecifier">id,url,title,description,begin,end,size</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="url" type="string"/>
+    <property name="title" type="string"/>
+    <property name="description" type="string"/>
+    <property name="begin" type="integer"/>
+    <property name="end" type="integer"/>
+    <property name="size" type="integer"/>
+  </entity>
+  <service name="TraceService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">TraceService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.traceservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">TraceService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/TraceService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TraceService.php</item>
+      <item name="LINKED_FILE">TraceService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">TraceService</item>
+    </annotation>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="createTrace" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="VOTrace"/>
+    </function>
+    <function name="deleteTrace" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="getAllTrace" return-type="VOTrace[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,title,subject,description,idTtl,uri,end,size,begin</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getTrace_paged" return-type="VOTrace[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,title,subject,description,idTtl,uri,end,size,begin</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+    <function name="getTraceByID" return-type="VOTrace">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,title,subject,description,idTtl,uri,end,size,begin</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="updateTrace" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="VOTrace"/>
+    </function>
+  </service>
+  <entity name="Trace" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Trace</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">TraceService,TraceServiceDummy</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="delete">deleteTrace</item>
+      <item name="managingService">TraceService</item>
+    </annotation>
+    <annotation name="getAllTrace">
+      <item name="propertySpecifier">id,uri,title,description,begin,end,size,subject,idTtl</item>
+    </annotation>
+    <annotation name="getTrace_paged">
+      <item name="propertySpecifier">id,uri,title,description,begin,end,size,subject,idTtl</item>
+      <item name="positionalPagingParameters">true</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="uri" type="string"/>
+    <property name="title" type="string"/>
+    <property name="description" type="string"/>
+    <property name="begin" type="integer"/>
+    <property name="end" type="integer"/>
+    <property name="size" type="integer"/>
+    <property name="subject" type="string"/>
+    <property name="idTtl" type="integer"/>
+  </entity>
+  <entity name="VOTrace" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">VOTrace</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">TraceService,TraceServiceDummy</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="getTraceByID">
+      <item name="propertySpecifier">id,title,subject,description,idTtl,uri,end,size,begin</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <annotation name="getTrace_paged">
+      <item name="propertySpecifier">id,title,subject,description,idTtl,uri,end,size,begin</item>
+    </annotation>
+    <annotation name="getAllTrace">
+      <item name="propertySpecifier">id,title,subject,description,idTtl,uri,end,size,begin</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="managingService">TraceService</item>
+      <item name="create">createTrace</item>
+      <item name="update">updateTrace</item>
+      <item name="get">getTraceByID</item>
+      <item name="delete">deleteTrace</item>
+      <item name="fillFunc">getAllTrace,getTrace_paged</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="title" type="opaque" required="true"/>
+    <property name="subject" type="string" required="true"/>
+    <property name="description" type="opaque" required="true"/>
+    <property name="idTtl" type="integer" required="true"/>
+    <property name="uri" type="string" required="true"/>
+    <property name="end" type="double" required="true" default="0"/>
+    <property name="size" type="integer" required="true"/>
+    <property name="begin" type="double" required="true" default="0"/>
+  </entity>
+  <service name="ScreenshotService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">ScreenshotService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.screenshotservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">ScreenshotService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/ScreenshotService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/ScreenshotService.php</item>
+      <item name="LINKED_FILE">ScreenshotService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">ScreenshotService</item>
+    </annotation>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="createScreenshot" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="VOScreenshot"/>
+    </function>
+    <function name="deleteScreenshot" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="getAllScreenshot" return-type="VOScreenshot[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,time,traceUri,filename</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getScreenshot_paged" return-type="VOScreenshot[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,time,traceUri,filename</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+    <function name="getScreenshotByID" return-type="VOScreenshot">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,time,traceUri,filename</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="updateScreenshot" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="VOScreenshot"/>
+    </function>
+    <function name="getScreenshotByTraceUris" return-type="VOScreenshot[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="ValidProperties">
+        <item name="propertySpecifier">id,time,traceUri,filename</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="traceUris" type="string[]"/>
+    </function>
+  </service>
+  <entity name="VOScreenshot" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">VOScreenshot</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">ScreenshotService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="getScreenshotByID">
+      <item name="propertySpecifier">id,time,traceUri,filename</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <annotation name="getScreenshot_paged">
+      <item name="propertySpecifier">id,time,traceUri,filename</item>
+    </annotation>
+    <annotation name="getAllScreenshot">
+      <item name="propertySpecifier">id,time,traceUri,filename</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="managingService">ScreenshotService</item>
+      <item name="create">createScreenshot</item>
+      <item name="update">updateScreenshot</item>
+      <item name="get">getScreenshotByID</item>
+      <item name="delete">deleteScreenshot</item>
+      <item name="fillFunc">getAllScreenshot,getScreenshot_paged,getScreenshotByTraceUris</item>
+    </annotation>
+    <annotation name="getScreenshotByTraceUris">
+      <item name="propertySpecifier">id,time,traceUri,filename</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="time" type="double" required="true" default="0"/>
+    <property name="traceUri" type="opaque" required="true"/>
+    <property name="filename" type="string" required="true"/>
+  </entity>
+  <service name="TraceInTimelineService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">TraceInTimelineService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.traceintimelineservice</item>
+      <item name="Endpoint">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="Destination">TraceInTimelineService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">AirTraceExplorer/services/TraceInTimelineService.php</item>
+      <item name="PHP_SERVER_ROOT">/Volumes/BHD/Serveur/TraceExplorer</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</item>
+      <item name="PHP_LOCATION">/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TraceInTimelineService.php</item>
+      <item name="LINKED_FILE">TraceInTimelineService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost/TraceExplorer/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost/TraceExplorer/AirTraceExplorer/gateway.php</item>
+      <item name="PHP_CLASS_NAME">TraceInTimelineService</item>
+    </annotation>
+    <function name="getAllTraceInTimeline" return-type="TraceInTimeline[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getTraceInTimelineByID" return-type="TraceInTimeline">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="createTraceInTimeline" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="TraceInTimeline"/>
+    </function>
+    <function name="updateTraceInTimeline" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="TraceInTimeline"/>
+    </function>
+    <function name="deleteTraceInTimeline" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getTraceInTimeline_paged" return-type="TraceInTimeline[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+  </service>
+  <entity name="TraceInTimeline" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">TraceInTimeline</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">TraceInTimelineService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createTraceInTimeline</item>
+      <item name="update">updateTraceInTimeline</item>
+      <item name="get">getTraceInTimelineByID</item>
+      <item name="delete">deleteTraceInTimeline</item>
+      <item name="fillFunc">getAllTraceInTimeline,getTraceInTimeline_paged</item>
+      <item name="managingService">TraceInTimelineService</item>
+    </annotation>
+    <annotation name="getTraceInTimelineByID">
+      <item name="propertySpecifier">id,idTimeline,idTrace,idSelector,position,delay,visible</item>
+    </annotation>
+    <annotation name="getAllTraceInTimeline">
+      <item name="propertySpecifier">id,idTimeline,idTrace,idSelector,position,delay,visible</item>
+    </annotation>
+    <annotation name="getTraceInTimeline_paged">
+      <item name="propertySpecifier">id,idTimeline,idTrace,idSelector,position,delay,visible</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="idTimeline" type="integer"/>
+    <property name="idTrace" type="integer"/>
+    <property name="idSelector" type="integer"/>
+    <property name="position" type="integer"/>
+    <property name="delay" type="integer"/>
+    <property name="visible" type="integer"/>
+  </entity>
+</model>
