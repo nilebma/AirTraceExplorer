@@ -103,7 +103,7 @@ package ui.trace.timeline
 
 		private var _model:TimelineModel;
 		private var _traceData:ObselCollection;
-		public var traceFilter:Object;
+		private var _traceFilter:Object;
 		public var endTraceFilter:Object;
 		public var startEndMatchingProperty:String;
 		
@@ -133,6 +133,8 @@ package ui.trace.timeline
 		
 		private var aRenderer:Array = new Array();
 		
+		private var filteredTrace:ObselCollection = new ObselCollection();
+		
 		
 		//these properties are only useful with GenrericRenderer as itemRendererType
 		public var iconClassForGenericRenderer:Class;
@@ -156,6 +158,20 @@ package ui.trace.timeline
 		}
 		
 		
+		public function get traceFilter():Object
+		{
+			return _traceFilter;
+		}
+
+		public function set traceFilter(value:Object):void
+		{
+			_traceFilter = value;
+			//if(_traceFilter is dummyTraceSelector)
+				//(_traceFilter as dummyTraceSelector).a
+				
+			resetRenderer();
+		}
+
 		override protected function createChildren():void 
 		{
 			super.createChildren();
@@ -279,7 +295,7 @@ package ui.trace.timeline
 			if(e.kind == CollectionEventKind.ADD)
 			{
 				for each(var item:Obsel in e.items)
-					treatATrace(item);
+					treatAnObsel(item);
 				
 				searchEndTraceForExistingRenderers();
 			}
@@ -303,6 +319,7 @@ package ui.trace.timeline
 		public function resetRenderer(e:Event = null):void
 		{
 			deleteAllRenderer();
+			filteredTrace.removeAll();
 			initRenderer();
 			//updateRenderer();
 		}
@@ -369,8 +386,8 @@ package ui.trace.timeline
 			//for each trace
 			for(var i:int; i < _traceData.length; i++)
 			{
-				var oTrace:Obsel = _traceData.getItemAt(i) as Obsel;
-				treatATrace(oTrace);
+				var obs:Obsel = _traceData.getItemAt(i) as Obsel;
+				treatAnObsel(obs);
 			}
 			
 			this.redrawRenderer = true;
@@ -389,11 +406,22 @@ package ui.trace.timeline
 		}
 
 		
-		private function treatATrace(oTrace:Obsel):void
+		private function treatAnObsel(pObs:Obsel):void
 		{
 			// we apply the filter
-			if(filterTrace(oTrace,traceFilter) && RendererType && !useRendererFunction)
+			
+			var filteredOK:Boolean = true;
+			if(traceFilter && traceFilter is dummyTraceSelector)
+				filteredOK = (traceFilter as dummyTraceSelector).testObsel(pObs);
+			else if(traceFilter)
+				filteredOK = filterTrace(pObs,traceFilter);
+				
+			if(filteredOK)
+				filteredTrace.push(pObs); //we add the obs to a filteredTrace Collection		
+			
+			if(filteredOK && RendererType && !useRendererFunction)
 			{
+							
 				//if the filter is passed, we create a renderer for the trace
 				
 				var newRenderer:DisplayObject = new RendererType();
@@ -411,14 +439,14 @@ package ui.trace.timeline
 				}
 				
 				// we look for an endTrace
-				var endTrace:Obsel = getEndTrace(oTrace); //endTrace is null is no endTrace is found
+				var endTrace:Obsel = getEndTrace(pObs); //endTrace is null is no endTrace is found
 				
 				
 				//Some renderer may implement the ITraceRenderer interface
 				if(newRenderer is ITraceRenderer)
 				{
 					//we set the traceData
-					(newRenderer as ITraceRenderer).traceData = oTrace;
+					(newRenderer as ITraceRenderer).traceData = pObs;
 					
 					if(endTrace)
 						(newRenderer as ITraceRenderer).endTraceData = endTrace;
@@ -454,7 +482,7 @@ package ui.trace.timeline
 					newRenderer.addEventListener(InternalTimelineEvent.ITEM_GOTO_AND_PLAY, onItemEvent);
 				}
 				//the renderers are saved in the aRenderer array
-				aRenderer.push({"renderer":newRenderer,"container":newContainer,"traceData":oTrace,"endTraceData":endTrace});
+				aRenderer.push({"renderer":newRenderer,"container":newContainer,"traceData":pObs,"endTraceData":endTrace});
 			
 				sortRendererArray();
 				//the position and others appareance settings will be set in updateRenderer function
@@ -565,7 +593,7 @@ package ui.trace.timeline
 					
 					renderingFunctionReset();
 					
-					for each(var obs:Obsel in _traceData._obsels)
+					for each(var obs:Obsel in filteredTrace._obsels)
 						if(obs.begin >= _startTime && obs.begin <= _stopTime
 							|| obs.end >= _startTime && obs.end <= _stopTime)
 										renderingFunction(obs);
