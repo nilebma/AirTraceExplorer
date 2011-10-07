@@ -34,7 +34,6 @@
 			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
 			import ui.trace.timeline.events.TimelineEvent;
 			
-			import valueObjects.Ttl;
 			
 			[Bindable]
 			public var theKtbs:Ktbs;
@@ -50,7 +49,9 @@
 			
 			protected var theTtlLoader:TtlLoader = new TtlLoader();
 			
-			protected var topPositionForNewTraceline:int = 70;
+			protected var topPositionForNewTraceline:int = 100;
+			
+			protected var aLoadedTrace:Trace; 
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
@@ -59,17 +60,14 @@
 				
 				theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
 				
-
 			}
 			
 			protected function onTtlLoaded(e:ResultEvent):void
-			{
-
-				
+			{	
 				if(e.result && e.result.loadedTraces && e.result.loadedTraces.length > 0)
 				{
 						
-					var aLoadedTrace:Trace = e.result.loadedTraces[0];
+					aLoadedTrace = e.result.loadedTraces[0];
 									
 					var globalBegin:Number = aLoadedTrace.getEarliestObsel().begin;
 
@@ -77,6 +75,7 @@
 
 					
 					subTraceLine.traceData = aLoadedTrace.obsels;
+					selectorTraceLine.traceData = aLoadedTrace.obsels;
 					contextTraceLine.traceData = aLoadedTrace.obsels;
 					contextSelectionTraceLine.startTime = globalBegin;
 					contextSelectionTraceLine.stopTime = globalEnd;
@@ -85,9 +84,8 @@
 					curseurTraceLine.startTime = globalBegin;
 					curseurTraceLine.stopTime = globalEnd;
 					curseurTraceLine.currentTime = 0;
-					selectorEditor.obsels = aLoadedTrace.obsels;
+					selectorEditor2.obsels = aLoadedTrace.obsels;
 				}
-			
 			}
 			
 			protected function onObselLineSelectionChange(e:TimelineEvent):void
@@ -146,13 +144,11 @@
 			
 			protected function loadBtn_clickHandler(event:MouseEvent):void
 			{
-				var aTtlFile:Ttl = new Ttl();
-				aTtlFile.url = urlInput.text;
-				
-				theTtlLoader.loadTTL(aTtlFile,theBase);
+			
+				theTtlLoader.loadTTL(urlInput.text,theBase);
 			}
 			
-			protected function obselTypeSelectedHandler(event:ResultEvent):void
+			protected function selectorValidationHandler(event:ResultEvent):void
 			{
 				//CREATION DE LA TRACELINE
 				var newTraceLine:TraceLine = new TraceLine();
@@ -174,13 +170,12 @@
 				newTraceLine.addEventListener("obselClick", onObselLineSelectionChange);
 				BindingUtils.bindProperty(newTraceLine,"startTime",curseurTraceLine,"zoomStartTime");
 				BindingUtils.bindProperty(newTraceLine,"stopTime",curseurTraceLine,"zoomStopTime");
-				
-				var obsCollec:ObselCollection = new ObselCollection();
-				
-				for each(var obs:Obsel in (event.result.obsels as Array))
-					obsCollec.push(obs);
 					
-				newTraceLine.traceData = obsCollec;
+				newTraceLine.traceData = aLoadedTrace.obsels;
+				
+				var selectorToCopy:dummyTraceSelector = event.result as dummyTraceSelector;
+				newTraceLine.traceFilter = new dummyTraceSelector(selectorToCopy.arTypes, selectorToCopy.arAttributesAndValues, selectorToCopy.arValuesAndAttributes);
+				(newTraceLine.traceFilter as dummyTraceSelector).name = selectorToCopy.name;
 				
 				//CREATION DU LABEL
 				var l:Label = new Label();
@@ -189,12 +184,13 @@
 				l.width = 90;
 				l.setStyle("fontSize",10);
 				l.showTruncationTip = true;
-				l.text = event.result.typeObsel;
+				l.text = selectorToCopy.name;
 				l.maxDisplayedLines = 1;
 				
 				topPositionForNewTraceline += 25;
 				timelineGroup.addElement(newTraceLine);
 				timelineGroup.addElement(l);
+	
 			}
 			
 		]]>
@@ -202,7 +198,7 @@
 	
 	<!--Display the selected traces-->
 	
-	<s:Group left="10" right="330" top="50" bottom="280" id="timelineGroup">
+	<s:Group left="10" right="330" top="50" bottom="550" id="timelineGroup" >
 		<s:layout>
 			<s:BasicLayout/>
 		</s:layout>
@@ -219,8 +215,8 @@
 							rendererFunctionParams="{{'color':0xFF0000}}"
 							top="25" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
-		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" width="{contextTraceLine.width-90}" 
-									startEdge="5" endEdge="{contextTraceLine.width-90}"  
+		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" width="{contextTraceLine.width}" 
+									startEdge="100" endEdge="{contextTraceLine.width+90}"  
 									minimumSize="70" lockSize="200" lockPosition="100"
 									startAndEndDelta="1"
 									locked="false"/>
@@ -239,17 +235,25 @@
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
 							top="50" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
-		<s:Label y="51" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
+		<timeline:TraceLine id="selectorTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
+							traceFilter="{selectorEditor2.theSelector}"
+							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+							top="70" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
+		
+		<s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
+		<s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
+		<s:Label y="70" left="10" width="90"  fontSize="10" text="Current Selector" showTruncationTip="true" maxDisplayedLines="1" />
 	</s:Group>
 	
 	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
 			 horizontalScrollPolicy="on" verticalScrollPolicy="on"/>
 	<s:TextInput y="10" left="10" right="100" id="urlInput"
-				 text="http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl"/>
+				 text="http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl"/>
 	<s:Button y="10" right="10" label="Load" id="loadBtn" click="loadBtn_clickHandler(event)"/>
-	<traceSelector:dummyTraceSelectorEditor id="selectorEditor" x="8" bottom="0"
-											obselTypeSelected="obselTypeSelectedHandler(event)">
-	</traceSelector:dummyTraceSelectorEditor>
+	<traceSelector:dummyTraceSelectorEditor id="selectorEditor2" x="8" bottom="10"
+										 selectorValidation="selectorValidationHandler(event)"/>
 	<mx:ColorPicker id="theColorPicker" x="656" bottom="10"/>
 	
 </s:WindowedApplication>
