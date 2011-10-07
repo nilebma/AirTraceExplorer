@@ -16,7 +16,7 @@ package services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectProxy;
 	
-	import valueObjects.Ttl;
+	
 	
 
 	
@@ -46,7 +46,7 @@ package services
 			super();
 		}
 		
-		public function loadTTL(pTtl:Ttl, pBase:Base):void
+		public function loadTTL(pTtl:String, pBase:Base):void
 		{
 			arTtl.push(pTtl);
 			this.theBase = pBase;
@@ -56,9 +56,9 @@ package services
 				var loader:URLLoader = new URLLoader();
 				loader.dataFormat=URLLoaderDataFormat.BINARY;
 				loader.addEventListener(Event.COMPLETE, onCallComplete);
-				loader.load(new URLRequest(pTtl.url));
+				loader.load(new URLRequest(pTtl));
 				this.loading = true;
-				mapLoaderToUrl[loader] = pTtl.url;
+				mapLoaderToUrl[loader] = pTtl;
 				nbLoading++;
 				loadingTtl.addItem(pTtl);
 			}
@@ -73,10 +73,10 @@ package services
 			loadedTraces =  RDFconverter.updateTraceBaseFromTurtle(trace_ttl, theBase);				
 			
 			
-			var theTtl:Ttl = null;
-			for each(var t:Ttl in arTtl)
+			var theTtl:String = null;
+			for each(var t:String in arTtl)
 			{
-				if(t.url == mapLoaderToUrl[loader])
+				if(t == mapLoaderToUrl[loader])
 				{
 					theTtl = t;
 					break;		
