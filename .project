@@ -25,47 +25,57 @@
 		<link>
 			<name>bin-debug</name>
 			<type>2</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer</location>
+			<locationURI>SERVEUR</locationURI>
 		</link>
 		<link>
 			<name>services/IntervalleService1.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/IntervalleService1.php</location>
+			<locationURI>SERVICES/IntervalleService1.php</locationURI>
 		</link>
 		<link>
 			<name>services/MediaInTimelineService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/MediaInTimelineService.php</location>
+			<locationURI>SERVICES/MediaInTimelineService.php</locationURI>
 		</link>
 		<link>
 			<name>services/MediaService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/MediaService.php</location>
+			<locationURI>SERVICES/MediaService.php</locationURI>
 		</link>
 		<link>
 			<name>services/ScreenshotService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/ScreenshotService.php</location>
+			<locationURI>SERVICES/ScreenshotService.php</locationURI>
 		</link>
 		<link>
 			<name>services/TimelineService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TimelineService.php</location>
+			<locationURI>SERVICES/TimelineService.php</locationURI>
 		</link>
 		<link>
 			<name>services/TraceInTimelineService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TraceInTimelineService.php</location>
+			<locationURI>SERVICES/TraceInTimelineService.php</locationURI>
 		</link>
 		<link>
 			<name>services/TraceService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TraceService.php</location>
+			<locationURI>SERVICES/TraceService.php</locationURI>
 		</link>
 		<link>
 			<name>services/TtlService.php</name>
 			<type>1</type>
-			<location>/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services/TtlService.php</location>
+			<locationURI>SERVICES/TtlService.php</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>SERVEUR</name>
+			<value>file:/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer</value>
+		</variable>
+		<variable>
+			<name>SERVICES</name>
+			<value>file:/Volumes/BHD/Serveur/TraceExplorer/AirTraceExplorer/services</value>
+		</variable>
+	</variableList>
 </projectDescription>
