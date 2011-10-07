@@ -5,8 +5,10 @@ package traceSelector
 	import com.ithaca.traces.Obsel;
 	
 	import mx.collections.ArrayCollection;
+	import mx.utils.ObjectProxy;
 
-	public class dummyTraceSelector
+	[Bindable]
+	public class dummyTraceSelector extends ObjectProxy
 	{
 		//This dummy selector can be used to filter a set of obsels : 
 		//   - (optionnal) by specifying ono or more types for these obsels 
@@ -15,6 +17,9 @@ package traceSelector
 		// 	 - (optionnal) by specifying a set of values should hold (all the specified values has to be hold)
 		//	 	- (optionnal) for each values, it is possible to specify a set of attribute types the obsels has to hold the value with
 		//	 - these are cumulative constraints (AND operator)
+		
+		[Bindable]
+		public var name:String = "noname";
 		
 		[Bindable]
 		public var metaTrace:dummyMetaTraces;

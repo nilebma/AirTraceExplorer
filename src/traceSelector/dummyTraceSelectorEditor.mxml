@@ -1,46 +1,251 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="640" height="269">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="640" height="269" creationComplete="creationCompleteHandler(event)">
 	
 	<fx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Attribute;
+			import com.ithaca.traces.AttributeType;
 			import com.ithaca.traces.Obsel;
 			import com.ithaca.traces.ObselCollection;
 			import com.ithaca.traces.ObselType;
 			import com.ithaca.traces.Trace;
 			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
 			import mx.rpc.events.ResultEvent;
+			
+			import spark.events.IndexChangeEvent;
 			
 			[Bindable]
 			public var metaTrace:dummyMetaTraces = new dummyMetaTraces();
 			
 			public var obsels:ObselCollection
 			
+			[Bindable(event="selectorChange")]
+			public var theSelector:dummyTraceSelector = new dummyTraceSelector();
 			
+			public var theFilters:Array = [];
+			
+			public var orderLabels:Object;
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				orderLabels = {"type":labelOrderTypes, "attribute":labelOrderAttributes, "value":labelOrderValues};
+			}
 
 			protected function generateBtn_clickHandler(event:MouseEvent):void
 			{
 				if(obsels)
 				{
-					metaTrace.obselCollections = obsels;
+					listAttributeTypes.dataProvider = obsels.listAttributeTypesBrute();
+					listAttributeValues.dataProvider = obsels.listValuesBrute();
+					listObselTypes.dataProvider = obsels.listObselTypesBrute();
 				}
 			}
 			
-			protected function addTypeClickHandler(event:Event):void
+			protected function onSelectorValidation(event:Event):void
 			{
-				if(listObselTypes.selectedItem)
+
+				var e:ResultEvent = new ResultEvent("selectorValidation",false,true, theSelector);
+				this.dispatchEvent(e);
+				
+			}
+			
+			protected function onListClear(event:Event):void
+			{
+				if(event.currentTarget == clearTypesBtn)
 				{
-					var e:ResultEvent = new ResultEvent("obselTypeSelected",false,true, {"typeObsel":(listObselTypes.selectedItem as ObselType).label ,"obsels":metaTrace.mapTypesToObsels[listObselTypes.selectedItem]});
-					this.dispatchEvent(e);
+					listObselTypes.selectedItem = null;
+					updateLists("type", null)
+				}
+				else if(event.currentTarget == clearAttributesBtn)
+				{
+					listAttributeTypes.selectedItems = null;
+					updateLists("attribute",null);
+				}
+				else if(event.currentTarget == clearValuesBtn)
+				{
+					listAttributeValues.selectedItem = null;
+					updateLists("value", null);
 				}
 			}
+			
+			protected function onListChange(event:Event):void
+			{
+				if(event.currentTarget == listObselTypes)
+					updateLists("type",listObselTypes.selectedItems)
+				else if (event.currentTarget == listAttributeTypes)
+					updateLists("attribute",listAttributeTypes.selectedItems);
+				else if(event.currentTarget == listAttributeValues)
+					updateLists("value", listAttributeValues.selectedItems);
+			}
+			
+			protected function updateLists(updatedFilterType:String, newValue:Vector.<Object>):void
+			{
+				var updatedFilterType:String;
+				
+				var corresponding:Object = {"type":null,"attribute":null,"value":null};
+				
+				var arFilterValues:Array = [];
+				
+				if(newValue)
+					for each(var v:* in newValue)
+						arFilterValues.push(v);
+				
+				//we look if we already have a filter on this type and update the value
+				var existingFilter:Boolean = false;
+				for(var k:int = 0; k < theFilters.length; k++)
+				{
+					var f:Object = theFilters[k];
+					
+					corresponding[f.type] = f.values; 
+
+					if(updatedFilterType == f.type)
+					{
+						f.values = arFilterValues;
+						existingFilter = true;	
+						
+						//and we cancel potentials subsequent filters
+						theFilters.splice(k+1,theFilters.length - (k-1));
+						
+						corresponding[f.type] = f.values; 
+						
+						break;
+					}
+
+					
+				}
+				
+				
+				//if no fitler, we create an object to represent it
+				if(!existingFilter)
+				{		
+					theFilters.push({"type":updatedFilterType,"values":arFilterValues});
+					corresponding[updatedFilterType] = arFilterValues;	
+				}
+				
+				for each(var lbl:Label in orderLabels)
+				{
+					lbl.text = "";
+				}
+				
+				//once the filter list updated we review it
+				for(var i:int = 0; i < theFilters.length; i++)
+				{
+					if(theFilters[i].values.length == 0) // if a filter is emtpy,we delete it 
+					{
+						corresponding[theFilters[i].type] = null;
+						theFilters.splice(i,theFilters.length - i);
+					}
+					else
+						(orderLabels[theFilters[i].type] as Label).text = (i+1 as int).toString(); // if it exists we update the order label
+						
+				}
+				
+				//we construct the new lists to display
+				
+				//If no filter, we display everything
+				if(theFilters.length == 0) 
+				{
+					listAttributeTypes.dataProvider = obsels.listAttributeTypesBrute();
+					listAttributeValues.dataProvider = obsels.listValuesBrute();
+					listObselTypes.dataProvider = obsels.listObselTypesBrute();
+					
+					labelNumberObsels.text = obsels._obsels.length.toString();
+					return;
+				}
+				else
+				{
+					var typeFilters:Array = [];
+					var attributeFilters:Array = [];
+					var valueFilters:Array = [];
+
+					//
+					for each(var afilter:Object in theFilters)
+					{
+						if(afilter.type == "type")
+							typeFilters = afilter.values;
+						else if(afilter.type == "attribute")
+						{
+							if(valueFilters.length == 0) 
+							{
+								for each(var af:AttributeType in afilter.values)
+								{
+									attributeFilters.push({"type":af, "values":new ArrayCollection()});			
+								}
+							}
+							else
+							{
+								for each(var vf:Object in valueFilters)
+									for each(var af:AttributeType in afilter.values)
+									{
+										(vf["attributeTypes"] as ArrayCollection).addItem(af);
+									}
+							}
+						}
+						else if(afilter.type == "value")
+						{
+							if(attributeFilters.length == 0) 
+							{
+								for each(var vf:* in afilter.values)
+									valueFilters.push({"value":vf, "attributeTypes":new ArrayCollection()});
+								
+							}
+							else
+							{
+								for each(var af2:Object in attributeFilters)
+									for each(var vf:* in afilter.values)
+										(af2["values"] as ArrayCollection).addItem(vf);
+							}
+						}
+					}
+						
+				}
+				
+				
+				theSelector.arAttributesAndValues = new ArrayCollection(attributeFilters);
+				theSelector.arValuesAndAttributes = new ArrayCollection(valueFilters);
+				theSelector.arTypes = new ArrayCollection(typeFilters);
+				this.dispatchEvent(new Event("selectorChange"));
+				
+				var newCollec:ObselCollection = new ObselCollection();
+				
+				for each(var o:Obsel in obsels._obsels)
+					if(theSelector.testObsel(o))
+						newCollec.addItem(o);
+					
+				labelNumberObsels.text = newCollec._obsels.length + " obsels."
+				
+					
+				for(var t:String in corresponding)
+				{
+					if(corresponding[t] == null)
+					{
+						// for every unfiltered list
+						
+						if(t == "type")
+							listObselTypes.dataProvider = newCollec.listObselTypesBrute();
+							
+						if(t == "attribute")
+							listAttributeTypes.dataProvider = newCollec.listAttributeTypesBrute(true,corresponding["type"],corresponding["value"]);
+							
+						if(t == "value")
+							listAttributeValues.dataProvider = newCollec.listValuesBrute(true,corresponding["type"],corresponding["attribute"]);
+					}
+						
+				}
+				
+		
+			}
+			
+
 			
 		]]>
 	</fx:Script>
 	<fx:Metadata>
-		[Event(name="obselTypeSelected", type="mx.rpc.events.ResultEvent")]
+		[Event(name="selectorValidation", type="mx.rpc.events.ResultEvent")]
 	</fx:Metadata>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -48,12 +253,25 @@
 	</fx:Declarations>
 	<s:Button id="generateBtn" x="10" y="10" label="Generate MetaTrace" click="generateBtn_clickHandler(event)"/>
 	
-	<s:Button id="addtypeBtn" x="14" y="238" label="Add Type" click="addTypeClickHandler(event)"/>
+	<s:Button id="addtypeBtn" right="120" y="9" label="Validate" click="onSelectorValidation(event)"/>
 	
-	<s:List id="listObselTypes" x="10" y="40" width="200" height="190" dataProvider="{metaTrace.arTypes}"></s:List>
+	<s:List id="listObselTypes" x="10" y="40" width="200" height="209" dataProvider="{obsels.listAttributeTypesBrute()}" 
+			allowMultipleSelection="true"  change="onListChange(event)"></s:List>
 	
-	<s:List id="listAttributeTypes" x="220" y="40" width="200" height="209" dataProvider="{metaTrace.arAttributeTypes}"></s:List>
+	<s:List id="listAttributeTypes" x="220" y="40" width="200" height="209" dataProvider="{obsels.listAttributeTypesBrute()}"
+			allowMultipleSelection="true"  change="onListChange(event)"></s:List>
 	
-	<s:List id="listAttributeValues" x="430" y="40" width="200" height="209" dataProvider="{metaTrace.arValues}"></s:List>
+	<s:List id="listAttributeValues" x="430" y="40" width="200" height="209" dataProvider="{obsels.listValuesBrute()}"
+			allowMultipleSelection="true"  change="onListChange(event)"></s:List>
+	<mx:LinkButton id="clearTypesBtn" x="164" y="248" click="onListClear(event)" label="clear" color="#162FC9" textDecoration="underline"/>
+	<mx:LinkButton id="clearAttributesBtn" x="374" y="248" click="onListClear(event)" label="clear" color="#162FC9" textDecoration="underline"/>
+	<mx:LinkButton id="clearValuesBtn" x="584" y="248" click="onListClear(event)" label="clear" color="#162FC9" textDecoration="underline"/>
+	<s:Label id="labelOrderTypes" x="13" y="253" text=""/>
+	<s:Label id="labelOrderAttributes" x="223" y="253" text=""/>
+	<s:Label id="labelOrderValues" x="432" y="253" text=""/>
+	<s:Label id="labelNumberObsels" y="10" right="10" width="100" height="22" textAlign="right"/>
+	
+	<s:TextInput id="tiSelectorName" y="10" left="230" right="198" height="22" textAlign="right" text="{theSelector.name}" change="{theSelector.name = tiSelectorName.text}"/>
+	<s:Label left="180" y="14" text="Nom :" width="50"/>
 	
 </s:Group>
