@@ -69,7 +69,7 @@
 			protected function loadTTL(ttl:Ttl):void
 			{
 				if(theTraceBase)
-					theTtlLoader.loadTTL(ttl_list.selectedItem as Ttl,theTraceBase);
+					theTtlLoader.loadTTL((ttl_list.selectedItem as Ttl).url,theTraceBase);
 			}
 			
 			protected function creationCompleteHandler(event:FlexEvent):void

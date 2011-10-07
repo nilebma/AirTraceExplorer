@@ -4,7 +4,7 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import com.greensock.TweenMax;
+			import greensock.TweenMax;
 			import com.greensock.easing.*;
 			
 			import mx.binding.utils.BindingUtils;

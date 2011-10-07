@@ -62,20 +62,22 @@
  */
 package ui.trace.timeline
 {
-	import com.greensock.*;
+	import com.greensock.TweenMax;
 	import com.greensock.easing.*;
-	import ui.trace.timeline.PlayLineRenders.ControlHead
-	import ui.trace.timeline.PlayLineRenders.ControlHead;
-	import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
-	import ui.trace.timeline.PlayLineRenders.PlayHeadWithTime;
-	import ui.trace.timeline.PlayLineRenders.PlayHeadWithTimeHorizontalTop;
 	
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	
+	import com.greensock.*;
+	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	import mx.events.ResizeEvent;
+	
+	import ui.trace.timeline.PlayLineRenders.ControlHead;
+	import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
+	import ui.trace.timeline.PlayLineRenders.PlayHeadWithTime;
+	import ui.trace.timeline.PlayLineRenders.PlayHeadWithTimeHorizontalTop;
 
 	public class PlayLine extends Canvas
 	{

@@ -3,12 +3,15 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import com.greensock.*;
+			import com.greensock.TweenMax;
 			import com.greensock.easing.*;
-			import ui.trace.timeline.PlayLine;
-			import ui.trace.timeline.TimelineModel;
+			
+			import com.greensock.*;
 			
 			import mx.formatters.DateFormatter;
+			
+			import ui.trace.timeline.PlayLine;
+			import ui.trace.timeline.TimelineModel;
 			
 			public var model:TimelineModel;
 			

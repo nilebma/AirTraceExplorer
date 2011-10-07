@@ -12,7 +12,7 @@
 			import mx.core.UIComponent;
 			import com.lyon2.visu.model.VisuModelLocator;
 			import com.lyon2.visu.model.TraceModel;
-			import com.greensock.*;
+			import greensock.*;
 			import ithaca.traces.timeline.*;
 			import ithaca.traces.timeline.PlayLineRenders.*;
 			import ithaca.traces.timeline.TraceLineRenderers.*;
