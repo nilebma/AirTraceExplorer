@@ -190,6 +190,7 @@
 				topPositionForNewTraceline += 25;
 				timelineGroup.addElement(newTraceLine);
 				timelineGroup.addElement(l);
+				
 	
 			}
 			
@@ -255,5 +256,6 @@
 	<traceSelector:dummyTraceSelectorEditor id="selectorEditor2" x="8" bottom="10"
 										 selectorValidation="selectorValidationHandler(event)"/>
 	<mx:ColorPicker id="theColorPicker" x="656" bottom="10"/>
+	<s:Label x="694" y="33" height="16" text="David GIT OK"/>
 	
 </s:WindowedApplication>
