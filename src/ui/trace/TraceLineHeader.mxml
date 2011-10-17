@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="292" height="106">
+	<!--	 width="292" height="106" click="loadBtn_clickHandler(event)">-->
+	<fx:Declarations>
+		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
+		<!-- Dans ce composant faire une entete plus complexe avec bouton edit par exemple -->
+		
+		
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			[Bindable]
+			public var titre:String;
+		]]>
+	</fx:Script>
+	<s:Label x="16" y="35" width="176" height="29" text="{titre}"/>
+	<s:Button x="200" y="35" label="Edit"/>
+</s:Group>
