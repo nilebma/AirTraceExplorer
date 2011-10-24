@@ -67,7 +67,7 @@ package traceSelector
 			inferMetaStructures();
 		}
 		
-		private function inferMetaStructures():void
+		public function reset():void
 		{
 			mapAttributeTypesToValues = new Dictionary();
 			mapAttributeTypesToObsels = new Dictionary();
@@ -81,7 +81,11 @@ package traceSelector
 			arTypes = new ArrayCollection();
 			arValues = new ArrayCollection();
 			arAttributeTypes = new ArrayCollection();
-			
+		}
+		
+		private function inferMetaStructures():void
+		{
+
 			for each(var o:Obsel in _obselCollections._obsels)
 				considerNewObsel(o);
 		}
