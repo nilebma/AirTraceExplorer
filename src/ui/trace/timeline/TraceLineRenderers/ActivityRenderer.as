@@ -190,10 +190,20 @@ package ui.trace.timeline.TraceLineRenderers
 			{
 				this.graphics.clear();
 				
+
+				
 				var futurSize:Number;
 				
+
 				//if the activity has an end (is past)
-				if(endTraceData)
+				if(isNaN(parentLine.getPosFromTime(model["currentTime"])))
+				{
+					if(direction == "vertical")
+						this.height = 0;
+					else
+						this.width = 0;
+				}
+				if(endTraceData && !isNaN(parentLine.getPosFromTime(endTraceData["begin"])))
 				{	
 					var toSize:Number = parentLine.getPosFromTime(endTraceData["begin"]) - parentLine.getPosFromTime(traceData["begin"]);
 					drawPastActivityRect(0, toSize - 5);
@@ -201,7 +211,7 @@ package ui.trace.timeline.TraceLineRenderers
 					this.height = toSize;
 				}
 				//if the activity has not been started
-				else if(model["currentTime"] < traceData["begin"])
+				else if(model["currentTime"] < traceData["begin"] && !isNaN(parentLine.getPosFromTime(model["currentTime"])))
 				{
 					if(drawFuturActivity)
 					{
@@ -210,7 +220,7 @@ package ui.trace.timeline.TraceLineRenderers
 					}
 					
 				}
-				else
+				else if(!isNaN(parentLine.getPosFromTime(model["currentTime"])))
 				{
 					futurSize = parentLine.getPosFromTime(traceData["begin"] + traceData.props["duration"]) - parentLine.getPosFromTime(traceData["begin"]);
 					drawFuturActivityRect(0, futurSize - 5);

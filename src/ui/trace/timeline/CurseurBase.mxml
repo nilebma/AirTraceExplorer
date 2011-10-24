@@ -10,13 +10,14 @@
 	
 	<mx:Script>
 		<![CDATA[
-
-			import mx.events.FlexEvent;
 			import com.greensock.*;
 			import com.greensock.easing.*;
 			
-			import mx.controls.Button; 
-			import mx.formatters.DateFormatter; 
+			import mx.controls.Button;
+			import mx.events.FlexEvent;
+			import mx.formatters.DateFormatter;
+			
+			import ui.timeline.TimeRange; 
 			
 			public static const ZOOM_CHANGE_EVENT: String='zoomChange';
 			public static const ZOOM_MOVE_EVENT: String='zoomMove';
@@ -68,6 +69,8 @@
 			protected var _direction:String = CurseurBase.DIRECTION_HORIZONTAL;
 			
 			protected var currentCenterDragingPoint:Point;
+			
+			public var timeRange:TimeRange = null;
 			
 			/* *******************************************************************
 			**********	GRAPHICAL PARTS (to be implemented in subclasses **********
@@ -350,18 +353,25 @@
 			{
 				if(!isNaN(_startTime) && !isNaN(_stopTime))
 				{
-					calculateRealTimes();
-					
-					var size:Number = endEdge;
-					
-					var timeSize:Number = size - 2*startAndEndDelta;
-					
-					var length:Number = (_stopTime - _startTime) * (size / timeSize);
-
-					//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-					var pos:Number = ( ( size / length) * (t - realStartTime) ) + startEdge;
-					
-					return pos;
+					if(timeRange)
+					{
+						return timeRange.timeToPosition(t,endEdge - startEdge,startTime,stopTime);
+					}
+					else
+					{
+						calculateRealTimes();
+						
+						var size:Number = endEdge;
+						
+						var timeSize:Number = size - 2*startAndEndDelta;
+						
+						var length:Number = (_stopTime - _startTime) * (size / timeSize);
+	
+						//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+						var pos:Number = ( ( size / length) * (t - realStartTime) ) + startEdge;
+						
+						return pos;
+					}
 				}
 				
 				return NaN;
@@ -369,20 +379,28 @@
 			
 			public function getTimeFromPos(pos:Number):Number
 			{
+				
 				if(!isNaN(_startTime) && !isNaN(_stopTime))
 				{
-					calculateRealTimes();
-					
-					var size:Number = endEdge;
-					
-					var timeSize:Number = size - 2*startAndEndDelta;
-					
-					var length:Number = (_stopTime - _startTime) * (size / timeSize);
-					
-					//we calculate the pos, we consider "t plus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-					var pos:Number = ((length / size) * (pos - startEdge)) + (realStartTime);
-
-					return pos;
+					if(timeRange)
+					{
+						return timeRange.positionToTime(pos,endEdge - startEdge,startTime,stopTime);
+					}
+					else
+					{
+						calculateRealTimes();
+						
+						var size:Number = endEdge;
+						
+						var timeSize:Number = size - 2*startAndEndDelta;
+						
+						var length:Number = (_stopTime - _startTime) * (size / timeSize);
+						
+						//we calculate the pos, we consider "t plus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+						var pos:Number = ((length / size) * (pos - startEdge)) + (realStartTime);
+	
+						return pos;
+					}
 				}
 				
 				return NaN;
