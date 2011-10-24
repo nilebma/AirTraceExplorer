@@ -9,6 +9,8 @@
 					   xmlns:traceservice="services.traceservice.*"
 					   xmlns:trace="ui.trace.*"
 					   xmlns:test="ui.test.*"
+					   xmlns:timeline="ui.timeline.*"
+					   xmlns:timelineservice="services.timelineservice.*"
 					   width="1000" height="800"
 					   initialize="windowedapplication1_initializeHandler(event)">
 	<fx:Script>
@@ -23,8 +25,11 @@
 			import mx.events.FlexEvent;
 			import mx.utils.StringUtil;
 			
+			import services.TtlLoader;
+			
 			import spark.events.IndexChangeEvent;
 			
+			import valueObjects.Timeline;
 			import valueObjects.VOScreenshot;
 			import valueObjects.VOTrace;
 			
@@ -36,6 +41,9 @@
 			
 			[Bindable]
 			public var theModel:Model;
+			
+			[Bindable]
+			public var theTraceLoader:TtlLoader = new TtlLoader();
 			
 			protected function dataGrid_creationCompleteHandler(event:FlexEvent):void
 			{
@@ -88,9 +96,16 @@
 			protected function comboBox_creationCompleteHandler(event:FlexEvent):void
 			{
 				getAllTraceResult.token = traceService.getAllTrace();
+				getAllTimelineResult.token = timelineService.getAllTimeline();
 			}
 			
 
+			
+			protected function voTimelineBox_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				getAllTimelineResult.token = timelineService.getAllTimeline();
+			}
 			
 		]]>
 	</fx:Script>
@@ -103,6 +118,10 @@
 		<traceservice:TraceService id="traceService"
 								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
 								   showBusyCursor="true"/>
+		<s:CallResponder id="getAllTimelineResult"/>
+		<timelineservice:TimelineService id="timelineService"
+										 fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+										 showBusyCursor="true"/>
 	</fx:Declarations>
 
 	<mx:TabNavigator x="0" y="0" width="100%" height="100%">
@@ -133,7 +152,7 @@
 					  click="enrich_btn_clickHandler(event)"/>
 		</s:NavigatorContent>
 		<s:NavigatorContent width="100%" height="100%" label="Traces">
-			<trace:TraceExplorer x="0" y="10" theTraceBase="{theBase}"/>
+			<trace:TraceExplorer x="0" y="10" theTraceBase="{theBase}" theTtlLoader="{theTraceLoader}"/>
 		</s:NavigatorContent>
 		<s:NavigatorContent width="100%" height="100%" label="Une timeline">
 			<test:timelineTest left="10" right="10" top="50" bottom="10" theTraceBase="{theBase}" theVOTrace="{cb_TraceDemo.selectedItem as VOTrace}">
@@ -144,10 +163,16 @@
 				<s:AsyncListView list="{getAllTraceResult.lastResult}"/>
 			</s:ComboBox>
 		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Timeline">
+			<timeline:TimelineWorkSpace left="0" right="0" top="30" bottom="0" theTraceBase="{theBase}" voTimeline="{voTimelineComboBox.selectedItem as Timeline}"
+										theTtlLoader="{theTraceLoader}">
+			</timeline:TimelineWorkSpace>
+			<s:ComboBox id="voTimelineComboBox" x="10" y="-1"
+						creationComplete="voTimelineBox_creationCompleteHandler(event)"
+						labelField="title" >
+				<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
+			</s:ComboBox>
+		</s:NavigatorContent>
 	</mx:TabNavigator>
-	
-
-
-
 
 </s:WindowedApplication>
