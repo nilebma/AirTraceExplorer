@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+			xmlns:s="library://ns.adobe.com/flex/spark"
+			xmlns:mx="library://ns.adobe.com/flex/mx"
+			xmlns:intervalleservice1="services.intervalleservice1.*"
+			width="400" height="300" creationComplete="dataGrid_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CollectionEvent;
+			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import ui.media.DateTimeField;
+			
+			import valueObjects.Intervalle;
+			import valueObjects.Timeline;
+			
+			[Bindable]
+			public var intervals:ArrayCollection = new ArrayCollection();
+			
+			private var _timeline:Timeline;
+			
+			[Bindable]
+			public function get timeline():Timeline
+			{
+				return _timeline;
+			}
+			
+			public function set timeline(value:Timeline):void
+			{
+				_timeline = value;
+				updateFromServer();
+			}
+			
+			protected function updateFromServer(event:Event = null):void
+			{
+				
+				getAllIntervalleResult.token = intervalleService1.getAllIntervalle();			
+			}
+			
+			protected function dataGrid_creationCompleteHandler(event:FlexEvent):void
+			{
+				updateFromServer(event);
+			}
+			
+			protected function getAllIntervalleResult_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				intervals.removeAll();
+				
+				if(_timeline)
+				{
+					for each(var i:Intervalle in event.result)
+					{
+						if(i.idTimeline == _timeline.id)
+							intervals.addItem(i);
+					}
+				}
+				
+				theDataGrid.invalidateDisplayList();
+				
+			}
+			
+			protected function createButton_clickHandler(event:MouseEvent = null):void
+			{
+				if(_timeline)
+				{
+					var ni:Intervalle = new Intervalle();
+					ni.title = "sans titre";
+					ni.idTimeline = _timeline.id; 
+					ni.start = new Date();
+					ni.end = new Date();
+					
+					createIntervalResult.token = intervalleService1.createIntervalle(ni);
+					intervalleService1.commit();
+					
+				}
+			}
+			
+			
+			protected function saveButton_clickHandler(event:MouseEvent):void
+			{
+				intervalleService1.commit();
+			}
+			
+			
+			protected function removeIntervalButton_clickHandler(event:MouseEvent):void
+			{
+				if(_timeline && theDataGrid.selectedItem && theDataGrid.selectedItem is Intervalle)
+				{
+					deleteIntervalleResult.token = intervalleService1.deleteIntervalle((theDataGrid.selectedItem as Intervalle).id);
+					intervalleService1.commit();
+				}
+			}
+
+
+			
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<s:CallResponder id="getAllIntervalleResult" result="getAllIntervalleResult_resultHandler(event)"/>
+		<intervalleservice1:IntervalleService1 id="intervalleService1"
+											   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+											   showBusyCursor="true"/>
+		<s:CallResponder id="createIntervalResult" result="updateFromServer(event)"/>
+		<s:CallResponder id="deleteIntervalleResult" result="updateFromServer(event)" />
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:DataGrid top="0" bottom="30" left="0" right="0" id="theDataGrid" dataProvider="{intervals}" editable="true">
+		<s:columns>
+			<s:ArrayList>
+				<s:GridColumn dataField="title" headerText="title"/>
+				<s:GridColumn dataField="start" headerText="start" rendererIsEditable="true" itemRenderer="ui.PreciseDateRenderer"/>
+				<s:GridColumn dataField="end" headerText="end" rendererIsEditable="true" itemRenderer="ui.PreciseDateRenderer"/>
+			</s:ArrayList>
+		</s:columns>
+	</s:DataGrid>
+	<s:HGroup bottom="0" left="0" right="0">
+		<s:Button id="removeIntervalButton" label="Remove Interval"
+				  click="removeIntervalButton_clickHandler(event)"/>
+		<s:Button id="addIntervalButton" label="Add Interval" click="createButton_clickHandler(event)" />
+		<s:Button id="saveButton" label="Save" click="saveButton_clickHandler(event)" />
+	</s:HGroup>
+	
+	
+</s:Group>

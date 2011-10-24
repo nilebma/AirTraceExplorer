@@ -8,7 +8,7 @@
 		 xmlns:mediaservice="services.mediaservice.*"
 		 xmlns:mediaInTimeline="ui.mediaInTimeline.*"
 		 xmlns:traceInTimeline="ui.traceInTimeline.*"
-		 width="100%" height="100%">
+		 width="100%" height="100%" xmlns:intervalles="ui.intervalles.*">
 	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -62,8 +62,10 @@
 	<timelineManager:TimelineForm x="167" y="40" timeline="{list.selectedItem as Timeline}" />
 	<s:Button id="saveBtn" x="431" y="10" label="Save" click="saveBtn_clickHandler(event)"/>
 	<s:Button id="openBtn" x="509" y="40" label="Open" click="openBtn_clickHandler(event)"/>
-	<mediaInTimeline:MediaByTimelineChooser x="165" y="302" timeline="{list.selectedItem as Timeline}"/>
-	<s:Label x="166" y="282" text="Medias :"/>
-	<s:Label x="473" y="282" text="Traces :"/>
-	<traceInTimeline:TraceByTimelineChooser x="473" y="302" timeline="{list.selectedItem as Timeline}"/>
+	<mediaInTimeline:MediaByTimelineChooser x="165" y="216" timeline="{list.selectedItem as Timeline}" dragEnabled="true"/>
+	<s:Label x="166" y="196" text="Medias :"/>
+	<s:Label x="166" y="489" text="Intervalles : "/>
+	<s:Label x="472" y="189" text="Traces :"/>
+	<traceInTimeline:TraceByTimelineChooser x="472" y="209" timeline="{list.selectedItem as Timeline}"/>
+	<intervalles:IntervalleInTimelineGrid timeline="{list.selectedItem as Timeline}" x="165" y="505" width="607" height="294"/>
 </s:Group>

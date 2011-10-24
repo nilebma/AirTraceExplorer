@@ -30,7 +30,7 @@
 	<s:CheckBox id="checkbox" x="6" y="6" change="checkbox_changeHandler(event)"
 				selected="{data.related}"/>
 	
-	<s:Label x="32" y="8" width="200" fontSize="15" fontWeight="bold" text="{data.trace.title}"
+	<s:Label x="32" y="8" width="200" fontSize="15" fontWeight="bold" text="{data.trace.uri}"
 			 verticalAlign="middle"/>
 	<s:FormItem x="22" y="17" width="193" height="37" label="Delay" fontSize="10">
 		<s:TextInput id="delayTextInput" text="{data.traceInTimeline.delay}" change="delayTextInput_changeHandler(event)" enabled="{data.related}"/>

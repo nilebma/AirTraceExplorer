@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Form xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		xmlns:s="library://ns.adobe.com/flex/spark" 
-		xmlns:mx="library://ns.adobe.com/flex/mx" width="334" height="216" xmlns:valueObjects="valueObjects.*">
+		xmlns:mx="library://ns.adobe.com/flex/mx" width="334" height="148" xmlns:valueObjects="valueObjects.*">
 	<fx:Declarations>
 		<valueObjects:Timeline id="timeline"/>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -14,7 +14,9 @@
 		<s:TextInput id="titleTextInput" width="260" text="{timeline.title}" change="{timeline.title = titleTextInput.text}"/>
 	</s:FormItem>
 	<s:FormItem x="0" y="36" width="321" label="Description">
-		<s:TextArea id="descriptionTextInput" width="218" text="{timeline.description}" change="{timeline.description = descriptionTextInput.text}"/>
+		<s:TextArea id="descriptionTextInput" width="218" height="71"
+					change="{timeline.description = descriptionTextInput.text}"
+					text="{timeline.description}"/>
 	</s:FormItem>
 	
 	
