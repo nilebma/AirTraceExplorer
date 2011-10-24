@@ -31,7 +31,7 @@
 		}
 		
 		.MiddleHorizontalGrid{
-			upSkin:Embed("/Users/nilebma/Documents/Adobe Flash Builder Beta 2/ldt/client/src/assets/timeline/curseurBigHorizontalGrip.png");
+			upSkin:Embed("timeline/curseurBigHorizontalGrip.png");
 			overSkin:Embed("timeline/curseurBigHorizontalGrip.png");
 			downSkin:Embed("timeline/curseurBigHorizontalGrip.png");
 		}
