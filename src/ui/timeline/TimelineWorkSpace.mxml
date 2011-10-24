@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:mediaintimelineservice="services.mediaintimelineservice.*"
+		 xmlns:mediaservice="services.mediaservice.*"
+		 xmlns:traceintimelineservice="services.traceintimelineservice.*"
+		 xmlns:traceservice="services.traceservice.*"
+		 xmlns:intervalleservice1="services.intervalleservice1.*"
+		 width="100%" height="100%" creationComplete="group_creationCompleteHandler(event)" xmlns:timeline="ui.trace.timeline.*" xmlns:ttlservice="services.ttlservice.*">
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Base;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.Trace;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import services.TtlLoader;
+			
+			import ui.trace.timeline.TraceLine;
+			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+			
+			import valueObjects.Intervalle;
+			import valueObjects.Media;
+			import valueObjects.MediaInTimeline;
+			import valueObjects.Timeline;
+			import valueObjects.TraceInTimeline;
+			import valueObjects.Ttl;
+			import valueObjects.VOTrace;
+			
+			private var _voTimeline:Timeline;
+			
+			private var relatedTraces:Object = {};
+			private var relatedMedias:Object = {};
+			private var relatedIntervals:Object = {};
+			
+			public var timeRangeExtensibleToLoadedTracesAndMedia:Boolean = true;
+			
+			public var timeRange:TimeRange = new TimeRange();
+			
+			private var _theTtlLoader:TtlLoader;
+			
+			[Bindable]
+			public var theTraceBase:Base = null;
+			
+			[Bindable]
+			public var obselCollectionToDisplay:ObselCollection = new ObselCollection();
+			
+			public function get voTimeline():Timeline
+			{
+				return _voTimeline;
+			}
+
+			public function set voTimeline(value:Timeline):void
+			{
+				_voTimeline = value;
+				updateFromServer();
+			}
+			
+			
+			public function get theTtlLoader():TtlLoader
+			{
+				return _theTtlLoader;
+			}
+			
+			public function set theTtlLoader(value:TtlLoader):void
+			{
+				_theTtlLoader = value;
+				_theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
+			}
+			
+			
+			protected function group_creationCompleteHandler(event:FlexEvent):void
+			{
+				updateFromServer();
+				getAllIntervalleResult.token = intervalleService1.getAllIntervalle();
+			}
+			
+			protected function updateFromServer(e:Event = null):void
+			{
+				if( _voTimeline
+					&& getAllMediaInTimelineResult 
+					&& getAllMediaResult 
+					&& getAllTraceInTimelineResult 
+					&& getAllTraceResult
+					&& getAllIntervalleResult 
+					&& getAllTtlResult)
+				{
+					getAllMediaInTimelineResult.lastResult = null;
+					getAllMediaInTimelineResult.token = mediaInTimelineService.getAllMediaInTimeline();
+					getAllMediaResult.lastResult = null;
+					getAllMediaResult.token = mediaService.getAllMedia();
+					getAllTraceInTimelineResult.lastResult = null;
+					getAllTraceInTimelineResult.token = traceInTimelineService.getAllTraceInTimeline();
+					getAllTraceResult.lastResult = null;
+					getAllTraceResult.token = traceService.getAllTrace();
+					getAllTtlResult.token  = null;
+					getAllTtlResult.token = ttlService.getAllTtl();
+				}
+			}
+			
+			
+			protected function onUpdateFromServer(event:ResultEvent):void
+			{
+				if( _voTimeline
+					&& getAllMediaInTimelineResult && getAllMediaInTimelineResult.lastResult 
+					&& getAllMediaResult && getAllMediaResult.lastResult 
+					&& getAllTraceInTimelineResult && getAllTraceInTimelineResult.lastResult 
+					&& getAllTraceResult && getAllTraceResult.lastResult
+					&& getAllIntervalleResult && getAllIntervalleResult.lastResult 
+					&& getAllTtlResult && getAllTtlResult.lastResult)
+				{
+					
+					//chargement des infos sur les traces relative à cette timeline
+					for each(var tit:TraceInTimeline in getAllTraceInTimelineResult.lastResult)
+					{
+						if(tit.idTimeline == _voTimeline.id)
+							if(relatedTraces[tit.idTrace] == null)
+							{
+								relatedTraces[tit.idTrace] = {};
+								relatedTraces[tit.idTrace]["meta"] = tit;
+							}
+					}
+					
+					for each(var tr:VOTrace in getAllTraceResult.lastResult)
+					{
+						if(relatedTraces[tr.id])
+							relatedTraces[tr.id]["vo"] = tr;
+					}
+					
+					//chargement des infos sur les médias relatifs à cette timeline 
+					for each(var mit:MediaInTimeline in getAllMediaInTimelineResult.lastResult)
+					{
+						if(mit.idTimeline == _voTimeline.id)
+							if(relatedMedias[mit.idMedia] == null)
+							{
+								relatedMedias[mit.idMedia] = {};
+								relatedMedias[mit.idMedia]["meta"] = mit;
+							}
+					}
+					
+					for each(var m:Media in getAllMediaResult.lastResult)
+					{
+						if(relatedMedias[m.id])
+							relatedMedias[m.id]["vo"] = m;
+					}
+					
+					//chargement des intervalles
+					for each(var iit:Intervalle in getAllIntervalleResult.lastResult)
+					{
+						if(iit.idTimeline == _voTimeline.id)
+							relatedIntervals[iit.id] = iit;
+					}
+					
+					loadTraces();
+					initTimeRange();
+					
+					
+				}
+			}
+				
+				public function initTimeRange():void
+				{	
+					timeRange.clear();
+					
+					for each(var iit:Intervalle in relatedIntervals)
+					{
+						timeRange.addTime(iit.start.time, iit.end.time);
+					}
+					
+					if(timeRangeExtensibleToLoadedTracesAndMedia)
+					{
+						for each(var orm:Object in relatedMedias)
+						{
+							var rm:Media = orm.vo as Media;
+							timeRange.addTime(rm.startDate.time, rm.startDate.time + rm.length);
+						}
+						
+						for each(var ort:Object in relatedTraces)
+						{
+							var rt:VOTrace = ort.vo as VOTrace;
+							timeRange.addTime(rt.begin, rt.end);
+						}
+					}
+					
+				}
+				
+				public function loadTraces():void
+				{
+					obselCollectionToDisplay = new ObselCollection();
+					
+					var loadedTraces:Array = [];
+					var unloadedTtl:Array = [];
+					
+					for each(var tr:Object in relatedTraces)
+					{
+						var realTrace:com.ithaca.traces.Trace = theTraceBase.get(tr.vo.uri) as com.ithaca.traces.Trace;
+						
+						if(realTrace)
+							loadedTraces.push(realTrace);
+						else
+						{
+							var theTtl:Ttl = searchArrayCollection(getAllTtlResult.lastResult as ArrayCollection, "id", tr.vo.idTtl) as Ttl;					
+							unloadedTtl.push(theTtl);			
+						}
+					}
+					
+					//if some are not loaded, we load them
+					if(unloadedTtl.length > 0)
+					{
+						for each(var t:Ttl in unloadedTtl)
+						loadTTL(t);
+					}
+					else
+					{
+						initTimeRange();
+						
+						for each(var aTrace:com.ithaca.traces.Trace in loadedTraces)
+						{
+							for each(var o:Obsel in aTrace.obsels._obsels)
+								obselCollectionToDisplay.push(o);
+						}
+						
+						subTraceLine.traceData = obselCollectionToDisplay;
+						contextTraceLine.traceData = obselCollectionToDisplay;
+						contextSelectionTraceLine.startTime = timeRange.begin;
+						contextSelectionTraceLine.stopTime = timeRange.end;
+						contextTraceLine.startTime = timeRange.begin;
+						contextTraceLine.stopTime = timeRange.end;
+						curseurTraceLine.startTime = timeRange.begin;
+						curseurTraceLine.stopTime = timeRange.end;
+						curseurTraceLine.currentTime = timeRange.begin;
+						
+					}
+				}
+				
+				protected function loadTTL(ttl:Ttl):void
+				{
+					if(theTraceBase && theTtlLoader)
+						theTtlLoader.loadTTL(ttl.url,theTraceBase);
+				}
+				
+				protected function onTtlLoaded(e:ResultEvent):void
+				{
+					if(e.result && getAllTraceResult.lastResult)
+					{
+						for each(var newtr:com.ithaca.traces.Trace in e.result["loadedTraces"])
+						{
+							var isNewTrace:Boolean = false; 
+							var correspondinfVOTrace:VOTrace = null;
+							
+							for each(var oTrace:Object in relatedTraces)
+								if(oTrace.vo.uri == newtr.uri)
+								{
+									oTrace["trace"] = newtr;
+									correspondinfVOTrace = oTrace.vo;
+									
+									correspondinfVOTrace.begin = newtr.getEarliestObsel().begin;
+									correspondinfVOTrace.end = newtr.getLatestObsel().end;
+									correspondinfVOTrace.size = newtr.obsels.length;
+									correspondinfVOTrace.uri = newtr.uri;
+									correspondinfVOTrace.subject = newtr.getEarliestObsel().subject;
+									
+									var theTtl:Ttl = getTtlByUrl(e.result["theTtl"]);
+									if(theTtl)
+										correspondinfVOTrace.idTtl = theTtl.id;
+									
+									traceService.commit();
+								}
+							
+
+							
+						}
+						
+						loadTraces();
+					}
+				}
+				
+				protected function getTtlByUrl(url:String):Ttl
+				{
+					if(getAllTtlResult.lastResult)
+					{
+						for each(var ttl:Ttl in getAllTtlResult.lastResult)
+						{
+							if(ttl.url == url)
+								return ttl;
+						}
+					}
+					
+					return null;
+				}
+				
+				static public function searchArrayCollection(array:ArrayCollection, property:String, value:*):*
+				{
+					for each(var elt:* in array)
+						if(elt is Object && elt[property] && elt[property] == value)
+							return elt;
+					
+					return null;
+				}
+				
+			
+			
+			protected function addTracelineButton_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				//CREATION DE LA TRACELINE
+				var newTraceLine:TracelineWrapper = new TracelineWrapper();
+				newTraceLine.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
+
+				theTraceLineList.addElement(newTraceLine);
+			}
+			
+			protected function initTracelineWrapper(e:Event)
+			{
+				var newTraceLine:TracelineWrapper = e.currentTarget as TracelineWrapper;
+				
+				//TODO
+				newTraceLine.addEventListener("obselClick", onObselLineSelectionChange);
+				BindingUtils.bindProperty(newTraceLine,"startTime",curseurTraceLine,"zoomStartTime");
+				BindingUtils.bindProperty(newTraceLine,"stopTime",curseurTraceLine,"zoomStopTime");
+				//BindingUtils.bindProperty(newTraceLine,"traceData",this,"obselCollectionToDisplay");
+				newTraceLine.traceData = obselCollectionToDisplay;
+				newTraceLine.timeRange = timeRange;
+			}
+			
+			protected function onObselLineSelectionChange(e:Event)
+			{
+				//TODO
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:CallResponder id="getAllMediaInTimelineResult" result="onUpdateFromServer(event)"/>
+		<mediaintimelineservice:MediaInTimelineService id="mediaInTimelineService"
+													   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+													   showBusyCursor="true"
+													   />
+		<s:CallResponder id="getAllMediaResult" result="onUpdateFromServer(event)"/>
+		<mediaservice:MediaService id="mediaService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<s:CallResponder id="getAllTraceInTimelineResult" result="onUpdateFromServer(event)"/>
+		<traceintimelineservice:TraceInTimelineService id="traceInTimelineService"
+													   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+													   showBusyCursor="true"/>
+		<s:CallResponder id="getAllTraceResult" result="onUpdateFromServer(event)"/>
+		<traceservice:TraceService id="traceService"
+								   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+								   showBusyCursor="true"/>
+		<s:CallResponder id="getAllIntervalleResult" result="onUpdateFromServer(event)"/>
+		<intervalleservice1:IntervalleService1 id="intervalleService1"
+											   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+											   showBusyCursor="true"/>
+		<mx:CallResponder id="getAllTtlResult" result="onUpdateFromServer(event)"/>
+		<ttlservice:TtlService id="ttlService"
+							   fault="Alert.show(event.fault.faultString + '\n' + event.fault.faultDetail)"
+							   showBusyCursor="true"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<s:Group left="10" right="10" top="200" height="80" id="timelineGroup" >
+		<s:layout>
+			<s:BasicLayout/>
+		</s:layout>
+		
+		
+		<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
+							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+							startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+							borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
+							top="25" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+		
+		<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+							startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+							rendererFunctionParams="{{'color':0xFF0000}}"
+							top="25" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
+		
+		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" width="{contextTraceLine.width}" 
+									startEdge="100" endEdge="{contextTraceLine.width+90}"  
+									timeRange="{timeRange}"
+									minimumSize="70" lockSize="200" lockPosition="100" 
+									startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+									startAndEndDelta="1"
+									locked="false"/>
+		
+		<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+							rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+							top="50" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+		
+		
+
+		
+		<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							RendererType="{RectangleRenderer}" useRendererFunction="true"
+							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+							rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
+							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+							top="50" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
+		
+		<s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
+		<s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
+	</s:Group>
+	<mx:VBox id="theTraceLineList"  right="10" left="10" bottom="30" height="{this.height-320}" verticalScrollPolicy="on" />
+	<s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
+	
+</s:Group>
