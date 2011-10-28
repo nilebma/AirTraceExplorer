@@ -3,6 +3,7 @@
 	<name>AirTraceExplorer</name>
 	<comment></comment>
 	<projects>
+		<project>ktbs4as</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

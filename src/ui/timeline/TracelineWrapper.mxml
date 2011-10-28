@@ -6,7 +6,8 @@
 		   xmlns:traceSelector="traceSelector.*"
 		   width="100%" height="40" backgroundColor="#E0E0E0" borderAlpha="1.0"
 		   borderColor="#696969" cornerRadius="10" currentState="normal"
-		   height.edition="314" height.normal="40" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		   height.edition="314" height.normal="40" verticalScrollPolicy="off" horizontalScrollPolicy="off"
+		   implements="spark.components.IItemRenderer"> 
 	<fx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Obsel;
