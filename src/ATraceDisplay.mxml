@@ -256,7 +256,7 @@
 	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
 			 horizontalScrollPolicy="on" verticalScrollPolicy="on"/>
 	<s:ComboBox y="10" left="10" right="100" id="urlInput" selectedIndex="0">
-		<s:dataProvider>
+		<s:dataProvider> 
 			<mx:ArrayList>
 				<fx:String>http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl</fx:String>
 				<fx:String>http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl</fx:String>
