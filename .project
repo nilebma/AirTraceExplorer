@@ -3,6 +3,7 @@
 	<name>AirTraceExplorer</name>
 	<comment></comment>
 	<projects>
+		<project>ktbs4as</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -30,42 +31,42 @@
 		<link>
 			<name>services/IntervalleService1.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/IntervalleService1.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/IntervalleService1.php</location>
 		</link>
 		<link>
 			<name>services/MediaInTimelineService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/MediaInTimelineService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/MediaInTimelineService.php</location>
 		</link>
 		<link>
 			<name>services/MediaService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/MediaService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/MediaService.php</location>
 		</link>
 		<link>
 			<name>services/ScreenshotService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/ScreenshotService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/ScreenshotService.php</location>
 		</link>
 		<link>
 			<name>services/TimelineService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/TimelineService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/TimelineService.php</location>
 		</link>
 		<link>
 			<name>services/TraceInTimelineService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/TraceInTimelineService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/TraceInTimelineService.php</location>
 		</link>
 		<link>
 			<name>services/TraceService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/TraceService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/TraceService.php</location>
 		</link>
 		<link>
 			<name>services/TtlService.php</name>
 			<type>1</type>
-			<locationURI>SERVICES/TtlService.php</locationURI>
+			<location>C:/Users/Dahu/Desktop/Master/Projet-TI5/AirTraceExplorer/services/TtlService.php</location>
 		</link>
 	</linkedResources>
 	<variableList>
