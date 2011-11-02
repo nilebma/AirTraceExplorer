@@ -18,10 +18,13 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.controls.List;
 			import mx.events.FlexEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import services.TtlLoader;
+			
+			import spark.components.supportClasses.ItemRenderer;
 			
 			import ui.trace.timeline.TraceLine;
 			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
@@ -46,6 +49,9 @@
 			
 			private var _theTtlLoader:TtlLoader;
 			
+			// Sébastien --- Ajout de la liste de timewrapper
+			private var tracelineWrapperList:List= new List();
+			// --- Sébastien
 			[Bindable]
 			public var theTraceBase:Base = null;
 			
@@ -328,6 +334,10 @@
 				//BindingUtils.bindProperty(newTraceLine,"traceData",this,"obselCollectionToDisplay");
 				newTraceLine.traceData = obselCollectionToDisplay;
 				newTraceLine.timeRange = timeRange;
+				
+				// Sébastien --- Marche pas
+				//tracelineWrapperList.itemRendererClass="TimelineWrapper";
+				// --- Sébastien
 			}
 			
 			protected function onObselLineSelectionChange(e:Event)
