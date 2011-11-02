@@ -145,7 +145,7 @@
 			protected function loadBtn_clickHandler(event:MouseEvent):void
 			{
 			
-				theTtlLoader.loadTTL(urlInput.text,theBase);
+				theTtlLoader.loadTTL(urlInput.textInput.text,theBase);
 			}
 			
 			protected function selectorValidationHandler(event:ResultEvent):void
@@ -255,8 +255,15 @@
 	
 	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
 			 horizontalScrollPolicy="on" verticalScrollPolicy="on"/>
-	<s:TextInput y="10" left="10" right="100" id="urlInput"
-				 text="http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl"/>
+	<s:ComboBox y="10" left="10" right="100" id="urlInput" selectedIndex="0">
+		<s:dataProvider>
+			<mx:ArrayList>
+				<fx:String>http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl</fx:String>
+				<fx:String>http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl</fx:String>
+				<fx:String>http://cinecast.advene.org/abelin/TI5/S05-26-Avril-Aprem.cleaned.ttl</fx:String>
+			</mx:ArrayList>
+		</s:dataProvider>
+	</s:ComboBox>
 	<s:Button y="10" right="10" label="Load" id="loadBtn" click="loadBtn_clickHandler(event)"/>
 	<traceSelector:dummyTraceSelectorEditor id="selectorEditor2" x="8" bottom="10"
 										 selectorValidation="selectorValidationHandler(event)"/>
