@@ -367,6 +367,45 @@
 					this.setCurrentState("normal");
 			}
 			
+			
+			[Bindable]
+			public function get selected():Boolean
+			{
+				return null;
+			}
+			
+			public function set selected(value:Boolean):void
+			{
+			}
+			
+			public function get showsCaret():Boolean
+			{
+				return false;
+			}
+			public function set showsCaret(value:Boolean):void
+			{
+			}
+			
+			public function get dragging():Boolean
+			{
+				return null;
+			}
+			
+			public function set dragging(value:Boolean):void
+			{
+
+			}			
+			
+			public function get itemIndex():int
+			{
+				return null;
+			}
+			
+			public function set itemIndex(value:int):void
+			{
+				
+			}			
+			
 		]]>
 	</fx:Script>
 	<mx:states>

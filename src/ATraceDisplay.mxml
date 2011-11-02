@@ -192,8 +192,8 @@
 				timelineGroup.addElement(l);
 
 				// Sébastien --- Init composant TraceLineHeader (todo)
-				var tLH:TraceLineHeader= new TraceLineHeader();
-				tLH.titre="toto";
+				//var tLH:TraceLineHeader= new TraceLineHeader();
+				//tLH.titre="toto";
 				//timelineGroup.addElement(tLH);				
 				// --- Sébastien
 	
