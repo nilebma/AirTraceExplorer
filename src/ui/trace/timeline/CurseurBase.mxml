@@ -13,6 +13,7 @@
 			import com.greensock.*;
 			import com.greensock.easing.*;
 			
+			import mx.binding.utils.BindingUtils;
 			import mx.controls.Button;
 			import mx.events.FlexEvent;
 			import mx.formatters.DateFormatter;
@@ -70,7 +71,7 @@
 			
 			protected var currentCenterDragingPoint:Point;
 			
-			public var timeRange:TimeRange = null;
+			private var _timeRange:TimeRange = null;
 			
 			/* *******************************************************************
 			**********	GRAPHICAL PARTS (to be implemented in subclasses **********
@@ -105,6 +106,23 @@
 			**********	GETTER / SETTER									 **********
 			*********************************************************************/
 			
+			public function get timeRange():TimeRange
+			{
+				return _timeRange;
+			}
+
+			public function set timeRange(value:TimeRange):void
+			{
+				_timeRange = value;
+				_timeRange.addEventListener(TimeRange.TIMERANGES_EVENT_CHANGE, onTimeRangeChange);
+			}
+			
+			public function onTimeRangeChange(e:Event):void
+			{
+				startTime = _timeRange.begin;
+				stopTime = _timeRange.end;
+			}
+
 			public function get direction():String
 			{
 				return _direction;
@@ -129,8 +147,11 @@
 
 			public function set stopTime(value:Number):void
 			{
-				_stopTime = value;
-				updateFromProg();
+				if(_stopTime != value)
+				{
+					_stopTime = value;
+					updateFromProg();
+				}
 			}
 
 			public function get startTime():Number
@@ -140,8 +161,11 @@
 
 			public function set startTime(value:Number):void
 			{
-				_startTime = value;
-				updateFromProg();
+				if(_startTime != value)
+				{
+					_startTime = value;
+					updateFromProg();
+				}
 			}
 
 			public function get currentTime():Number
@@ -288,12 +312,20 @@
 				
 				var toSize:Number =  getPosFromTime(zoomStopTime) - getPosFromTime(zoomStartTime);
 				
-				toSize = Math.max(minimumSize, toSize);
+				if(!isNaN(toSize))
+					toSize = Math.max(minimumSize, toSize);
+				else
+					toSize = minimumSize;
 				
 				var toPos:Number = getPosFromTime(zoomStartTime);
 				
-				toPos = Math.min(toPos, endEdge  + startEdge - toSize);
-				toPos = Math.max(toPos, startEdge);
+				if(!isNaN(toPos) && !isNaN(endEdge) && !isNaN(startEdge))
+				{
+					toPos = Math.min(toPos, endEdge  + startEdge - toSize);
+					toPos = Math.max(toPos, startEdge);
+				}
+				else
+					toPos = startEdge;
 				
 				TweenMax.killTweensOf(this);
 				
@@ -353,12 +385,7 @@
 			{
 				if(!isNaN(_startTime) && !isNaN(_stopTime))
 				{
-					if(timeRange)
-					{
-						return timeRange.timeToPosition(t,endEdge - startEdge,startTime,stopTime);
-					}
-					else
-					{
+
 						calculateRealTimes();
 						
 						var size:Number = endEdge;
@@ -368,10 +395,18 @@
 						var length:Number = (_stopTime - _startTime) * (size / timeSize);
 	
 						//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-						var pos:Number = ( ( size / length) * (t - realStartTime) ) + startEdge;
+						
+						var pos:Number;
+						
+						if(timeRange)
+							return startEdge + timeRange.timeToPosition(t,(endEdge-startEdge - 2*startAndEndDelta),_startTime,_stopTime);
+						else
+							pos = ( ( size / length) * (t - realStartTime) ) + startEdge;
+						
+						pos += startEdge;
 						
 						return pos;
-					}
+
 				}
 				
 				return NaN;
@@ -384,7 +419,7 @@
 				{
 					if(timeRange)
 					{
-						return timeRange.positionToTime(pos,endEdge - startEdge,startTime,stopTime);
+						return timeRange.positionToTime(pos-startEdge,(endEdge-startEdge - 2*startAndEndDelta),_startTime,_stopTime);
 					}
 					else
 					{
@@ -396,10 +431,12 @@
 						
 						var length:Number = (_stopTime - _startTime) * (size / timeSize);
 						
+						var t:Number;
+						
 						//we calculate the pos, we consider "t plus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-						var pos:Number = ((length / size) * (pos - startEdge)) + (realStartTime);
-	
-						return pos;
+							t = ((length / size) * (pos - startEdge)) + (realStartTime);
+						
+						return t;
 					}
 				}
 				

@@ -35,8 +35,12 @@ package ui.timeline
 		}
 		
 		public function get numIntervals() 			: Number { return _ranges.length/2; }
+		
+		[Bindable(event=TIMERANGES_EVENT_CHANGE)]
 		public function get begin() 				: Number { return _start; }
 //		public function set begin( value :Number ) 	: void 	 { _ranges[0] = value;  }
+		
+		[Bindable(event=TIMERANGES_EVENT_CHANGE)]
 		public function get end() 					: Number { return _end; }
 //		public function set end( value : Number ) 	: void 	 { _ranges[_ranges.length -1] = value; }
 		public function get totalDuration() 		: Number { return end - begin; }	
@@ -60,21 +64,20 @@ package ui.timeline
 				localStart = Math.max(begin, localStart);
 			
 			if(isNaN(localEnd))
-				localStart = end;
+				localEnd = end;
 			else
 				localEnd = Math.min(end, localEnd);
 			
-			var localDuration:Number = localEnd - localStart;
+			var localDuration:Number = getDurationMinusTimeHoles(localStart, localEnd);
 			
-			if ( timeValue <= localStart)
-				return NaN;		
-			else if ( timeValue >= localEnd )
-				return NaN;
-			else for ( var i : int = 1; i < _ranges.length; i ++ )
+			
+			var i : int = 1;
+			for ( i ; i < _ranges.length; i ++ )
 				if ( localStart <= _ranges[i]  )
 				{
+
 					var rangeStart : Number = Math.max( localStart, _ranges[i - 1] );
-										
+					
 					if ( timeValue <= _ranges[i]  )
 					{
 						if ( i % 2 == 0)
@@ -85,10 +88,17 @@ package ui.timeline
 					}
 					else				
 					{
-						var intervalWidth : Number = (i % 2 == 0) ? timeHoleWidth : ( _ranges[i] - rangeStart) * width / duration;
+						var intervalWidth : Number = (i % 2 == 0) ? timeHoleWidth : ( _ranges[i] - rangeStart) * width / localDuration;
 						position +=  intervalWidth ;				
 					}
 				}
+			
+			//DEBUG
+			/*if(_ranges && i >=0 && i < _ranges.length)
+				trace("time2pos", timeValue, " => ", position, " | range : ", i-1 , "(", _ranges[i-1], _ranges[i] , " )");
+			else
+				trace("time2pos", timeValue, " => ", position, " | range : ", i-1);*/
+			
 			return position;
 		}
 		
@@ -100,19 +110,21 @@ package ui.timeline
 				localStart = Math.max(begin, localStart);
 			
 			if(isNaN(localEnd))
-				localStart = end;
+				localEnd = end;
 			else
 				localEnd = Math.min(end, localEnd);
 			
-			var localDuration:Number = localEnd - localStart;
+			var localDuration:Number = getDurationMinusTimeHoles(localStart, localEnd);
 			
 			var time : Number = 0;	
 			var currentPostion: Number = 0;
+			var i : int = 1;
+				
 			if ( positionValue <= 0 )
 				time = localStart;		
 			else if ( positionValue >= width )
 				time = localEnd;
-			else for ( var i : int = 1; i < _ranges.length; i ++ )
+			else for ( i ; i < _ranges.length; i ++ )
 				if ( localStart <= _ranges[i]  )
 				{
 					var rangeStart : Number = Math.max( localStart, _ranges[i - 1] );
@@ -125,26 +137,39 @@ package ui.timeline
 					else
 						currentPostion += intervalWidth;
 				}
-				
+			
+			//DEBUG
+			/*if(_ranges && i >=0 && i < _ranges.length)
+				trace("pos2time", positionValue, " => ", time, " | range : ", i-1 , "(", _ranges[i-1], _ranges[i] , " )");
+			else
+				trace("pos2time", positionValue, " => ", time, " | range : ", i-1);*/
+			
 			return time;
 		}
 		
 		public function updateDuration ( ) : void
 		{
-			_duration = 0;
-			
-			if(_ranges && _ranges.length > 0)
-			{
-				for ( var i : int = 0; i < _ranges.length; i += 2 )
-					if ( _start <= _ranges[i + 1] && _end >= _ranges[i] )
-						_duration += Math.min(_ranges[i + 1], _end) - Math.max( _ranges[i], _start);
-			}
-			else
-				_duration = 0;
+			_duration = getDurationMinusTimeHoles(_start, _end);
 			
 			if ( _duration == 0)
 				trace("duration 0");
 		}		
+		
+		public function getDurationMinusTimeHoles(tstart:Number, tend:Number ) : Number
+		{
+			var tduration:Number = 0;
+			
+			if(_ranges && _ranges.length > 0)
+			{
+				for ( var i : int = 0; i < _ranges.length; i += 2 )
+					if ( tstart <= _ranges[i + 1] && tend >= _ranges[i] )
+						tduration += Math.min(_ranges[i + 1], tend) - Math.max( _ranges[i], tstart);
+			}
+			else
+				tduration = 0;
+
+			return tduration;
+		}	
 		
 		public function addTime ( beginValue : Number , endValue : Number,  fillHole : Boolean = false ) : void
 		{				

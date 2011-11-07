@@ -787,12 +787,7 @@ package ui.trace.timeline
 			//UNDER TEST : we DONT check if t is between the boundaries of the traceLine (startTime et stopTime)
 			if(!isNaN(startTime) && !isNaN(_stopTime)) //&& t >= startTime && t <= stopTime)
 			{
-				if(timeRange)
-				{
-					return timeRange.timeToPosition(t,this.width,startTime,stopTime);
-				}
-				else
-				{
+
 					var length:Number = _stopTime - _startTime;
 					
 					var diff:int = t - _startTime;
@@ -806,13 +801,18 @@ package ui.trace.timeline
 					
 					size -= (startPadding + endPadding);
 					
-					//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-					var pos:Number = (size / length) * (diff);
+					var pos:Number;
+					
+					if(timeRange)
+						pos = timeRange.timeToPosition(t,size,startTime,stopTime);
+					else
+						pos = (size / length) * (diff);  //we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+					
 					
 					pos += startPadding;			
 					
 					return pos;
-				}
+	
 			}
 			
 			return NaN;
