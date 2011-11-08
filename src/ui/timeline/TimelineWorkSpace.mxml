@@ -7,7 +7,10 @@
 		 xmlns:traceintimelineservice="services.traceintimelineservice.*"
 		 xmlns:traceservice="services.traceservice.*"
 		 xmlns:intervalleservice1="services.intervalleservice1.*"
-		 width="100%" height="100%" creationComplete="group_creationCompleteHandler(event)" xmlns:timeline="ui.trace.timeline.*" xmlns:ttlservice="services.ttlservice.*">
+		 xmlns:timeline="ui.trace.timeline.*"
+		 xmlns:ttlservice="services.ttlservice.*"
+		 xmlns:timeline2="ui.timeline.*"
+		 width="100%" height="100%" creationComplete="group_creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Base;
@@ -18,11 +21,18 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
+			import mx.controls.List;
 			import mx.events.FlexEvent;
 			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectProxy;
+			
+			import org.osmf.events.TimeEvent;
 			
 			import services.TtlLoader;
 			
+			import spark.components.supportClasses.ItemRenderer;
+			
+			import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
 			import ui.trace.timeline.TraceLine;
 			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
 			
@@ -36,13 +46,15 @@
 			
 			private var _voTimeline:Timeline;
 			
-			private var relatedTraces:Object = {};
-			private var relatedMedias:Object = {};
-			private var relatedIntervals:Object = {};
+			private var relatedTraces:ObjectProxy = new ObjectProxy({});
+			private var relatedMedias:ObjectProxy = new ObjectProxy({});
+			private var relatedIntervals:ObjectProxy = new ObjectProxy({});
 			
 			public var timeRangeExtensibleToLoadedTracesAndMedia:Boolean = true;
 			
 			public var timeRange:TimeRange = new TimeRange();
+			
+			public var timeAndPlayManager:TimeAndPlayManager = new TimeAndPlayManager();
 			
 			private var _theTtlLoader:TtlLoader;
 			
@@ -80,6 +92,11 @@
 			{
 				updateFromServer();
 				getAllIntervalleResult.token = intervalleService1.getAllIntervalle();
+				
+				timeAndPlayManager.timeRange = timeRange;
+				timeAndPlayManager.medias = relatedMedias;
+				timeAndPlayManager.theVideoDisplay = this.theVideoDisplay;
+				
 			}
 			
 			protected function updateFromServer(e:Event = null):void
@@ -236,6 +253,8 @@
 						curseurTraceLine.startTime = timeRange.begin;
 						curseurTraceLine.stopTime = timeRange.end;
 						curseurTraceLine.currentTime = timeRange.begin;
+						playLine.startTime = timeRange.begin;
+						playLine.stopTime = timeRange.end;
 						
 					}
 				}
@@ -335,6 +354,12 @@
 				//TODO
 			}
 			
+			protected function playLine_currentTimeChangeHandler(event:TimeEvent):void
+			{
+				timeAndPlayManager.currentTime = event.time;
+				
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -388,6 +413,12 @@
 							rendererFunctionParams="{{'color':0xFF0000}}"
 							top="25" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
+		<timeline:PlayLine id="playLine" RendererType="{ControlHeadForHorizontal}" direction="horizontal"
+						   renderAlign="middle" timeRange="{timeRange}" currentTimeChange="playLine_currentTimeChangeHandler(event)"
+						   currentTime="{timeAndPlayManager.currentTime}"
+						   startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+						   top="30" height="60" left="100" right="10" />
+		
 		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" 
 									startEdge="100" endEdge="{contextTraceLine.width+90}"  
 									timeRange="{timeRange}"
@@ -413,12 +444,15 @@
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
 							top="50" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
+
+		
 		<s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
 		<s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
 	</s:Group>
 	<mx:VBox id="theTraceLineList"  right="10" left="10" bottom="30" height="{this.height-320}" verticalScrollPolicy="on" />
 	<s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
-	<s:Label x="57" y="98" width="212" text="{curseurTraceLine.zoomStartTime}"/>
-	<s:Label x="57" y="118" width="212" text="{curseurTraceLine.zoomStopTime}"/>
+	<s:VideoDisplay id="theVideoDisplay" x="10" y="10" height="182"/>
+	<timeline2:PlayPauseButton x="386" y="98" timeAndPlayManager="{timeAndPlayManager}" >
+	</timeline2:PlayPauseButton>
 	
 </s:Group>

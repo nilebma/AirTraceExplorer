@@ -94,7 +94,7 @@
 				if(model)	
 					model.setCurrentTime(parentLine.getTimeFromPos(this.x + this.width/2));
 				else
-					parentLine.currentTime = parentLine.getTimeFromPos(this.x + this.width/2);
+					parentLine.rendererTimeUpdate(parentLine.getTimeFromPos(this.x + this.width/2));
 			}
 			
 		]]>

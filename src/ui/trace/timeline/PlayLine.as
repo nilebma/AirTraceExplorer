@@ -62,22 +62,26 @@
  */
 package ui.trace.timeline
 {
+	import com.greensock.*;
 	import com.greensock.TweenMax;
 	import com.greensock.easing.*;
 	
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	
-	import com.greensock.*;
-	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
 	import mx.events.ResizeEvent;
 	
+	import org.osmf.events.TimeEvent;
+	
+	import ui.timeline.TimeRange;
 	import ui.trace.timeline.PlayLineRenders.ControlHead;
 	import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
 	import ui.trace.timeline.PlayLineRenders.PlayHeadWithTime;
 	import ui.trace.timeline.PlayLineRenders.PlayHeadWithTimeHorizontalTop;
+	
+	[Event(name="currentTimeChange",type="org.osmf.events.TimeEvent")]
 
 	public class PlayLine extends Canvas
 	{
@@ -95,6 +99,8 @@ package ui.trace.timeline
 		
 		[Bindable]
 		public var model:TimelineModel;
+		
+		public var timeRange:TimeRange = null;
 		
 		public var RendererType:Class;
 		public var renderAlign:String = "middle"; //or "after", "before"
@@ -130,6 +136,11 @@ package ui.trace.timeline
 			_currentTime = value;
 			
 			updateRenderer(null);
+		}
+		
+		public function rendererTimeUpdate(t:Number):void
+		{
+			this.dispatchEvent(new TimeEvent("currentTimeChange",false,false,t));
 		}
 
 		public function get stopTime():Number
@@ -230,7 +241,7 @@ package ui.trace.timeline
 				(theRenderer as ControlHeadForHorizontal).setCurrentTime(currentTime-startTime);
 						
 		
-			//we calculate the possible yPosition of the renderer based on its startTime						
+			//we calculate the possible yPosition of the renderer based on its startTime	
 			var futurPosition:Number = getPosFromTime(Math.min(currentTime,stopTime));
 					
 			if(_direction == "vertical")
@@ -285,6 +296,7 @@ package ui.trace.timeline
 			//UNDER TEST : we DONT check if t is between the boundaries of the traceLine (startTime et stopTime)
 			if(!isNaN(startTime) && !isNaN(_stopTime)) //&& t >= startTime && t <= stopTime)
 			{
+				
 				var length:Number = _stopTime - _startTime;
 				
 				var diff:int = t - _startTime;
@@ -298,12 +310,18 @@ package ui.trace.timeline
 				
 				size -= (startPadding + endPadding);
 				
-				//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-				var pos:Number = (size / length) * (diff);
+				var pos:Number;
 				
-				pos += startPadding;	
+				if(timeRange)
+					pos = timeRange.timeToPosition(t,size,startTime,stopTime);
+				else
+					pos = (size / length) * (diff);  //we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+				
+				
+				pos += startPadding;			
 				
 				return pos;
+				
 			}
 			
 			return NaN;
@@ -324,7 +342,12 @@ package ui.trace.timeline
 				
 				size -= (startPadding + endPadding);
 				
-				var t:Number = ((length / size) * (pos - startPadding)) + _startTime;
+				var t:Number;
+				
+				if(timeRange)
+					t = timeRange.positionToTime(pos - startPadding,size,_startTime,_stopTime);
+				else
+					t = ((length / size) * (pos - startPadding)) + _startTime;
 				
 				return t;
 			}
