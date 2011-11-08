@@ -23,10 +23,6 @@ package services
 	public class TtlLoader extends ObjectProxy
 	{
 		
-		public var theKtbs:Ktbs = new Ktbs("uriKtbs", Resource.RESOURCE_URI_ATTRIBUTION_POLICY_CLIENT_IS_KING);
-		public var theBase:Base;
-		public var theModel:Model;
-		
 		protected var arTtl:Array = [];
 		
 		[Bindable]
@@ -35,34 +31,41 @@ package services
 		[Bindable]
 		public var loadedTraces:Array = null;
 		
-		protected var mapLoaderToUrl:Dictionary = new Dictionary();
+		protected var mapLoaderToUrlAndBase:Dictionary = new Dictionary();
+		
+		protected var mapUrlToLoadedTraces:Dictionary = new Dictionary();
 		
 		protected var nbLoading:uint = 0;
 		
 		protected var loadingTtl:ArrayCollection = new ArrayCollection();
+		
 		
 		public function TtlLoader()
 		{
 			super();
 		}
 		
-		public function loadTTL(pTtl:String, pBase:Base):void
+		public function loadTTL(url:String, pBase:Base, forceReload:Boolean = false):void
 		{
-			arTtl.push(pTtl);
-			this.theBase = pBase;
+			arTtl.push(url);
 			
-			if(pTtl && theBase && (loadingTtl.getItemIndex(pTtl) < 0))
+			if(url && pBase && (loadingTtl.getItemIndex(url) < 0) && (forceReload || mapUrlToLoadedTraces[url] == null) )
 			{
 				var loader:URLLoader = new URLLoader();
 				loader.dataFormat=URLLoaderDataFormat.BINARY;
 				loader.addEventListener(Event.COMPLETE, onCallComplete);
-				loader.load(new URLRequest(pTtl));
+				loader.load(new URLRequest(url));
 				this.loading = true;
-				mapLoaderToUrl[loader] = pTtl;
+				mapLoaderToUrlAndBase[loader] = {"url":url,"base":pBase};
 				nbLoading++;
-				loadingTtl.addItem(pTtl);
+				loadingTtl.addItem(url);
 			}
 			
+		}
+		
+		public function getLoadedTraceFromUrl(ttlUrl:String)
+		{
+			return mapUrlToLoadedTraces[ttlUrl];
 		}
 		
 		private function onCallComplete(event:Event):void 
@@ -70,24 +73,27 @@ package services
 			var loader:URLLoader = event.currentTarget as URLLoader;
 			var trace_ttl:String = loader.data;
 			
-			loadedTraces =  RDFconverter.updateTraceBaseFromTurtle(trace_ttl, theBase);				
+			var urlTtl:String = null;
+			var theBase:Base= null;
 			
-			
-			var theTtl:String = null;
 			for each(var t:String in arTtl)
 			{
-				if(t == mapLoaderToUrl[loader])
+				if(t == mapLoaderToUrlAndBase[loader]["url"])
 				{
-					theTtl = t;
+					urlTtl = mapLoaderToUrlAndBase[loader]["url"];
+					theBase = mapLoaderToUrlAndBase[loader]["base"];
 					break;		
 				}
 			}
 			
-			var re:ResultEvent = new ResultEvent(ResultEvent.RESULT,false,true,{"loadedTraces":loadedTraces,"theTtl":theTtl});
+			loadedTraces =  RDFconverter.updateTraceBaseFromTurtle(trace_ttl, theBase);				
+
+			var re:ResultEvent = new ResultEvent(ResultEvent.RESULT,false,true,{"loadedTraces":loadedTraces,"theTtl":urlTtl});
+			mapUrlToLoadedTraces[urlTtl] = loadedTraces;
 			this.dispatchEvent(re);
 			
-			if(loadingTtl.getItemIndex(theTtl) >= 0)
-				loadingTtl.removeItemAt(loadingTtl.getItemIndex(theTtl));
+			if(loadingTtl.getItemIndex(urlTtl) >= 0)
+				loadingTtl.removeItemAt(loadingTtl.getItemIndex(urlTtl));
 			
 			nbLoading--;
 			

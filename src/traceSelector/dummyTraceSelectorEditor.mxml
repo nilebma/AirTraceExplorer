@@ -21,7 +21,7 @@
 			[Bindable]
 			public var metaTrace:dummyMetaTraces = new dummyMetaTraces();
 			
-			public var obsels:ObselCollection
+			private var _obsels:ObselCollection
 			
 			[Bindable(event="selectorChange")]
 			public var theSelector:dummyTraceSelector = new dummyTraceSelector();
@@ -30,6 +30,17 @@
 			
 			public var orderLabels:Object;
 			
+			public function get obsels():ObselCollection
+			{
+				return _obsels;
+			}
+
+			public function set obsels(value:ObselCollection):void
+			{
+				metaTrace.reset();
+				_obsels = value;
+			}
+
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
 				orderLabels = {"type":labelOrderTypes, "attribute":labelOrderAttributes, "value":labelOrderValues};

@@ -190,7 +190,12 @@
 				topPositionForNewTraceline += 25;
 				timelineGroup.addElement(newTraceLine);
 				timelineGroup.addElement(l);
-				
+
+				// Sébastien --- Init composant TraceLineHeader (todo)
+				var tLH:TraceLineHeader= new TraceLineHeader();
+				tLH.titre="toto";
+				//timelineGroup.addElement(tLH);				
+				// --- Sébastien
 	
 			}
 			

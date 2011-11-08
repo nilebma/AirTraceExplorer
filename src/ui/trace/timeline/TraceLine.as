@@ -84,6 +84,7 @@ package ui.trace.timeline
 	
 	import traceSelector.dummyTraceSelector;
 	
+	import ui.timeline.TimeRange;
 	import ui.trace.timeline.TraceLineRenderers.GenericRenderer;
 	import ui.trace.timeline.TraceLineRenderers.ITraceRenderer;
 	import ui.trace.timeline.events.InternalTimelineEvent;
@@ -129,6 +130,8 @@ package ui.trace.timeline
 		public var rendererFunctionCanvas:Canvas;
 		public var redrawRenderer:Boolean = false;
 		
+		private var _timeRange:TimeRange = null;
+		
 		public var sizedByEnd:Boolean = false;
 		
 		private var aRenderer:Array = new Array();
@@ -158,6 +161,19 @@ package ui.trace.timeline
 		}
 		
 		
+		public function get timeRange():TimeRange
+		{
+			return _timeRange;
+		}
+
+		public function set timeRange(value:TimeRange):void
+		{
+			_timeRange = value;
+			_timeRange.addEventListener(TimeRange.TIMERANGES_EVENT_CHANGE, invalidateDisplayListOnEvent);
+			_timeRange.addEventListener(TimeRange.TIMERANGES_EVENT_SHIFT, invalidateDisplayListOnEvent);
+			invalidateLine();
+		}
+
 		public function get traceFilter():Object
 		{
 			return _traceFilter;
@@ -184,6 +200,7 @@ package ui.trace.timeline
 				rendererFunctionCanvas.x = 0;
 				rendererFunctionCanvas.y = 0;
 				
+				
 				this.addChild(rendererFunctionCanvas);
 			}
 		}
@@ -191,8 +208,7 @@ package ui.trace.timeline
 		
 		public function invalidateDisplayListOnEvent(e:Event):void
 		{
-			this.redrawRenderer = true;
-			this.invalidateDisplayList();
+			invalidateLine();
 		}
 		
 		public function get direction():String
@@ -216,8 +232,7 @@ package ui.trace.timeline
 		{
 			_stopTime = value;
 			
-			this.redrawRenderer = true;
-			this.invalidateDisplayList();
+			invalidateLine();
 			//if(_stopTime != undefined && !isNaN(_stopTime))
 				//BindingUtils.bindSetter(timeChanged,this,"stopTime");
 		}
@@ -237,18 +252,23 @@ package ui.trace.timeline
 				rendererFunctionCanvas.x = - this.getPosFromTime(startTime);
 			}
 			else*/
-			this.redrawRenderer = true;
-			this.invalidateDisplayList();
+			invalidateLine();
 			//if(_startTime != undefined && !isNaN(_startTime))
 				//BindingUtils.bindSetter(timeChanged,this,"startTime");
 		}
 		
+		
+		
 		public function timeChanged(n:Number):void
+		{
+			invalidateLine();
+		}
+
+		public function invalidateLine(e:Event = null):void
 		{
 			this.redrawRenderer = true;
 			this.invalidateDisplayList();
 		}
-
 		public function get model():TimelineModel
 		{
 			return _model;
@@ -310,8 +330,7 @@ package ui.trace.timeline
 			}
 			else //for UPDATE & MOVE
 			{
-				this.redrawRenderer = true;
-				this.invalidateDisplayList();
+				invalidateLine();
 				
 			}
 		}
@@ -390,8 +409,7 @@ package ui.trace.timeline
 				treatAnObsel(obs);
 			}
 			
-			this.redrawRenderer = true;
-			this.invalidateDisplayList();
+			invalidateLine();
 			
 		}
 		
@@ -577,11 +595,16 @@ package ui.trace.timeline
 			}else return null;
 		}
 		
+
+		
+		
 		override protected function updateDisplayList(w:Number, h:Number):void
 		{
 			super.updateDisplayList(w,h);
 			
 			var zPosition:int = 0;
+			
+
 			
 			if(useRendererFunction)
 			{
@@ -590,8 +613,11 @@ package ui.trace.timeline
 					this.rendererFunctionCanvas.graphics.clear();
 					this.rendererFunctionCanvas.height = h;
 					this.rendererFunctionCanvas.width = w;
-					
+			
 					renderingFunctionReset();
+					
+					if(timeRange)
+						drawTimeHoles();
 					
 					for each(var obs:Obsel in filteredTrace._obsels)
 						if(obs.begin >= _startTime && obs.begin <= _stopTime
@@ -648,12 +674,18 @@ package ui.trace.timeline
 								if(direction == "vertical")
 								{
 									renderer.scaleY = 1;
-									futurSize = getPosFromTime(Number(endTrace["begin"])) - getPosFromTime(Number(rendererTraceData["begin"]));
+									if(!isNaN(getPosFromTime(Number(endTrace["begin"]))) && !isNaN(getPosFromTime(Number(rendererTraceData["begin"]))))
+										futurSize = getPosFromTime(Number(endTrace["begin"])) - getPosFromTime(Number(rendererTraceData["begin"]));
+									else
+										futurSize = 0;
 								}
 								else
 								{
 									renderer.scaleX = 1;
-									futurSize = getPosFromTime(Number(endTrace["begin"])) - getPosFromTime(Number(rendererTraceData["begin"]));
+									if(!isNaN(getPosFromTime(Number(endTrace["begin"]))) && !isNaN(getPosFromTime(Number(rendererTraceData["begin"]))))
+										futurSize = getPosFromTime(Number(endTrace["begin"])) - getPosFromTime(Number(rendererTraceData["begin"]));
+									else
+										futurSize = 0;
 								}
 							}
 							
@@ -718,7 +750,10 @@ package ui.trace.timeline
 		
 		public function getEndPosFromRenderer(rendererTraceData:Object, rendererSize:Number):Number
 		{
-			//we calculate the possible future Position of the renderer based on its startTime and renderAlign						
+			//we calculate the possible future Position of the renderer based on its startTime and renderAlign
+			if(isNaN(getPosFromTime(Number(rendererTraceData["end"]))))
+				return NaN;
+				
 			var futurPosition:Number = getPosFromTime(Number(rendererTraceData["end"])) + deltaPos;
 			
 			if(renderAlign == "middle")
@@ -752,25 +787,32 @@ package ui.trace.timeline
 			//UNDER TEST : we DONT check if t is between the boundaries of the traceLine (startTime et stopTime)
 			if(!isNaN(startTime) && !isNaN(_stopTime)) //&& t >= startTime && t <= stopTime)
 			{
-				var length:Number = _stopTime - _startTime;
-				
-				var diff:int = t - _startTime;
-				
-				var size:Number;
-				
-				if(direction == "vertical")
-					size = this.height;
-				else
-					size = this.width;
-				
-				size -= (startPadding + endPadding);
-				
-				//we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-				var pos:Number = (size / length) * (diff);
-				
-				pos += startPadding;			
-				
-				return pos;
+
+					var length:Number = _stopTime - _startTime;
+					
+					var diff:int = t - _startTime;
+					
+					var size:Number;
+					
+					if(direction == "vertical")
+						size = this.height;
+					else
+						size = this.width;
+					
+					size -= (startPadding + endPadding);
+					
+					var pos:Number;
+					
+					if(timeRange)
+						pos = timeRange.timeToPosition(t,size,startTime,stopTime);
+					else
+						pos = (size / length) * (diff);  //we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+					
+					
+					pos += startPadding;			
+					
+					return pos;
+	
 			}
 			
 			return NaN;
@@ -809,47 +851,101 @@ package ui.trace.timeline
 			
 		}
 		
+		protected function drawTimeHoles():void
+		{
+			if(timeRange && _startTime && _stopTime)
+			{
+				//this.rendererFunctionCanvas.graphics.beginFill(0x999999);
+				this.rendererFunctionCanvas.graphics.lineStyle(1);
+				
+				for each(var th:Array in timeRange.getTimeHoles())
+				{
+					var posDebut:Number = timeRange.timeToPosition(th[0]-1,this.width,_startTime,_stopTime);
+					
+					if(!isNaN(posDebut))
+					{
+						//we draw a crossed rectangle
+						if(direction == "vertical")
+						{
+							this.rendererFunctionCanvas.graphics.drawRect(0,posDebut,this.width,timeRange.timeHoleWidth);
+							this.rendererFunctionCanvas.graphics.moveTo(0,posDebut);
+							this.rendererFunctionCanvas.graphics.lineTo(this.width,posDebut+timeRange.timeHoleWidth);
+							this.rendererFunctionCanvas.graphics.moveTo(this.width,posDebut);
+							this.rendererFunctionCanvas.graphics.lineTo(0,posDebut+timeRange.timeHoleWidth);
+							
+						}
+						else
+						{
+							this.rendererFunctionCanvas.graphics.drawRect(posDebut,0,timeRange.timeHoleWidth,this.height);
+							this.rendererFunctionCanvas.graphics.moveTo(posDebut,0);
+							this.rendererFunctionCanvas.graphics.lineTo(posDebut+timeRange.timeHoleWidth,this.height);
+							this.rendererFunctionCanvas.graphics.moveTo(posDebut,this.height);
+							this.rendererFunctionCanvas.graphics.lineTo(posDebut+timeRange.timeHoleWidth,0);
+						}
+					}
+					else
+						;
+					
+					this.rendererFunctionCanvas.graphics.lineStyle(0);
+				}
+			
+			
+			}
+		}
+		
 		public function renderingFunction(obs:Obsel):void
 		{
-			
-			//We deal with renderinfFunctionParams Object
-			var bgColor:uint = 0x00FF00;
-			if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("color"))
-				bgColor = rendererFunctionParams["color"];
-			
-			var minSize:Number = 1;
-			if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("minSize"))
-				minSize = rendererFunctionParams["minSize"];
-			
-			var bgAlpha:Number = 1;
-			if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("alpha"))
-				bgAlpha = rendererFunctionParams["alpha"];
-			
-			
-			//We set the values we will use to draw
-			var posDebut:Number = getPosFromTime(Number(obs["begin"]));
-			var size:Number = getPosFromTime(Number(obs["end"])) - posDebut;
-			size = Math.max(1,minSize);
-			posDebut -= size/2;
-			
-			//we draw
-			if(!isNaN(posDebut) && !isNaN(size))
+			//If the obsel is (event partly) in the time window to display
+			if(!isNaN(getPosFromTime(Number(obs["begin"]))) || !isNaN(getPosFromTime(Number(obs["end"]))))
 			{
-				this.rendererFunctionCanvas.graphics.beginFill(bgColor,bgAlpha);
-				if(direction == "vertical")
-					this.rendererFunctionCanvas.graphics.drawRect(0,posDebut,this.width,size);
+				//We deal with renderinfFunctionParams Object
+				var bgColor:uint = 0x00FF00;
+				if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("color"))
+					bgColor = rendererFunctionParams["color"];
+				
+				var minSize:Number = 1;
+				if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("minSize"))
+					minSize = rendererFunctionParams["minSize"];
+				
+				var bgAlpha:Number = 1;
+				if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("alpha"))
+					bgAlpha = rendererFunctionParams["alpha"];
+				
+				
+				//We set the values we will use to draw
+				var posDebut:Number = getPosFromTime(Number(obs["begin"]));
+				if(isNaN(posDebut)) //if the begin of the obsel is not in the time window to displau
+					posDebut = 0;
+				
+				var size:Number;
+				if(!isNaN(getPosFromTime(Number(obs["end"]))))
+					size = getPosFromTime(Number(obs["end"])) - posDebut;
 				else
-					this.rendererFunctionCanvas.graphics.drawRect(posDebut,0,size,this.height);
-			}	
-			
-			//we save the rectange coordinates and map it with the obsel (useful for mouse interaction amongst other things)
-			var theRect:Rectangle;
-			if(direction == "vertical")
-				theRect = new Rectangle(0,posDebut,this.width,size);
-			else
-				theRect = new Rectangle(posDebut,0,size,this.height);
-			
-			(rendererFunctionData["obsAndRect"] as ArrayCollection).addItem({"obs":obs,"rect":theRect});
+					size = this.width;
+				
+				size = Math.max(1,minSize);
+				posDebut -= size/2;
+				
+				//we draw
+				if(!isNaN(posDebut) && !isNaN(size))
+				{
+					this.rendererFunctionCanvas.graphics.beginFill(bgColor,bgAlpha);
+					this.rendererFunctionCanvas.graphics.lineStyle(null);
+					if(direction == "vertical")
+						this.rendererFunctionCanvas.graphics.drawRect(0,posDebut,this.width,size);
+					else
+						this.rendererFunctionCanvas.graphics.drawRect(posDebut,0,size,this.height);
+				}	
+				
+				//we save the rectange coordinates and map it with the obsel (useful for mouse interaction amongst other things)
+				var theRect:Rectangle;
+				if(direction == "vertical")
+					theRect = new Rectangle(0,posDebut,this.width,size);
+				else
+					theRect = new Rectangle(posDebut,0,size,this.height);
+				
+				(rendererFunctionData["obsAndRect"] as ArrayCollection).addItem({"obs":obs,"rect":theRect});
+			}
 		}
 		
 		public function renderingFunctionGetObselFromPos(p:Point):Array

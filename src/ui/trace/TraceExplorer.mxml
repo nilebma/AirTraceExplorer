@@ -32,7 +32,7 @@
 			import valueObjects.Ttl;
 			import valueObjects.VOTrace;
 			
-			protected var theTtlLoader:TtlLoader = new TtlLoader();
+			private var _theTtlLoader:TtlLoader;
 			
 			[Bindable]
 			public var arMedia:Array; 
@@ -55,6 +55,17 @@
 			
 			protected var traceGridSortFields:Array = [new SortField("type", false, false), new SortField("begin", false, false, true)];
 			
+			public function get theTtlLoader():TtlLoader
+			{
+				return _theTtlLoader;
+			}
+
+			public function set theTtlLoader(value:TtlLoader):void
+			{
+				_theTtlLoader = value;
+				_theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
+			}
+
 			protected function addNewTTL(event:MouseEvent):void
 			{
 				urlTTL_ti.enabled = true;
@@ -68,13 +79,14 @@
 			
 			protected function loadTTL(ttl:Ttl):void
 			{
-				if(theTraceBase)
+				if(theTraceBase && theTtlLoader)
 					theTtlLoader.loadTTL((ttl_list.selectedItem as Ttl).url,theTraceBase);
 			}
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
-				theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
+				if(_theTtlLoader)
+					_theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
 				updateTraceFromServer();
 			}
 			
@@ -103,7 +115,11 @@
 						correspondinfVOTrace.size = newtr.obsels.length;
 						correspondinfVOTrace.uri = newtr.uri;
 						correspondinfVOTrace.subject = newtr.getEarliestObsel().subject;
-						correspondinfVOTrace.idTtl = (e.result["theTtl"] as Ttl).id;
+						
+						var theTtl:Ttl = getTtlByUrl(e.result["theTtl"]);
+						if(theTtl)
+							correspondinfVOTrace.idTtl = theTtl.id;
+							
 						
 						if(isNewTrace)
 							createTraceResult.token = traceService1.createTrace(correspondinfVOTrace);
@@ -122,6 +138,20 @@
 					if(elt is Object && (elt as Object).hasOwnProperty(property) && elt[property] == value)
 						return elt;
 					
+				return null;
+			}
+			
+			protected function getTtlByUrl(url:String):Ttl
+			{
+				if(getAllTtlResult.lastResult)
+				{
+					for each(var ttl:Ttl in getAllTtlResult.lastResult)
+					{
+						if(ttl.url == url)
+							return ttl;
+					}
+				}
+				
 				return null;
 			}
 			
@@ -471,7 +501,7 @@
 	<mx:Button label="Load" id="loadTTL_btn" click="loadTTL_btn_clickHandler(event)" top="10" left="266"/>
 	
 	<mx:TabNavigator  left="345" right="10" top="9" height="223">
-		<mx:Canvas width="100%" height="100%" label="Traces">
+		<mx:Canvas width="100%" height="100%" label="Traces" >
 			<mx:DataGrid id="subTraces_grid" x="0" y="0" width="100%" height="100%"
 						 allowMultipleSelection="true"
 						 dataProvider="{tracesRelatedToSelectedTtl}" itemClick="displaySubTrace(event)">
