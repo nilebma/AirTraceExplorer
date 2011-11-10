@@ -54,6 +54,35 @@ package ui.timeline
 				_ranges.addItemAt( value, pos );
 		}
 		
+		public function isTimeInHole(t:Number):Boolean
+		{
+			var range:Number = getRangeByTime(t); 
+			if(isNaN(range) || range < 0 || range >= _ranges.length-1)
+				return true;
+			else
+				return !((range % 2) == 0);
+		}
+		
+		public function getRangeByTime(t:Number):Number
+		{
+			
+			if(_ranges && _ranges.length > 0)
+			{
+				if(t < _ranges[0])
+					return -1;
+				
+				if(t > _ranges[_ranges.length - 1])
+					return _ranges.length - 1;
+				
+				for ( var i:int = 1 ; i < _ranges.length; i ++ )
+					if(t >= _ranges[i-1] && t <= _ranges[i])
+						return i-1;
+			}
+			
+			return NaN;
+			
+		}
+		
 		public function timeToPosition( timeValue : Number, width : Number, localStart:Number = NaN, localEnd:Number = NaN ) : Number
 		{
 			var position : Number = 0;

@@ -38,6 +38,7 @@ package ui.timeline
 		private var _isPlaying:Boolean = false;
 		private var _isStopped:Boolean = true;
 		private var _idMediaPlaying:Number = NaN;
+		private var _mediaPlaying:Object = null;
 		
 		private var _theTimer:Timer = null;
 		
@@ -148,10 +149,6 @@ package ui.timeline
 			if(isNaN(_idMediaPlaying))
 			{
 				currentTime = _currentTime + _theTimer.delay; 
-				
-
-				
-				//TODO : check timeRanges
 			}
 
 		}
@@ -181,6 +178,7 @@ package ui.timeline
 				theVideoDisplay.source = media.vo.url;
 				theVideoDisplay.autoPlay = autoplay;
 				_idMediaPlaying = media.vo.id;
+				_mediaPlaying = media;
 				theVideoDisplay.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, onMediaUpdate);
 				theVideoDisplay.addEventListener(TimeEvent.COMPLETE, onMediaComplete);
 				theVideoDisplay.addEventListener(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, onMediaStateChange);
@@ -191,6 +189,7 @@ package ui.timeline
 		{
 			theVideoDisplay.source = null;
 			_idMediaPlaying = NaN;
+			_mediaPlaying = null;
 			theVideoDisplay.removeEventListener(TimeEvent.CURRENT_TIME_CHANGE, onMediaUpdate);
 			theVideoDisplay.removeEventListener(TimeEvent.COMPLETE, onMediaComplete);
 			theVideoDisplay.removeEventListener(MediaPlayerStateChangeEvent.MEDIA_PLAYER_STATE_CHANGE, onMediaStateChange);
@@ -211,11 +210,13 @@ package ui.timeline
 					var t:Number = m.vo.startDate.time + m.meta.delay + e.time * 1000;
 					if(t>_stopTime || t<_startTime)
 						stop();
-					else
+					else if(!timeRange.isTimeInHole(t))
 					{
 						_currentTime = t;
 						this.dispatchEvent(new TimeEvent("currentTimeChange",false,false,_currentTime));
 					}
+					else
+						currentTime = t; // si le nouveau temps tombe dans un timehole, on fait appelle ou setter de currenttime pour gerer
 				}
 			}	
 			
@@ -233,12 +234,27 @@ package ui.timeline
 			var arReturn:Array = [];
 			for each(var m:Object in _medias)
 			{
-				if( m.vo && m.meta
-					&& (m.vo.startDate.time + m.meta.delay) < t
-					&& (m.vo.startDate.time + m.vo.length + m.meta.delay) > t)
-						arReturn.push(m);
+				if(isTimeInMediaRange(t,m))
+					arReturn.push(m);
 			}
 			return arReturn;
+		}
+		
+		private function isTimeInMediaRange(t:Number, media:Object, considerTimeHoles:Boolean = true):Boolean
+		{
+			if( media.vo && media.meta
+				&& (media.vo.startDate.time + media.meta.delay) < t
+				&& (media.vo.startDate.time + media.vo.length + media.meta.delay) > t)
+			{
+				if(considerTimeHoles)
+				{
+					return !timeRange.isTimeInHole(t);
+				}
+				else
+					return true;
+			}
+			else
+					return false;
 		}
 		
 		private function getMediaBySource(src:String):Object
@@ -266,14 +282,27 @@ package ui.timeline
 		{
 			if(_currentTime != t)
 			{
-				if(t>_stopTime || t<_startTime)
+				if(t>=_stopTime || t<_startTime) // on stop si on sort des bornes temporelles
 					stop();
-				else if(isNaN(trySwitchToMedia(t, _isPlaying)))
+				else if(timeRange.isTimeInHole(t)) // on regarde si le nouveau temps ne tombe pas dans un timehole, sinon on passe au timerange suivant
 				{
-					if(!isNaN(_idMediaPlaying))
-						unregisterMedia();
-					_currentTime = t;
-					this.dispatchEvent(new TimeEvent("currentTimeChange",false,false,_currentTime));
+					var numRange:Number = timeRange.getRangeByTime(t);
+					if(isNaN(numRange) || numRange >= (timeRange._ranges.length-1) || numRange < 0)
+						stop();
+					else
+						currentTime = timeRange._ranges[numRange+1] + 1;
+					
+					return;
+				}
+				else
+				{
+				 	if(isNaN(trySwitchToMedia(t, _isPlaying)))
+					{
+						if(!isNaN(_idMediaPlaying))
+							unregisterMedia();
+						_currentTime = t;
+						this.dispatchEvent(new TimeEvent("currentTimeChange",false,false,_currentTime));
+					}
 				}
 			}
 		}
