@@ -23,6 +23,7 @@ package ui.timeline
 	[Event(name="currentTimeChange",type="org.osmf.events.TimeEvent")]
 	[Event(name="playingStateChange",type="org.osmf.events.TimeEvent")]
 
+	
 	[Bindable]
 	public class TimeAndPlayManager extends EventDispatcher
 	{
