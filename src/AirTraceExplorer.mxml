@@ -173,6 +173,9 @@
 				<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
 			</s:ComboBox>
 		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Visualisation temps verticale">
+			<s:Label x="294" y="112" width="438" height="133" text="Ici la visualisation verticale :&#xd;/|\ temps du film (avec curseur)&#xd; |  &#xd;+ -----------------&gt; observés"/>
+		</s:NavigatorContent>
 	</mx:TabNavigator>
 
 </s:WindowedApplication>
