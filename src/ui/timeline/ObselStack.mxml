@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="322" height="440">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			
+			import mx.events.CollectionEvent;
+			
+			import ui.trace.ObselEditorWilliam;
+			
+			private var _obselSelection:ObselCollection;
+			
+			[Bindable]
+			public function get obselSelection():ObselCollection
+			{
+				return _obselSelection;
+			}
+
+			public function set obselSelection(value:ObselCollection):void
+			{
+				_obselSelection = value;
+				init();
+				_obselSelection.addEventListener(CollectionEvent.COLLECTION_CHANGE, init); //on bind un coup supplémentaire
+			}
+
+			public function init(e:Event = null) : void
+			{
+				//les obsel selectionné sont affichés dans la box "obseleditorZone", on vide aussi celle-ci
+				viewstackGeneric.removeAllChildren();
+				//pour tous les obsels selectionnée
+				for each(var obsel:Obsel in obselSelection._obsels)
+				{
+					var obsEditor:ObselEditorWilliam = new ObselEditorWilliam();
+					obsEditor.data = obsel;
+					viewstackGeneric.addChild(obsEditor);
+				}
+				//on initialise les champs
+				previousStack.label="previous";
+				nextStack.label="next";
+				obselActu.text = "1";
+				sur.text = "sur";
+				nbObselTotal.text = viewstackGeneric.numChildren.toString();
+				//on traite les boutons
+				previousStack.enabled = false;
+				if(viewstackGeneric.numChildren > 1)
+					nextStack.enabled = true;
+				else
+					nextStack.enabled = false;
+			}
+			public function getPrevious() : void
+			{
+				//on selectedIndex le précédent
+				if(viewstackGeneric.selectedIndex != 0){
+					viewstackGeneric.selectedIndex--;
+					nextStack.enabled = true;
+				}
+				if(viewstackGeneric.selectedIndex <= 0)
+					previousStack.enabled = false;
+				obselActu.text = (viewstackGeneric.selectedIndex + 1).toString();
+			}
+			public function getNext() : void
+			{
+				//on selectedIndex le suivant
+				if(viewstackGeneric.selectedIndex != viewstackGeneric.numChildren - 1){
+					viewstackGeneric.selectedIndex++;
+					previousStack.enabled = true;
+				}
+				if(viewstackGeneric.selectedIndex >= viewstackGeneric.numChildren - 1)
+					nextStack.enabled = false;
+				obselActu.text = (viewstackGeneric.selectedIndex + 1).toString();
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
+	</fx:Declarations>
+	<mx:ViewStack id="viewstackGeneric" top="10" left="10" right="10" bottom="50" 
+				  />
+	
+	<mx:LinkButton id="previousStack" x="64" bottom="10" click="getPrevious()"/>
+	
+	<mx:LinkButton id="nextStack" x="133" bottom="10" click="getNext()"/>
+	
+	<!-- obselActu nous renseigne sur l'index de l'obsel visité (par défaut 1) -->
+	<s:Label id="obselActu" x="219" bottom="11" />
+	<s:Label id="sur" x="251" bottom="15" />
+	<s:Label id="nbObselTotal" x="280" bottom="11" />
+</s:Group>

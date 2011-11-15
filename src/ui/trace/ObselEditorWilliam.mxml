@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"  creationComplete="onCreationCompleteHandler(event)">
+	<mx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Attribute;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.Relation;
+			import com.ithaca.traces.utils.RDFconverter;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.containers.Form;
+			import mx.containers.FormItem;
+			import mx.controls.HRule;
+			import mx.controls.TextArea;
+			import mx.controls.TextInput;
+			import mx.events.FlexEvent;
+
+			protected function onCreationCompleteHandler(event:FlexEvent):void
+			{
+				addField((data as Obsel).obselType,"label","type");
+				addField(data,"begin");
+				addField(data,"end");
+				addField(data,"subject");
+				
+				obsForm.addChild(new HRule());
+				
+				for each(var yo:Attribute in (data as Obsel).attributes)
+					addField(yo,"value",yo.attributeType.label);
+					
+				obsForm.addChild(new HRule());
+				
+				for each(var r:Relation in (data as Obsel).outcomingRelations)
+					addField(r.targetObsel,"uri",r.relationType.label, false);
+
+				
+	
+				
+			}
+			
+			protected function addField(host:Object,chain:String, title:String=null, editable:Boolean = true):void
+			{
+				if(!title)
+					title = chain;
+				
+				var frmItem:FormItem = new FormItem();
+				frmItem.direction = "horizontal";
+				frmItem.label = title;
+				
+				var tb:TextArea = new TextArea();
+				tb.text = host[chain];
+				tb.id = chain;
+				tb.editable = editable;
+				tb.maxWidth = 200;
+				frmItem.addChild(tb);
+				
+				if(editable)
+				{
+					BindingUtils.bindProperty(tb, "text", host, chain);
+					BindingUtils.bindProperty(host, chain, tb, "text");
+				}
+				
+				
+				obsForm.addChild(frmItem);
+			}
+			
+			protected function onTextInputChange(e:Event)
+			{
+				
+			}
+
+		]]>
+	</mx:Script>
+	<mx:VBox width="50%">
+	<mx:Form id="obsForm"  backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid" >
+		<mx:FormHeading label="{(data as Obsel).uri}" />
+	</mx:Form>
+	</mx:VBox>
+	<!--
+		<mx:Text text="{RDFconverter.toRDF((data as Obsel))}" width="50%"/>
+	-->
+</mx:HBox>
