@@ -173,6 +173,8 @@
 				<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
 			</s:ComboBox>
 		</s:NavigatorContent>
+		<s:NavigatorContent width="100%" height="100%" label="Visualisation temps verticale">
+		</s:NavigatorContent>
 	</mx:TabNavigator>
 
 </s:WindowedApplication>

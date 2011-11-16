@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.AttributeType;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			
+			import flashx.textLayout.elements.BreakElement;
+			
+			// Collection of obsels
+			private var _obselSelection:ObselCollection
+
+			// Vars for trace improvement
+			private var mediaCurrentTime:Number; // Quelle valeur pour le debut??
+			private var isMediaPlaying:Boolean;
+			private var currentIdMedia:String;
+			private var videoObselTypes:Array=["lectureVideo","stopVideo","pauseVideo","finVideo"];	
+			private var previousObselBegin:Number;
+			
+			[Bindable]
+			public function get obselSelection():ObselCollection
+			{
+				return _obselSelection;
+			}
+
+			public function set obselSelection(value:ObselCollection):void
+			{
+				_obselSelection = value;
+				//A remplir pour mettre a jour dynamiquement l'affichage (avec nos fonctions)
+			}
+			
+			// Fonction d'enrichissement de la trace
+			public function completeTraceWithcalculatedMediaTime(selectedPlayer:String):void
+			{
+				// Dans les tests on appellera la fonction avec "Player1"
+				if(_obselSelection){
+
+					//var currentIdPlayer:String;
+					// todo : test pour s'assurer que la trace est dans l'ordre du temps. Doit être triée
+					// ici
+					
+					
+					// Premiere boucle pour trouver le premier temps et initialiser mediaCurrentTime
+					var foundTimeObsel:Boolean=false;
+					for each(var obs:Obsel in _obselSelection._obsels){
+						if(updateTimeDataFromObsel(obs,selectedPlayer)){
+							foundTimeObsel=true;
+							break;
+						}	
+					}
+					
+					if(foundTimeObsel){
+						
+						// Principe : on veut enrichir TOUS les obsels avec calculatedMediaTime (donc necessite de partir avec une valeur de CurrentTime) et calculatedMediaId
+						for each(var obs:Obsel in _obselSelection._obsels){
+								var calculatedMediaTimeAttributeType:AttributeType;
+								var calculatedMediaIDAttributeType:AttributeType;
+								
+								if(!obs.trace.model.get("calculatedMediaTime")){
+									calculatedMediaTimeAttributeType=obs.trace.model.createAttributeType("calculatedMediaTime");	
+								} else {
+									calculatedMediaTimeAttributeType=obs.trace.model.get("calculatedMediaTime");
+								}
+								
+								if(!obs.trace.model.get("calculatedMediaID")){
+									calculatedMediaIDAttributeType=obs.trace.model.createAttributeType("calculatedMediaID");	
+								} else {
+									calculatedMediaIDAttributeType=obs.trace.model.get("calculatedMediaID");
+								}								
+								
+								updateTimeDataFromObsel(obs, selectedPlayer);
+								if(isMediaPlaying){
+									obs.setAttributeValue(calculatedMediaTimeAttributeType,(obs.begin-previousObselBegin)+mediaCurrentTime);
+								} else {
+									obs.setAttributeValue(calculatedMediaTimeAttributeType, mediaCurrentTime);							
+								}
+								obs.setAttributeValue(calculatedMediaIDAttributeType, currentIdMedia);				
+								
+						}
+					}
+				}
+			}
+			
+			// Fonction de mise a jour des infos de temps d'un obsel
+			private function updateTimeDataFromObsel(obs:Obsel,selectedPlayer:String):Boolean{
+				var updated:Boolean=false;
+				if ((obs.obselType.uri=="changementPositionVideo") && (obs.getAttributeValueByTypeUri("IdPlayer")==selectedPlayer)){
+					mediaCurrentTime=obs.getAttributeValueByTypeUri("NouvellePosition");
+					isMediaPlaying=(obs.getAttributeValueByTypeUri("Lecture")=="true"); // a debugger pour verifier que c'est bien un string				
+					updated=true;
+				} else if((videoObselTypes.indexOf(obs.obselType.uri)>=0) && (obs.getAttributeValueByTypeUri("IdPlayer")==selectedPlayer)){
+					mediaCurrentTime=obs.getAttributeValueByTypeUri("PositionTemps");
+					if(obs.obselType.uri=="lectureVideo"){
+						isMediaPlaying="true"; // a debugger pour verifier que c'est bien un string
+					} else {
+						isMediaPlaying="false";
+					}
+					updated=true;
+				}
+				if(updated){
+					currentIdMedia=obs.getAttributeValueByTypeUri("IdMedia");	
+					previousObselBegin=obs.begin;
+				}
+				
+				return updated;
+			}
+
+		]]>
+	</fx:Script>
+</s:Group>

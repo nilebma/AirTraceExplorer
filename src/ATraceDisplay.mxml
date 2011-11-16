@@ -4,7 +4,7 @@
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   xmlns:timeline="ui.trace.timeline.*"
 					   xmlns:traceSelector="traceSelector.*"
-					   width="1000" height="700" creationComplete="creationCompleteHandler(event)">
+					   width="1000" height="700" creationComplete="creationCompleteHandler(event)" xmlns:timeline1="ui.timeline.*">
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -90,19 +90,13 @@
 			
 			protected function onObselLineSelectionChange(e:TimelineEvent):void
 			{
-				//les obsel selectionné sont stocké dans une variable gloable, on vide celle-ci
-				obselSelection = new ObselCollection();
-				
-				//les obsel selectionné sont affichés dans la box "obseleditorZone", on vide aussi celle-ci
-				obselEditorZone.removeAllChildren();
-				
+				//les obsels selectionnés sont stockés dans une variable gloable, on vide celle-ci
+				obselSelection.removeAll();
+
 				if(e && e.obselSet) 
 					for each(var obs:Obsel in e.obselSet)
 						obselSelection.push(obs);
-				
-				//we update the display of the obselEditorZone
-				fillObselEditorZoneWithObselSelection();
-				
+
 				//on affiche les obsels selectionnées dans les traceline
 				selectionTraceLine.traceData = obselSelection;
 				contextSelectionTraceLine.traceData = obselSelection;
@@ -111,7 +105,7 @@
 
 			
 
-			
+			/*
 			protected function fillObselEditorZoneWithObselSelection(e:Event = null):void
 			{
 				//we fill the obselEditorZone
@@ -141,11 +135,12 @@
 					beginValueOfPreviousItem = obsel.begin;
 				}
 			}
+			*/
 			
 			protected function loadBtn_clickHandler(event:MouseEvent):void
 			{
 			
-				theTtlLoader.loadTTL(urlInput.text,theBase);
+				theTtlLoader.loadTTL(urlInput.textInput.text,theBase);
 			}
 			
 			protected function selectorValidationHandler(event:ResultEvent):void
@@ -192,8 +187,8 @@
 				timelineGroup.addElement(l);
 
 				// Sébastien --- Init composant TraceLineHeader (todo)
-				var tLH:TraceLineHeader= new TraceLineHeader();
-				tLH.titre="toto";
+				//var tLH:TraceLineHeader= new TraceLineHeader();
+				//tLH.titre="toto";
 				//timelineGroup.addElement(tLH);				
 				// --- Sébastien
 	
@@ -253,14 +248,19 @@
 		<s:Label y="70" left="10" width="90"  fontSize="10" text="Current Selector" showTruncationTip="true" maxDisplayedLines="1" />
 	</s:Group>
 	
-	<mx:VBox id="obselEditorZone" right="10" top="50" bottom="10" width="300"
-			 horizontalScrollPolicy="on" verticalScrollPolicy="on"/>
-	<s:TextInput y="10" left="10" right="100" id="urlInput"
-				 text="http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl"/>
+	<timeline1:ObselStack id="obselEditorZone" right="10" top="50" obselSelection="{obselSelection}" />
+	<s:ComboBox y="10" left="10" right="100" id="urlInput" selectedIndex="0">
+		<s:dataProvider> 
+			<mx:ArrayList>
+				<fx:String>http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl</fx:String>
+				<fx:String>http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl</fx:String>
+				<fx:String>http://cinecast.advene.org/abelin/TI5/S05-26-Avril-Aprem.cleaned.ttl</fx:String>
+			</mx:ArrayList>
+		</s:dataProvider>
+	</s:ComboBox>
 	<s:Button y="10" right="10" label="Load" id="loadBtn" click="loadBtn_clickHandler(event)"/>
 	<traceSelector:dummyTraceSelectorEditor id="selectorEditor2" x="8" bottom="10"
 										 selectorValidation="selectorValidationHandler(event)"/>
 	<mx:ColorPicker id="theColorPicker" x="656" bottom="10"/>
-	<s:Label x="694" y="33" height="16" text="David GIT OK"/>
 	
 </s:WindowedApplication>
