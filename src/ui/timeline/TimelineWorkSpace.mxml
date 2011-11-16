@@ -360,6 +360,11 @@
 				
 			}
 			
+			protected function createArbitraryTimeHole(event:MouseEvent):void
+			{
+				timeRange.makeTimeHole(timeAndPlayManager.currentTime,timeAndPlayManager.currentTime+100000);
+			}
+			
 		]]>
 	</fx:Script>
 	
@@ -454,5 +459,7 @@
 	<s:VideoDisplay id="theVideoDisplay" x="10" y="10" height="182"/>
 	<timeline2:PlayPauseButton x="386" y="98" timeAndPlayManager="{timeAndPlayManager}" >
 	</timeline2:PlayPauseButton>
+	<s:Button x="336" y="35" label="Create One minute timehole at current time"
+			  click="createArbitraryTimeHole(event)"/>
 	
 </s:Group>
