@@ -855,8 +855,8 @@ package ui.trace.timeline
 		{
 			if(timeRange && _startTime && _stopTime)
 			{
-				//this.rendererFunctionCanvas.graphics.beginFill(0x999999);
-				this.rendererFunctionCanvas.graphics.lineStyle(1);
+				this.rendererFunctionCanvas.graphics.beginFill(0xFF0000);
+				//this.rendererFunctionCanvas.graphics.lineStyle(1);
 				
 				for each(var th:Array in timeRange.getTimeHoles())
 				{
@@ -868,25 +868,25 @@ package ui.trace.timeline
 						if(direction == "vertical")
 						{
 							this.rendererFunctionCanvas.graphics.drawRect(0,posDebut,this.width,timeRange.timeHoleWidth);
-							this.rendererFunctionCanvas.graphics.moveTo(0,posDebut);
+							/*this.rendererFunctionCanvas.graphics.moveTo(0,posDebut);
 							this.rendererFunctionCanvas.graphics.lineTo(this.width,posDebut+timeRange.timeHoleWidth);
 							this.rendererFunctionCanvas.graphics.moveTo(this.width,posDebut);
-							this.rendererFunctionCanvas.graphics.lineTo(0,posDebut+timeRange.timeHoleWidth);
+							this.rendererFunctionCanvas.graphics.lineTo(0,posDebut+timeRange.timeHoleWidth);*/
 							
 						}
 						else
 						{
 							this.rendererFunctionCanvas.graphics.drawRect(posDebut,0,timeRange.timeHoleWidth,this.height);
-							this.rendererFunctionCanvas.graphics.moveTo(posDebut,0);
+							/*this.rendererFunctionCanvas.graphics.moveTo(posDebut,0);
 							this.rendererFunctionCanvas.graphics.lineTo(posDebut+timeRange.timeHoleWidth,this.height);
 							this.rendererFunctionCanvas.graphics.moveTo(posDebut,this.height);
-							this.rendererFunctionCanvas.graphics.lineTo(posDebut+timeRange.timeHoleWidth,0);
+							this.rendererFunctionCanvas.graphics.lineTo(posDebut+timeRange.timeHoleWidth,0);*/
 						}
 					}
 					else
 						;
 					
-					this.rendererFunctionCanvas.graphics.lineStyle(0);
+					//this.rendererFunctionCanvas.graphics.lineStyle(0);
 				}
 			
 			
@@ -930,7 +930,7 @@ package ui.trace.timeline
 				if(!isNaN(posDebut) && !isNaN(size))
 				{
 					this.rendererFunctionCanvas.graphics.beginFill(bgColor,bgAlpha);
-					this.rendererFunctionCanvas.graphics.lineStyle(null);
+					//this.rendererFunctionCanvas.graphics.lineStyle(null);
 					if(direction == "vertical")
 						this.rendererFunctionCanvas.graphics.drawRect(0,posDebut,this.width,size);
 					else
