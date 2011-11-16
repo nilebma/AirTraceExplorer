@@ -68,13 +68,13 @@
 								if(!obs.trace.model.get("calculatedMediaTime")){
 									calculatedMediaTimeAttributeType=obs.trace.model.createAttributeType("calculatedMediaTime");	
 								} else {
-									calculatedMediaTimeAttributeType=obs.trace.model.get("calculatedMediaTime");
+									calculatedMediaTimeAttributeType=obs.trace.model.getAttributeTypesByName("calculatedMediaTime",false)[0];
 								}
 								
 								if(!obs.trace.model.get("calculatedMediaID")){
 									calculatedMediaIDAttributeType=obs.trace.model.createAttributeType("calculatedMediaID");	
 								} else {
-									calculatedMediaIDAttributeType=obs.trace.model.get("calculatedMediaID");
+									calculatedMediaIDAttributeType=obs.trace.model.getAttributeTypesByName("calculatedMediaID", false)[0];
 								}								
 								
 								updateTimeDataFromObsel(obs, selectedPlayer);

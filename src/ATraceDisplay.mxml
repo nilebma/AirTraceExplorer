@@ -4,7 +4,9 @@
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   xmlns:timeline="ui.trace.timeline.*"
 					   xmlns:traceSelector="traceSelector.*"
-					   width="1000" height="700" creationComplete="creationCompleteHandler(event)" xmlns:timeline1="ui.timeline.*">
+					   xmlns:timeline1="ui.timeline.*"
+					   xmlns:traceAndMediaViewer="ui.traceAndMediaViewer.*"
+					   width="1000" height="700" creationComplete="creationCompleteHandler(event)">
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -141,6 +143,13 @@
 			{
 			
 				theTtlLoader.loadTTL(urlInput.textInput.text,theBase);
+				
+				// Enrichissement de la trace chargée
+				// Pbs: Comment acceder au traceAndMediaViewer?
+				//		Comment peut-il travailler sur la trace chargée?
+				//		todo
+				traceAndMediaViewer.completeTraceWithcalculatedMediaTime("Player1");
+				
 			}
 			
 			protected function selectorValidationHandler(event:ResultEvent):void
@@ -186,11 +195,7 @@
 				timelineGroup.addElement(newTraceLine);
 				timelineGroup.addElement(l);
 
-				// Sébastien --- Init composant TraceLineHeader (todo)
-				//var tLH:TraceLineHeader= new TraceLineHeader();
-				//tLH.titre="toto";
-				//timelineGroup.addElement(tLH);				
-				// --- Sébastien
+
 	
 			}
 			
@@ -248,7 +253,7 @@
 		<s:Label y="70" left="10" width="90"  fontSize="10" text="Current Selector" showTruncationTip="true" maxDisplayedLines="1" />
 	</s:Group>
 	
-	<timeline1:ObselStack id="obselEditorZone" right="10" top="50" obselSelection="{obselSelection}" />
+	<timeline1:ObselStack id="obselEditorZone" right="11" top="54" obselSelection="{obselSelection}" />
 	<s:ComboBox y="10" left="10" right="100" id="urlInput" selectedIndex="0">
 		<s:dataProvider> 
 			<mx:ArrayList>
@@ -262,5 +267,7 @@
 	<traceSelector:dummyTraceSelectorEditor id="selectorEditor2" x="8" bottom="10"
 										 selectorValidation="selectorValidationHandler(event)"/>
 	<mx:ColorPicker id="theColorPicker" x="656" bottom="10"/>
+	<traceAndMediaViewer:TraceAndMediaViewer x="10" y="158" width="649" height="255">
+	</traceAndMediaViewer:TraceAndMediaViewer>
 	
 </s:WindowedApplication>
