@@ -148,6 +148,7 @@
 				// Pbs: Comment acceder au traceAndMediaViewer?
 				//		Comment peut-il travailler sur la trace chargée?
 				//		todo
+				traceAndMediaViwer.obselCollection=obselSelection;
 				traceAndMediaViewer.completeTraceWithcalculatedMediaTime("Player1");
 				
 			}
