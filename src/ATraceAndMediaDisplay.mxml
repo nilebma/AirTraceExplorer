@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+                       xmlns:s="library://ns.adobe.com/flex/spark"
+                       xmlns:mx="library://ns.adobe.com/flex/mx"
+                       xmlns:timeline="ui.trace.timeline.*"
+                       xmlns:traceSelector="traceSelector.*"
+                       xmlns:timeline1="ui.timeline.*"
+                       xmlns:traceAndMediaViewer="ui.traceAndMediaViewer.*"
+                       width="1000" height="700" creationComplete="creationCompleteHandler(event)">
+    
+    <fx:Declarations>
+        <!-- Place non-visual elements (e.g., services, value objects) here -->
+    </fx:Declarations>
+    <fx:Script>
+        <![CDATA[
+            import com.ithaca.traces.Base;
+            import com.ithaca.traces.Ktbs;
+            import com.ithaca.traces.Model;
+            import com.ithaca.traces.Obsel;
+            import com.ithaca.traces.ObselCollection;
+            import com.ithaca.traces.Resource;
+            import com.ithaca.traces.Trace;
+            
+            import mx.binding.utils.BindingUtils;
+            import mx.events.FlexEvent;
+            import mx.events.ListEvent;
+            import mx.rpc.events.ResultEvent;
+            
+            import services.TtlLoader;
+            
+            import spark.components.Label;
+            
+            import traceSelector.dummyTraceSelector;
+            
+            import ui.trace.ObselEditor;
+            import ui.trace.timeline.TraceLine;
+            import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+            import ui.trace.timeline.events.TimelineEvent;
+            
+            
+            [Bindable]
+            public var theKtbs:Ktbs;
+            
+            [Bindable]
+            public var theBase:Base;
+            
+            [Bindable]
+            public var theModel:Model;
+            
+            [Bindable]
+            protected var obselSelection:ObselCollection = new ObselCollection();
+            
+            protected var theTtlLoader:TtlLoader = new TtlLoader();
+            
+            protected var topPositionForNewTraceline:int = 100;
+            
+            protected var aLoadedTrace:Trace; 
+            
+            protected function creationCompleteHandler(event:FlexEvent):void
+            {
+                theKtbs = new Ktbs("uriKtbs", Resource.RESOURCE_URI_ATTRIBUTION_POLICY_CLIENT_IS_KING);
+                theBase = this.theKtbs.createBase();
+                
+                theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
+                
+            }
+            
+            protected function onTtlLoaded(e:ResultEvent):void
+            {	
+                if(e.result && e.result.loadedTraces && e.result.loadedTraces.length > 0)
+                {
+                    
+                    aLoadedTrace = e.result.loadedTraces[0];
+                    
+                    var globalBegin:Number = aLoadedTrace.getEarliestObsel().begin;
+                    
+                    var globalEnd:Number = aLoadedTrace.getLatestObsel().end;
+                    
+                    
+                    selectorEditor2.obsels = aLoadedTrace.obsels;
+                    
+                    // Enrichissement de la trace chargée
+                    // Pbs: Comment acceder au traceAndMediaViewer?
+                    //		Comment peut-il travailler sur la trace chargée?
+                    //		todo
+                    traceAndMediaViewer.obselSelection=aLoadedTrace.obsels;
+                    traceAndMediaViewer.completeTraceWithcalculatedMediaTime("Player1");
+                    
+                }
+            }
+            
+            protected function onObselLineSelectionChange(e:TimelineEvent):void
+            {
+                //les obsels selectionnés sont stockés dans une variable gloable, on vide celle-ci
+                obselSelection.removeAll();
+                
+                if(e && e.obselSet) 
+                    for each(var obs:Obsel in e.obselSet)
+                    obselSelection.push(obs);
+            }
+            
+            
+            
+            
+            /*
+            protected function fillObselEditorZoneWithObselSelection(e:Event = null):void
+            {
+            //we fill the obselEditorZone
+            var beginValueOfPreviousItem:Number = NaN;
+            
+            //pour tous les obsels selectionnée
+            for each(var obsel:Obsel in obselSelection._obsels)
+            {
+            //var obsel:Object = trace_grid.indexToItemRenderer(trace_grid.indicesToIndex(index,0)).data;
+            
+            if(!isNaN(beginValueOfPreviousItem))
+            {
+            var a:Label = new Label();
+            var diff:Number = obsel.begin - beginValueOfPreviousItem;
+            if(diff < 500)
+            a.setStyle("color","red");
+            
+            a.text = diff + " ms";
+            
+            obselEditorZone.addChild(a);
+            
+            }	
+            
+            var obsEditor:ObselEditor = new ObselEditor();
+            obsEditor.data = obsel;
+            obselEditorZone.addChild(obsEditor);
+            beginValueOfPreviousItem = obsel.begin;
+            }
+            }
+            */
+            
+            protected function loadBtn_clickHandler(event:MouseEvent):void
+            {
+                
+                theTtlLoader.loadTTL(urlInput.textInput.text,theBase);
+                
+                
+            }
+            
+            
+            
+        ]]>
+    </fx:Script>
+    
+    <!--Display the selected traces-->
+    
+    
+    
+    <timeline1:ObselStack id="obselEditorZone" right="11" top="54" obselSelection="{obselSelection}" />
+    <s:ComboBox y="10" left="10" right="100" id="urlInput" selectedIndex="0">
+        <s:dataProvider> 
+            <mx:ArrayList>
+                <fx:String>http://cinecast.advene.org/abelin/TI5/tinySampleLDTTrace.ttl</fx:String>
+                <fx:String>http://cinecast.advene.org/abelin/TI5/sampleLDTTrace.ttl</fx:String>
+                <fx:String>http://cinecast.advene.org/abelin/TI5/S05-26-Avril-Aprem.cleaned.ttl</fx:String>
+            </mx:ArrayList>
+        </s:dataProvider>
+    </s:ComboBox>
+    <s:Button y="10" right="10" label="Load" id="loadBtn" click="loadBtn_clickHandler(event)"/>
+    <traceSelector:dummyTraceSelectorEditor id="selectorEditor2" x="8" bottom="10"/>
+    <mx:ColorPicker id="theColorPicker" x="656" bottom="10"/>
+    <traceAndMediaViewer:TraceAndMediaViewer id="traceAndMediaViewer" x="10" y="158" width="649" height="255">
+    </traceAndMediaViewer:TraceAndMediaViewer>
+    
+</s:WindowedApplication>
