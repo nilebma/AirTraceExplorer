@@ -36,6 +36,7 @@
 			{
 				_obselSelection = value;
 				//A remplir pour mettre a jour dynamiquement l'affichage (avec nos fonctions)
+				//TODO
 			}
 			
 			// Fonction d'enrichissement de la trace
@@ -93,13 +94,14 @@
 			// Fonction de mise a jour des infos de temps d'un obsel
 			private function updateTimeDataFromObsel(obs:Obsel,selectedPlayer:String):Boolean{
 				var updated:Boolean=false;
-				if ((obs.obselType.uri=="changementPositionVideo") && (obs.getAttributeValueByTypeUri("IdPlayer")==selectedPlayer)){
-					mediaCurrentTime=obs.getAttributeValueByTypeUri("NouvellePosition");
-					isMediaPlaying=(obs.getAttributeValueByTypeUri("Lecture")=="true"); // a debugger pour verifier que c'est bien un string				
+				// Erreur: faire getAttributeValueByTypeLabel et non uri sinon marche pas.
+				if ((obs.obselType.label=="changementPositionVideo") && (obs.getAttributeValueByLabel("IdPlayer")==selectedPlayer)){
+					mediaCurrentTime=obs.getAttributeValueByLabel("NouvellePosition");
+					isMediaPlaying=(obs.getAttributeValueByLabel("Lecture")=="true"); // a debugger pour verifier que c'est bien un string				
 					updated=true;
-				} else if((videoObselTypes.indexOf(obs.obselType.uri)>=0) && (obs.getAttributeValueByTypeUri("IdPlayer")==selectedPlayer)){
-					mediaCurrentTime=obs.getAttributeValueByTypeUri("PositionTemps");
-					if(obs.obselType.uri=="lectureVideo"){
+				} else if((videoObselTypes.indexOf(obs.obselType.label)>=0) && (obs.getAttributeValueByLabel("IdPlayer")==selectedPlayer)){
+					mediaCurrentTime=obs.getAttributeValueByLabel("PositionTemps");
+					if(obs.obselType.label=="lectureVideo"){
 						isMediaPlaying="true"; // a debugger pour verifier que c'est bien un string
 					} else {
 						isMediaPlaying="false";
@@ -107,13 +109,21 @@
 					updated=true;
 				}
 				if(updated){
-					currentIdMedia=obs.getAttributeValueByTypeUri("IdMedia");	
+					currentIdMedia=obs.getAttributeValueByLabel("IdMedia");	
 					previousObselBegin=obs.begin;
 				}
 				
 				return updated;
 			}
 
+			
+			// On donne une collection deja enrichie et on appelle une methode draw qui prend en param un temps debut et un temps de fin comme
+			// la classe traceline. S'inspirer de updateDisplayList qui utilise Graphics dans TraceLine. Il faut coder les deux fonctions de TraceLine:
+			//getPosFromTime et getTimeFromPosition
+			// Faire une fonction qui prend deux bornes (temps) et qui donne en pixel ce que ca fait. Elle considère la hauteur (temps) et la largeur (durée de l'activité)
+			// 4 param: position temporelle, les deux bornes temporelles et la dimension de la zone (ex 800 si on est en 800 pixel de largeur).
+			
+			
 		]]>
 	</fx:Script>
 </s:Group>
