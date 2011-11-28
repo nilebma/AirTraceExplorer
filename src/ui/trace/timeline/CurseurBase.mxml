@@ -73,6 +73,8 @@
 			
 			private var _timeRange:TimeRange = null;
 			
+			public var tweening:Boolean = false; // in order to set animation/twwening effect on cursor movements (-- performance) 
+			
 			/* *******************************************************************
 			**********	GRAPHICAL PARTS (to be implemented in subclasses **********
 			*********************************************************************/
@@ -249,10 +251,12 @@
 			{
 				var sizeAndPos:Object = getSizeAndPosToZoomOnTime(t);
 				
-				TweenMax.killTweensOf(this);
+				if(tweening) TweenMax.killTweensOf(this);
 				
 				if(direction == CurseurBase.DIRECTION_VERTICAL)
 				{
+					if(tweening)
+					{
 					TweenMax.to(this,.2,{height:sizeAndPos["size"],
 						onComplete:function(curseur:CurseurBase):void
 						{
@@ -265,21 +269,39 @@
 						
 						
 					TweenMax.to(this,.2,{y:sizeAndPos["pos"],  ease:Linear.easeNone});
+					}
+					else
+					{
+						this.height = sizeAndPos["size"];
+						this.y = sizeAndPos["pos"];
+						dispatchEvent(new Event("zoomFromProgComplete"));
+						updateFromUser();
+					}
 				}
 				else
 				{
-					TweenMax.to(this,.2,{width:sizeAndPos["size"], 
-							onComplete:function(curseur:CurseurBase):void
-							{
-								curseur.dispatchEvent(new Event("zoomFromProgComplete"));
-								curseur.updateFromUser();
-							},
-							onCompleteParams:[this],
-							onUpdate:updateFromUser
-							});
-							
-							
-					TweenMax.to(this,.2,{x:sizeAndPos["pos"],  ease:Linear.easeNone});
+					if(tweening)
+					{
+						TweenMax.to(this,.2,{width:sizeAndPos["size"], 
+								onComplete:function(curseur:CurseurBase):void
+								{
+									curseur.dispatchEvent(new Event("zoomFromProgComplete"));
+									curseur.updateFromUser();
+								},
+								onCompleteParams:[this],
+								onUpdate:updateFromUser
+								});
+								
+								
+						TweenMax.to(this,.2,{x:sizeAndPos["pos"],  ease:Linear.easeNone});
+					}
+					else
+					{
+						this.width = sizeAndPos["size"];
+						this.x = sizeAndPos["pos"];
+						dispatchEvent(new Event("zoomFromProgComplete"));
+						updateFromUser();
+					}
 				}
 			}
 						
@@ -327,19 +349,37 @@
 				else
 					toPos = startEdge;
 				
-				TweenMax.killTweensOf(this);
+				if(tweening) TweenMax.killTweensOf(this);
 				
 				if(direction == CurseurBase.DIRECTION_VERTICAL)
 				{
-					TweenMax.to(this,.5,{height:toSize, ease:Linear.easeNone, onUpdate:fireZoomChange});
+					if(tweening)
+					{
+						TweenMax.to(this,.5,{height:toSize, ease:Linear.easeNone, onUpdate:fireZoomChange});
 				
-					TweenMax.to(this,.5,{y:toPos,  ease:Linear.easeNone});
+						TweenMax.to(this,.5,{y:toPos,  ease:Linear.easeNone});
+					}
+					else
+					{
+						this.height = toSize;
+						this.y = toPos;
+						fireZoomChange();
+					}
 				}
 				else
 				{
-					TweenMax.to(this,.5,{width:toSize, ease:Linear.easeNone, onUpdate:fireZoomChange});
+					if(tweening)
+					{
+						TweenMax.to(this,.5,{width:toSize, ease:Linear.easeNone, onUpdate:fireZoomChange});
 						
-					TweenMax.to(this,.5,{x:toPos,  ease:Linear.easeNone});					
+						TweenMax.to(this,.5,{x:toPos,  ease:Linear.easeNone});			
+					}
+					else
+					{
+						this.width = toSize;
+						this.x = toPos;
+						fireZoomChange();
+					}
 				}
 			}
 			
@@ -570,9 +610,21 @@
 
 				//Finally we set the new X/Y value to our object (with a tween effect)
 				if(direction == CurseurBase.DIRECTION_VERTICAL)
-					TweenMax.to(this,.6,{y:toPos, ease:Back.easeOut, onUpdate:userMove});
+					if(tweening)
+						TweenMax.to(this,.6,{y:toPos, ease:Back.easeOut, onUpdate:userMove});
+					else
+					{
+						this.y = toPos;
+						userMove();
+					}
 				else
-					TweenMax.to(this,.6,{x:toPos, ease:Back.easeOut, onUpdate:userMove});
+					if(tweening)
+						TweenMax.to(this,.6,{x:toPos, ease:Back.easeOut, onUpdate:userMove});
+					else
+					{
+						this.x = toPos;
+						userMove();
+					}
 			}
 			
 			protected function centerStopDrag(e:MouseEvent):void
@@ -635,10 +687,20 @@
 					// Knowing the futur Y value of our object, we can change its height, then the resize can occur	
 					//(adding the gap from the top of our object and the control in use in the resize)
 					toSize = this.height + (this.y - toPos);// + topGrip.y;
-					TweenMax.to(this,.6,{height:toSize, onUpdate:userZoom, ease:Back.easeOut});
 					
-					//Finally we set the new Y value to our object (with a tween)
-					TweenMax.to(this,.6,{y:toPos, ease:Back.easeOut});
+					if(tweening)
+					{
+						TweenMax.to(this,.6,{height:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					
+						//Finally we set the new Y value to our object (with a tween)
+						TweenMax.to(this,.6,{y:toPos, ease:Back.easeOut});
+					}
+					else
+					{
+						this.height = toSize;
+						this.y = toPos;
+						userZoom();
+					}
 				}
 				//The same for horizontal direction
 				else
@@ -649,8 +711,17 @@
 					
 					toSize = this.width + (this.x - toPos);// + topGrip.y;
 					
-					TweenMax.to(this,.6,{width:toSize, onUpdate:userZoom, ease:Back.easeOut});
-					TweenMax.to(this,.6,{x:toPos, ease:Back.easeOut});
+					if(tweening)
+					{
+						TweenMax.to(this,.6,{width:toSize, onUpdate:userZoom, ease:Back.easeOut});
+						TweenMax.to(this,.6,{x:toPos, ease:Back.easeOut});
+					}
+					else
+					{
+						this.width = toSize;
+						this.x = toPos;
+						userZoom();
+					}
 				}
 			}
 			
@@ -709,7 +780,14 @@
 					// Knowing the futur bottom value of our object, we can change its height, then the resize can occur	
 					//(adding the gap from the bottom of our object and the control in use in the resize)
 					toSize = this.height - (this.y + this.height) + toB;
-					TweenMax.to(this,.6,{height:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					
+					if(tweening)
+						TweenMax.to(this,.6,{height:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					else
+					{
+						this.height = toSize;
+						userZoom();
+					}
 				}
 				else
 				{
@@ -721,7 +799,14 @@
 					
 					toSize = this.width - (this.x + this.width) + toD;
 					
-					TweenMax.to(this,.6,{width:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					if(tweening)
+						TweenMax.to(this,.6,{width:toSize, onUpdate:userZoom, ease:Back.easeOut});
+					else
+					{
+						this.width = toSize;
+						userZoom();
+					}
+						
 				}
 			}
 			
