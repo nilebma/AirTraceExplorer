@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"  creationComplete="onCreationCompleteHandler(event)">
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 borderVisible="false" creationComplete="onCreationCompleteHandler(event)">
 	<mx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Attribute;
@@ -14,7 +15,7 @@
 			import mx.controls.TextArea;
 			import mx.controls.TextInput;
 			import mx.events.FlexEvent;
-
+			
 			protected function onCreationCompleteHandler(event:FlexEvent):void
 			{
 				addField((data as Obsel).obselType,"label","type");
@@ -45,6 +46,7 @@
 				var frmItem:FormItem = new FormItem();
 				frmItem.direction = "horizontal";
 				frmItem.label = title;
+				//@TODO testé les propriétés de frmItem ainsi que celles du form obsForm
 				
 				var tb:TextArea = new TextArea();
 				tb.text = host[chain];
@@ -52,6 +54,9 @@
 				tb.editable = editable;
 				tb.maxWidth = 200;
 				frmItem.addChild(tb);
+				
+				tb.addEventListener(FlexEvent.CREATION_COMPLETE, onTextAreaDataChange);
+				tb.addEventListener(FlexEvent.DATA_CHANGE, onTextAreaDataChange);
 				
 				if(editable)
 				{
@@ -63,6 +68,21 @@
 				obsForm.addChild(frmItem);
 			}
 			
+			private function onTextAreaDataChange(e:FlexEvent) :void
+			{
+				if(e.currentTarget && e.currentTarget is mx.controls.TextArea){
+					resizeMe(e.currentTarget as TextArea);
+				}
+			}
+			
+			private function resizeMe(field:TextArea) :void
+			{
+				field.validateNow();
+				//field.mx_internal::getTextField().autoSize = TextFieldAutoSize.LEFT;
+				field.height = Math.min(55, field.textHeight + 5);
+				
+			}
+			
 			protected function onTextInputChange(e:Event)
 			{
 				
@@ -71,8 +91,10 @@
 		]]>
 	</mx:Script>
 	<mx:VBox width="50%">
-	<mx:Form id="obsForm"  backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid" >
-		<mx:FormHeading label="{(data as Obsel).uri}" />
+	<mx:Form id="obsForm" backgroundColor="#F5CC3F" borderAlpha="0.27" borderColor="#A5A3A3"
+			 borderStyle="solid" borderVisible="true" cornerRadius="10" dropShadowVisible="false"
+			 paddingBottom="0" paddingLeft="2" paddingRight="2" paddingTop="0">
+		<mx:FormHeading label="{(data as Obsel).uri}" fontWeight="bold"/>
 	</mx:Form>
 	</mx:VBox>
 	<!--
