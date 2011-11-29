@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.ithaca.traces.AttributeType;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			
+			import flashx.textLayout.elements.BreakElement;
+			
+			// Collection of obsels
+			private var _obselSelection:ObselCollection
+
+			// Vars for trace improvement
+			private var mediaCurrentTime:Number; // Quelle valeur pour le debut??
+			private var isMediaPlaying:Boolean;
+			private var currentIdMedia:String;
+			private var videoObselTypes:Array=["lectureVideo","stopVideo","pauseVideo","finVideo"];	
+			private var previousObselBegin:Number;
+			
+			[Bindable]
+			public function get obselSelection():ObselCollection
+			{
+				return _obselSelection;
+			}
+
+			public function set obselSelection(value:ObselCollection):void
+			{
+				_obselSelection = value;
+				//A remplir pour mettre a jour dynamiquement l'affichage (avec nos fonctions)
+				//TODO
+			}
+			
+			// Fonction d'enrichissement de la trace
+			public function completeTraceWithcalculatedMediaTime(selectedPlayer:String):void
+			{
+				// Dans les tests on appellera la fonction avec "Player1"
+				if(_obselSelection){
+
+					//var currentIdPlayer:String;
+					// todo : test pour s'assurer que la trace est dans l'ordre du temps. Doit être triée
+					// ici
+					
+					
+					// Premiere boucle pour trouver le premier temps et initialiser mediaCurrentTime
+					var foundTimeObsel:Boolean=false;
+					for each(var obs:Obsel in _obselSelection._obsels){
+						if(updateTimeDataFromObsel(obs,selectedPlayer)){
+							foundTimeObsel=true;
+							break;
+						}	
+					}
+					
+					if(foundTimeObsel){
+						
+						// Principe : on veut enrichir TOUS les obsels avec calculatedMediaTime (donc necessite de partir avec une valeur de CurrentTime) et calculatedMediaId
+						for each(var obs:Obsel in _obselSelection._obsels){
+								var calculatedMediaTimeAttributeType:AttributeType;
+								var calculatedMediaIDAttributeType:AttributeType;
+								
+								if(!obs.trace.model.get("calculatedMediaTime")){
+									calculatedMediaTimeAttributeType=obs.trace.model.createAttributeType("calculatedMediaTime");	
+								} else {
+									calculatedMediaTimeAttributeType=obs.trace.model.getAttributeTypesByName("calculatedMediaTime",false)[0];
+								}
+								
+								if(!obs.trace.model.get("calculatedMediaID")){
+									calculatedMediaIDAttributeType=obs.trace.model.createAttributeType("calculatedMediaID");	
+								} else {
+									calculatedMediaIDAttributeType=obs.trace.model.getAttributeTypesByName("calculatedMediaID", false)[0];
+								}								
+								
+								updateTimeDataFromObsel(obs, selectedPlayer);
+								if(isMediaPlaying){
+									obs.setAttributeValue(calculatedMediaTimeAttributeType,(obs.begin-previousObselBegin)+mediaCurrentTime);
+								} else {
+									obs.setAttributeValue(calculatedMediaTimeAttributeType, mediaCurrentTime);							
+								}
+								obs.setAttributeValue(calculatedMediaIDAttributeType, currentIdMedia);				
+								
+						}
+					}
+				}
+			}
+			
+			// Fonction de mise a jour des infos de temps d'un obsel
+			private function updateTimeDataFromObsel(obs:Obsel,selectedPlayer:String):Boolean{
+				var updated:Boolean=false;
+				// Erreur: faire getAttributeValueByTypeLabel et non uri sinon marche pas.
+				if ((obs.obselType.label=="changementPositionVideo") && (obs.getAttributeValueByLabel("IdPlayer")==selectedPlayer)){
+					mediaCurrentTime=obs.getAttributeValueByLabel("NouvellePosition");
+					isMediaPlaying=(obs.getAttributeValueByLabel("Lecture")=="true"); // a debugger pour verifier que c'est bien un string				
+					updated=true;
+				} else if((videoObselTypes.indexOf(obs.obselType.label)>=0) && (obs.getAttributeValueByLabel("IdPlayer")==selectedPlayer)){
+					mediaCurrentTime=obs.getAttributeValueByLabel("PositionTemps");
+					if(obs.obselType.label=="lectureVideo"){
+						isMediaPlaying="true"; // a debugger pour verifier que c'est bien un string
+					} else {
+						isMediaPlaying="false";
+					}
+					updated=true;
+				}
+				if(updated){
+					currentIdMedia=obs.getAttributeValueByLabel("IdMedia");	
+					previousObselBegin=obs.begin;
+				}
+				
+				return updated;
+			}
+
+			
+			// On donne une collection deja enrichie et on appelle une methode draw qui prend en param un temps debut et un temps de fin comme
+			// la classe traceline. S'inspirer de updateDisplayList qui utilise Graphics dans TraceLine. Il faut coder les deux fonctions de TraceLine:
+			//getPosFromTime et getTimeFromPosition
+			// Faire une fonction qui prend deux bornes (temps) et qui donne en pixel ce que ca fait. Elle considère la hauteur (temps) et la largeur (durée de l'activité)
+			// 4 param: position temporelle, les deux bornes temporelles et la dimension de la zone (ex 800 si on est en 800 pixel de largeur).
+			
+			
+		]]>
+	</fx:Script>
+</s:Group>

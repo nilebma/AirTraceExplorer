@@ -376,7 +376,7 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<timeline:TraceLine id="theTraceLine" left="120" right="10" top="10" height="10"
+	<timeline:BitmapTraceLine id="theTraceLine" left="120" right="10" top="10" height="10"
 						direction="horizontal" startPadding="10" endPadding="10"
 						RendererType="{RectangleRenderer}" useRendererFunction="true"
 						rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
