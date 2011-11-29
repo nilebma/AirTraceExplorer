@@ -67,7 +67,6 @@ package ui.trace.timeline
 	import com.ithaca.traces.ObselCollection;
 	
 	import flash.display.DisplayObject;
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
@@ -138,6 +137,8 @@ package ui.trace.timeline
 		
 		private var filteredTrace:ObselCollection = new ObselCollection();
 		
+		private var currentTT:ObselPreviewer;
+		
 		
 		//these properties are only useful with GenrericRenderer as itemRendererType
 		public var iconClassForGenericRenderer:Class;
@@ -150,8 +151,9 @@ package ui.trace.timeline
 		{
 			super();
 			this.addEventListener(ResizeEvent.RESIZE,invalidateDisplayListOnEvent);
+			this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+			this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
 			
-
 			this.addEventListener(MouseEvent.CLICK,onMouseClick);	
 
 			
@@ -968,6 +970,69 @@ package ui.trace.timeline
 			tle.obselSet = renderingFunctionGetObselFromPos(new Point(e.localX,e.localY));
 			this.dispatchEvent(tle);
 		}
+		
+		/**
+		 * Mouse over associé aux tooltips 
+		 * @param e
+		 * 
+		 */
+		protected function onMouseOver(e:MouseEvent):void
+		{
+			var obselset:Array = renderingFunctionGetObselFromPos(new Point(e.localX,e.localY));
+			if(obselset && obselset.length>0){
+				if(currentTT){
+					mx.core.FlexGlobals.topLevelApplication.removeElement(currentTT);
+					currentTT = null;
+				}
+				//currentTT = ToolTipManager.createToolTip("Il y a "+ obselset.length +" Obsels", e.stageX+5, e.stageY) as CustomToolTip;
+				var obsPreview:ObselPreviewer = new ObselPreviewer;
+				obsPreview.x = e.stageX;
+				obsPreview.y = e.stageY;
+				obsPreview.data = obselset[0];
+				//TODO récupérer le nombre d'obsels a passer a l'obselpreview
+				//obsPreview.id = obselset.length as String;
+				mx.core.FlexGlobals.topLevelApplication.addElement(obsPreview);
+				currentTT = obsPreview;
+			}
+			
+		}
+		
+		/**
+		 * Mouse out associé aux tooltips 
+		 * @param e
+		 * 
+		 */
+		protected function onMouseOut(e:MouseEvent):void
+		{
+			if(currentTT){
+				mx.core.FlexGlobals.topLevelApplication.removeElement(currentTT);
+				currentTT = null;
+			}
+		}
+		
+		
+		/**
+		 * Fonction de positionnement d'un tooltip 
+		 * @param e
+		 * 
+		 */
+		/*private function positionToolTip(e:ToolTipEvent):void {
+			// on positionne le tooltip :
+			// On utilise localToGlobal pour définir la position du champs (e.target) dans la zone d'affichage de l'appli
+			// car le tooltip est ajouté par le TooltipManager directement sur le stage de l'application.
+			// C'est important dans le cas ou le champs se trouve encapsulé dans un composant par exemple
+			if(convertToGlobal.selected) {
+				e.toolTip.x = ((e.target as UIComponent).parent as UIComponent).contentToGlobal( new Point(e.target.x,e.target.y)).x - e.toolTip.width/2;
+				e.toolTip.y = ((e.target as UIComponent).parent as UIComponent).contentToGlobal( new Point(e.target.x,e.target.y)).y - e.toolTip.height;
+			} else {
+				e.toolTip.x = e.target.x - e.toolTip.width/2;
+				e.toolTip.y = e.target.y - e.toolTip.height;                    
+			}
+			// Note : Quand la fonction de positionnement se trouve réellement dans un autre composant on peut remplacer :
+			// e.toolTip.x = ((e.target as UIComponent).parent as UIComponent).contentToGlobal(...
+			// par :
+			// e.toolTip.x = localToGlobal(...
+		}*/
 		
 	}
 }
