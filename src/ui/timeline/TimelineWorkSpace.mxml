@@ -468,6 +468,32 @@
                             startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
                             top="80" height="10" left="100" right="10" renderAlign="middle"/>-->
 		
+                <timeline:TraceLineBitmap id="contextTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
+                                          traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+                                          startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                          borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
+                                          top="25" height="10" left="120" right="25" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+                
+                <timeline:TraceLineBitmap id="contextSelectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          traceData="{obselSelection}" timeRange="{timeRange}"
+                                          startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                          rendererFunctionParams="{{'color':0xFF0000}}"
+                                          top="25" height="10" left="120" right="25" renderAlign="middle" mouseEnabled="false" mouseChildren="false"/>
+                <timeline:TraceLineBitmap id="subTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+                                          startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+                                          rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+                                          top="50" height="10" left="120" right="25" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+                
+                
+                
+                
+                <timeline:TraceLineBitmap id="selectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          traceData="{obselSelection}" timeRange="{timeRange}"
+                                          rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
+                                          startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+                                          top="50" height="10" left="120" right="25" renderAlign="middle" mouseEnabled="false" mouseChildren="false"/>
 
 		
 		<s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />

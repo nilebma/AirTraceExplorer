@@ -99,7 +99,7 @@ package ui.trace.timeline
 	[Event(name="obselClick" , type="ui.trace.timeline.events.TimelineEvent")]
 	[Event(name="obselOver" , type="ui.trace.timeline.events.TimelineEvent")]
 	
-	public class TraceLine extends Canvas
+	public class TraceLineOld extends Canvas
 	{
 
 		private var _model:TimelineModel;
@@ -146,7 +146,7 @@ package ui.trace.timeline
 		//these properties are here in order handle superposition
 		
 		
-		public function TraceLine()
+		public function TraceLineOld()
 		{
 			super();
 			this.addEventListener(ResizeEvent.RESIZE,invalidateDisplayListOnEvent);
@@ -817,6 +817,43 @@ package ui.trace.timeline
 			
 			return NaN;
 		}
+        
+        public function getTimeFromPos(pos:Number):Number
+        {
+            
+            if(!isNaN(_startTime) && !isNaN(_stopTime))
+            {
+                
+                var length:Number = _stopTime - _startTime;
+                
+                var diff:int = t - _startTime;
+                
+                var size:Number;
+                
+                if(direction == "vertical")
+                    size = this.height;
+                else
+                    size = this.width;
+                
+                size -= (startPadding + endPadding);
+                
+                pos -= startPadding;
+                
+                
+                if(timeRange)
+                    return timeRange.positionToTime(pos,size,_startTime,_stopTime);
+                else
+                {
+                    
+                    //we calculate the pos, we consider "t plus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+                    var t:Number = ((length / size) * pos) + _startTime;
+                    
+                    return t;
+                }
+            }
+            
+            return NaN;
+        }
 		
 		private function deleteAllRenderer():void
 		{

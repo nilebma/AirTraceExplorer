@@ -35,8 +35,7 @@
 	
 	<!--Display the selected traces-->
 	
-	<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true"
+	<timeline:TraceLineBitmap id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
 						traceData="{(theTraceBase.get(theVOTrace.uri) as Trace).obsels}" startTime="{theVOTrace.begin}" stopTime="{theVOTrace.end}"
 						rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}" 
 						top="35" height="10" left="10" right="10" renderAlign="middle" obselClick="subTraceLine_obselClickHandler(event)"/>
@@ -48,8 +47,7 @@
 								startAndEndDelta="1" 
 								locked="false"/>
 	
-	<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true" 
+	<timeline:TraceLineBitmap id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
 						traceData="{(theTraceBase.get(theVOTrace.uri) as Trace).obsels}"
 						startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
 						rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"

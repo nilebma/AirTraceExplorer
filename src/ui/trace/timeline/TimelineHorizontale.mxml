@@ -376,7 +376,7 @@
 			
 			public function createTraceLineWithGenericRenderer(usr:ObjectProxy, traceType:ObjectProxy):void
 			{
-				var newTraceLine:TraceLine = new TraceLine();
+				var newTraceLine:TraceLineOld = new TraceLineOld();
 				newTraceLine.RendererType = GenericRenderer;	
 				
 				if(usr.id == model.currentUserId)
@@ -482,7 +482,7 @@
 					}
 					
 					//moving effect	
-					TweenMax.to((line["traceLine"] as TraceLine), 1,{y:toY});
+					TweenMax.to((line["traceLine"] as TraceLineOld), 1,{y:toY});
 					
 				}
 					
@@ -624,7 +624,7 @@
 			{
 				while(dynamicTraceLines.length > 0)
 				{
-					var tl:TraceLine = dynamicTraceLines[0]["traceLine"] as TraceLine;
+					var tl:TraceLineOld = dynamicTraceLines[0]["traceLine"] as TraceLineOld;
 					tl.parent.removeChild(tl);
 					dynamicTraceLines.removeItemAt(0);
 				}

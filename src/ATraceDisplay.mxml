@@ -12,28 +12,29 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.ithaca.traces.Base;
-			import com.ithaca.traces.Ktbs;
-			import com.ithaca.traces.Model;
-			import com.ithaca.traces.Obsel;
-			import com.ithaca.traces.ObselCollection;
-			import com.ithaca.traces.Resource;
-			import com.ithaca.traces.Trace;
-			
-			import mx.binding.utils.BindingUtils;
-			import mx.events.FlexEvent;
-			import mx.events.ListEvent;
-			import mx.rpc.events.ResultEvent;
-			
-			import services.TtlLoader;
-			
-			import spark.components.Label;
-			
-			import traceSelector.dummyTraceSelector;
-			
-			import ui.trace.ObselEditor;
-			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
-			import ui.trace.timeline.events.TimelineEvent;
+            import com.ithaca.traces.Base;
+            import com.ithaca.traces.Ktbs;
+            import com.ithaca.traces.Model;
+            import com.ithaca.traces.Obsel;
+            import com.ithaca.traces.ObselCollection;
+            import com.ithaca.traces.Resource;
+            import com.ithaca.traces.Trace;
+            
+            import mx.binding.utils.BindingUtils;
+            import mx.events.FlexEvent;
+            import mx.events.ListEvent;
+            import mx.rpc.events.ResultEvent;
+            
+            import services.TtlLoader;
+            
+            import spark.components.Label;
+            
+            import traceSelector.dummyTraceSelector;
+            
+            import ui.trace.ObselEditor;
+            import ui.trace.timeline.TraceLineBitmap;
+            import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+            import ui.trace.timeline.events.TimelineEvent;
 			
 			
 			[Bindable]
@@ -141,7 +142,7 @@
 			protected function loadBtn_clickHandler(event:MouseEvent):void
 			{
 			
-				theTtlLoader.loadTTL(urlInput.textInput.text,theBase);
+				theTtlLoader.loadTTL(urlInput.textInput.text,theBase,theModel);
 				
 				
 			}
@@ -149,12 +150,11 @@
 			protected function selectorValidationHandler(event:ResultEvent):void
 			{
 				//CREATION DE LA TRACELINE
-				var newTraceLine:TraceLine = new TraceLine();
+				var newTraceLine:TraceLineBitmap = new TraceLineBitmap();
 				newTraceLine.direction = "horizontal";
 				newTraceLine.startPadding = 10;
 				newTraceLine.endPadding = 10;
 				//newTraceLine.RendererType = RectangleRenderer;
-				newTraceLine.useRendererFunction = true;
 				newTraceLine.rendererFunctionParams={'color':theColorPicker.selectedColor,'minSize':3,'alpha':0.8};
 				newTraceLine.top = topPositionForNewTraceline;
 				
@@ -204,14 +204,14 @@
 		</s:layout>
 			
 	
-		<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
+		<timeline:TraceLineBitmap id="contextTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							
 							rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
 							borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
 							top="25" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
 		
-		<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
+		<timeline:TraceLineBitmap id="contextSelectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							
 							rendererFunctionParams="{{'color':0xFF0000}}"
 							top="25" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
@@ -221,22 +221,22 @@
 									startAndEndDelta="1"
 									locked="false"/>
 		
-		<timeline:TraceLine id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
+		<timeline:TraceLineBitmap id="subTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
 							rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
 							top="50" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
 		
 		<!--Display the selected obsels in the traces (stored in obselSelection Array)-->
 		
-		<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
+		<timeline:TraceLineBitmap id="selectionTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							
 							rendererFunctionParams="{{'color':0xFF0000, 'minSize':3}}"
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
 							top="50" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
 		
-		<timeline:TraceLine id="selectorTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
+		<timeline:TraceLineBitmap id="selectorTraceLine"  direction="horizontal" startPadding="10" endPadding="10"
+							
 							rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
 							traceFilter="{selectorEditor2.theSelector}"
 							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
