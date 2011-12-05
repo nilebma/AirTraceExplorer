@@ -4,6 +4,7 @@
 
 	<mx:Metadata>
 		[Event(name="zoomChange", type="flash.events.Event")]
+        [Event(name="zoomMove", type="flash.events.Event")]
 		[Event(name=CurseurBase.ZOOM_MOVE_EVENT, type="flash.events.Event")]
 		[Event(name=CurseurBase.ZOOM_FROM_PROG_COMPLETE_EVENT, type="flash.events.Event")]
 	</mx:Metadata>
@@ -73,7 +74,7 @@
 			
 			private var _timeRange:TimeRange = null;
 			
-			public var tweening:Boolean = false; // in order to set animation/twwening effect on cursor movements (-- performance) 
+			public var tweening:Boolean = true; // in order to set animation/twwening effect on cursor movements (-- performance) 
 			
 			/* *******************************************************************
 			**********	GRAPHICAL PARTS (to be implemented in subclasses **********
