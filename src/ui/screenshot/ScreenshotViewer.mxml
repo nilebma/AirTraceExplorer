@@ -37,6 +37,7 @@
 					_traceUris.addEventListener(CollectionEvent.COLLECTION_CHANGE, onTraceUrisChange);
 					onTraceUrisChange();
 				}
+
 				theImage.source = null;
 			}
 			
@@ -138,7 +139,7 @@
 	</fx:Declarations>
 	<s:Label includeIn="loadingList" x="179" y="134" text="Loading List"/>
 	<s:Label id="lbl_loading_image" includeIn="showing" x="179" y="134" text="Loading Image" visible="false"/>
-	<s:Image id="theImage" includeIn="showing" x="0" y="0" width="100%" height="100%"/>
+	<s:Image id="theImage" visible.showing="true" visible.loadingList="false" visible.State1="false" x="0" y="0" width="100%" height="100%"/>
 	<s:List id="list" includeIn="State1" x="194" y="90"
 			creationComplete="list_creationCompleteHandler(event)" labelField="filename">
 		<s:AsyncListView list="{getScreenshotByTraceUrisResult.lastResult}"/>
