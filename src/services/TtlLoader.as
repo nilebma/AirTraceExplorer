@@ -45,7 +45,7 @@ package services
 			super();
 		}
 		
-		public function loadTTL(url:String, pBase:Base, forceReload:Boolean = false):void
+		public function loadTTL(url:String, pBase:Base,  pModel:Model, forceReload:Boolean = false):void
 		{
 			arTtl.push(url);
 			
@@ -56,7 +56,7 @@ package services
 				loader.addEventListener(Event.COMPLETE, onCallComplete);
 				loader.load(new URLRequest(url));
 				this.loading = true;
-				mapLoaderToUrlAndBase[loader] = {"url":url,"base":pBase};
+				mapLoaderToUrlAndBase[loader] = {"url":url,"base":pBase,"model":pModel};
 				nbLoading++;
 				loadingTtl.addItem(url);
 			}
@@ -75,6 +75,7 @@ package services
 			
 			var urlTtl:String = null;
 			var theBase:Base= null;
+            var theModel:Model= null;
 			
 			for each(var t:String in arTtl)
 			{
@@ -82,11 +83,12 @@ package services
 				{
 					urlTtl = mapLoaderToUrlAndBase[loader]["url"];
 					theBase = mapLoaderToUrlAndBase[loader]["base"];
+                    theModel = mapLoaderToUrlAndBase[loader]["model"];
 					break;		
 				}
 			}
 			
-			loadedTraces =  RDFconverter.updateTraceBaseFromTurtle(trace_ttl, theBase);				
+			loadedTraces =  RDFconverter.updateTraceBaseFromTurtle(trace_ttl, theBase, theModel);				
 
 			var re:ResultEvent = new ResultEvent(ResultEvent.RESULT,false,true,{"loadedTraces":loadedTraces,"theTtl":urlTtl});
 			mapUrlToLoadedTraces[urlTtl] = loadedTraces;

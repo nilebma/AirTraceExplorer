@@ -64,6 +64,9 @@
 			[Bindable]
 			public var theTraceBase:Base = null;
 			
+            
+            [Bindable]
+            public var theModel:Model = null;
 			[Bindable]
 			public var obselCollectionToDisplay:ObselCollection = new ObselCollection();
             
@@ -268,7 +271,7 @@
 				protected function loadTTL(ttl:Ttl):void
 				{
 					if(theTraceBase && theTtlLoader)
-						theTtlLoader.loadTTL(ttl.url,theTraceBase);
+						theTtlLoader.loadTTL(ttl.url,theTraceBase, theModel);
 				}
 				
 				protected function onTtlLoaded(e:ResultEvent):void
