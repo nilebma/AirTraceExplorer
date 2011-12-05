@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:DataRenderer  xmlns:fx="http://ns.adobe.com/mxml/2009"
+           xmlns:s="library://ns.adobe.com/flex/spark"
+           xmlns:mx="library://ns.adobe.com/flex/mx"
+           xmlns:timeline="ui.trace.timeline.*"
+           width="100%" height="40">
+    
+    <s:layout>
+        <s:BasicLayout/>
+    </s:layout>
+    
+    <fx:Script>
+        <![CDATA[
+            import com.ithaca.traces.Obsel;
+            import com.ithaca.traces.ObselCollection;
+            
+            import mx.containers.Canvas;
+            import mx.core.UIComponent;
+            import mx.events.CollectionEvent;
+            
+            import spark.components.Group;
+            
+            import ui.trace.timeline.TimelineModel;
+            import ui.trace.timeline.TraceLineBase;
+            import ui.trace.timeline.TraceLineBitmap;
+            import ui.trace.timeline.TraceLineWithRenderers;
+            
+            [Bindable]
+            public var title:String;
+            
+            
+            [Bindable]
+            public var theTraceLine:TraceLineBase;
+            
+            
+            ///////////////////////////////////////////////////////
+            /* 	DIRTY EXPOSITION OF THE INNER TRACELINE OBJECT 	*/
+            /////////////////////////////////////////////////////
+            
+            public function get timeRange():TimeRange
+            {
+                return theTraceLine.timeRange;
+            }
+            
+            public function set timeRange(value:TimeRange):void
+            {
+                theTraceLine.timeRange = value;
+            }
+            
+
+
+            
+            public function get sizedByEnd():Boolean
+            {
+                return theTraceLine.sizedByEnd;
+            }
+            
+            public function set sizedByEnd(value:Boolean):void
+            {
+                theTraceLine.sizedByEnd = value;
+            }
+            
+
+            
+
+          
+            
+            public function get rendererFunctionParams():Object
+            {
+                if(theTraceLine is TraceLineBitmap)
+                 return (theTraceLine as TraceLineBitmap).rendererFunctionParams;
+                else
+                    return null;
+            }
+            
+            public function set rendererFunctionParams(value:Object):void
+            {
+                if(theTraceLine is TraceLineBitmap)
+                    (theTraceLine as TraceLineBitmap).rendererFunctionParams = value;
+            }
+            
+
+            public function get endPadding():Number
+            {
+                return theTraceLine.endPadding;
+            }
+            
+            public function set endPadding(value:Number):void
+            {
+                theTraceLine.endPadding = value;
+            }
+            
+            public function get startPadding():Number
+            {
+                return theTraceLine.startPadding;
+            }
+            
+            public function set startPadding(value:Number):void
+            {
+                theTraceLine.startPadding = value;
+            }
+            
+            public function get deltaPos():Number
+            {
+                return theTraceLine.deltaPos;
+            }
+            
+            public function set deltaPos(value:Number):void
+            {
+                theTraceLine.deltaPos = value;
+            }
+            
+            public function get renderAlign():String
+            {
+                return theTraceLine.renderAlign;
+            }
+            
+            public function set renderAlign(value:String):void
+            {
+                theTraceLine.renderAlign = value;
+            }
+            
+            public function get RendererType():Class
+            {
+                if(theTraceLine is TraceLineWithRenderers)
+                    return (theTraceLine as TraceLineWithRenderers).RendererType;
+                else
+                    return null;
+            }
+            
+            public function set RendererType(value:Class):void
+            {
+                if(theTraceLine is TraceLineWithRenderers)
+                    (theTraceLine as TraceLineWithRenderers).RendererType = value;
+            }
+            
+            public function get startEndMatchingProperty():String
+            {
+                return theTraceLine.startEndMatchingProperty;
+            }
+            
+            public function set startEndMatchingProperty(value:String):void
+            {
+                theTraceLine.startEndMatchingProperty = value;
+            }
+            
+            public function get endTraceFilter():Object
+            {
+                return theTraceLine.endTraceFilter;
+            }
+            
+            public function set endTraceFilter(value:Object):void
+            {
+                theTraceLine.endTraceFilter = value;
+            }
+            
+            public function get traceFilter():Object
+            {
+                return theTraceLine.traceFilter;
+            }
+            
+            public function set traceFilter(value:Object):void
+            {
+                theTraceLine.traceFilter = value;
+            }
+            
+            public function invalidateDisplayListOnEvent(e:Event):void
+            {
+                theTraceLine.invalidateDisplayListOnEvent(e);
+            }
+            
+            public function get direction():String
+            {
+                return theTraceLine.direction;
+            }
+            
+            public function set direction(value:String):void
+            {
+                theTraceLine.direction = value;
+            }
+            
+            public function get stopTime():Number
+            {
+                return theTraceLine.stopTime;
+            }
+            
+            public function set stopTime(value:Number):void
+            {
+                theTraceLine.stopTime = value;
+            }
+            
+            public function get startTime():Number
+            {
+                return theTraceLine.startTime;
+            }
+            
+            public function set startTime(value:Number):void
+            {
+                theTraceLine.startTime = value;
+            }
+            
+            public function timeChanged(n:Number):void
+            {
+                theTraceLine.timeChanged(n);
+            }
+            
+            public function get model():TimelineModel
+            {
+                return theTraceLine.model;
+            }
+            
+            public function set model(value:TimelineModel):void
+            {
+                theTraceLine.model = value;			
+            }
+            
+            public function get traceData():ObselCollection
+            {
+                return theTraceLine.traceData;
+            }
+            
+            public function set traceData(value:ObselCollection):void
+            {
+                theTraceLine.traceData = value;
+            }
+            
+            public function onTraceDataCollectionChange(e:CollectionEvent):void
+            {
+                theTraceLine.onTraceDataCollectionChange(e);
+            }
+            
+            public function reset(e:Event = null):void
+            {
+                theTraceLine.reset(e);
+            }
+            
+
+            
+            public function getEndTrace(oTrace:Object):Obsel
+            {
+                return theTraceLine.getEndTrace(oTrace);
+                
+            }
+            
+
+            
+
+            
+            public function getPosFromTime(t:Number):Number
+            {
+                return theTraceLine.getPosFromTime(t);
+            }
+            
+
+            
+
+            
+            
+            protected function deleteButton_clickHandler(event:MouseEvent):void
+            {
+                if(this.parent.contains(this))
+                    (this.parent as Group).removeElement(this);
+            }
+            
+            
+
+            
+        ]]>
+    </fx:Script>
+    
+
+</s:DataRenderer>

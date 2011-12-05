@@ -335,10 +335,11 @@
 			protected function addTracelineButton_clickHandler(event:MouseEvent):void
 			{
 				//CREATION DE LA TRACELINE
-				var newTraceLine:TracelineWrapper = new TracelineWrapper();
-				newTraceLine.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
+				//var newTraceLine:TracelineWrapper = new TracelineWrapper();
+                tracelineSelectors.addItem({"selector":new dummyTraceSelector()})
+				//newTraceLine.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
 
-				theTraceLineList.addElement(newTraceLine);
+				//theTraceLineList.addChild(newTraceLine);
 			}
 			
 			protected function initTracelineWrapper(e:Event)
@@ -494,6 +495,8 @@
                                           rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
                                           startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
                                           top="50" height="10" left="120" right="25" renderAlign="middle" mouseEnabled="false" mouseChildren="false"/>
+            <s:List id="theTraceLineList" itemRenderer="ui.timeline.TracelineWrapper" rendererAdd="theTraceLineList_rendererAddHandler(event)" 
+                    dataProvider="{tracelineSelectors}" right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 5}" verticalScrollPolicy="on" />
 
 		
 		<s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
