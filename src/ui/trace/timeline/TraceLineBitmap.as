@@ -111,6 +111,7 @@ package ui.trace.timeline
 		private var bitmapImageWrapper:Group;
 		public var rendererFunctionParams:Object = null;
 		public var rendererFunctionData:Object = null;
+		private var currentTT:ObselPreviewer;
 
 		
 
@@ -124,6 +125,11 @@ package ui.trace.timeline
             
             this.addEventListener(MouseEvent.CLICK,onMouseClick);	
             
+			// for obselpreviewer
+			this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+			this.addEventListener(MouseEvent.MOUSE_MOVE,onMouseOver);
+			this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
+			
 			bitmapImage = new BitmapImage();
 			bitmapImage.x=0;
 			bitmapImage.y = 0;
@@ -429,6 +435,46 @@ package ui.trace.timeline
 			var tle:TimelineEvent = new TimelineEvent(TimelineEvent.OBSEL_CLICK);
 			tle.obselSet = renderingFunctionGetObselFromPos(new Point(e.localX,e.localY));
 			this.dispatchEvent(tle);
+		}
+		
+		/**
+		 * Mouse over associé aux tooltips 
+		 * @param e
+		 * 
+		 */
+		protected function onMouseOver(e:MouseEvent):void
+		{
+			var obselset:Array = renderingFunctionGetObselFromPos(new Point(e.localX,e.localY));
+			if(obselset && obselset.length>0){
+				if(currentTT){
+					mx.core.FlexGlobals.topLevelApplication.removeElement(currentTT);
+					currentTT = null;
+				}
+				//currentTT = ToolTipManager.createToolTip("Il y a "+ obselset.length +" Obsels", e.stageX+5, e.stageY) as CustomToolTip;
+				var obsPreview:ObselPreviewer = new ObselPreviewer;
+				if(mx.core.FlexGlobals.topLevelApplication.width/2 < e.stageX)
+					obsPreview.x = e.stageX-270;
+				else obsPreview.x = e.stageX;
+				obsPreview.y = e.stageY;
+				obsPreview.data = obselset;
+				
+				mx.core.FlexGlobals.topLevelApplication.addElement(obsPreview);
+				currentTT = obsPreview;
+			}
+			
+		}
+		
+		/**
+		 * Mouse out associé aux tooltips 
+		 * @param e
+		 * 
+		 */
+		protected function onMouseOut(e:MouseEvent):void
+		{
+			if(currentTT){
+				mx.core.FlexGlobals.topLevelApplication.removeElement(currentTT);
+				currentTT = null;
+			}
 		}
 		
 	}
