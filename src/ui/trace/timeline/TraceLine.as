@@ -988,7 +988,8 @@ package ui.trace.timeline
 				var obsPreview:ObselPreviewer = new ObselPreviewer;
 				obsPreview.x = e.stageX;
 				obsPreview.y = e.stageY;
-				obsPreview.data = obselset[0];
+				obsPreview.data = obselset;
+				//obsPreview.data = obselset[0];
 				//TODO récupérer le nombre d'obsels a passer a l'obselpreview
 				//obsPreview.id = obselset.length as String;
 				mx.core.FlexGlobals.topLevelApplication.addElement(obsPreview);
