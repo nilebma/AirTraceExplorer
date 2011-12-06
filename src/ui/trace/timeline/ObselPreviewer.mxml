@@ -11,6 +11,7 @@
 			import mx.containers.Form;
 			import mx.containers.FormItem;
 			import mx.controls.HRule;
+			import mx.controls.Text;
 			import mx.controls.TextInput;
 			import mx.events.FlexEvent;
 			
@@ -18,19 +19,17 @@
 
 			protected function onCreationCompleteHandler(event:FlexEvent):void
 			{
-				addField((data as Obsel).obselType,"label","type");
-				addField(data,"begin");
-				addField(data,"end");
-				addField(data,"subject");
+				var obs:Obsel = data[0] as Obsel;
+				headLabel.text = obs.obselType.label;
 				
-				obsForm.addChild(new HRule());
+				vBox.addChild(new HRule());
 				
-				for each(var yo:Attribute in (data as Obsel).attributes)
+				for each(var yo:Attribute in obs.attributes)
 					addField(yo,"value",yo.attributeType.label);
 					
-				obsForm.addChild(new HRule());
+				vBox.addChild(new HRule());
 				
-				for each(var r:Relation in (data as Obsel).outcomingRelations)
+				for each(var r:Relation in obs.outcomingRelations)
 					addField(r.targetObsel,"uri",r.relationType.label, false);
 
 				
@@ -42,16 +41,12 @@
 			{
 				if(!title)
 					title = chain;
-
-				var frmItem:FormItem = new FormItem();
-				frmItem.direction = "horizontal";
-				frmItem.label = title;
+				var htText:String = "<b>"+title+" : </b>"+host[chain];
 				
-				var tb:Label = new Label();
-				tb.text = host[chain];
-				tb.id = chain;
-				frmItem.addChild(tb);
-				obsForm.addChild(frmItem);
+				var textBox:Text =  new Text();
+				textBox.htmlText = htText;
+				//TODO : limiter la textbox a deux lignes de hauteur et environ 300px de largeur
+				vBox.addChild(textBox);
 			}
 			
 			protected function onTextInputChange(e:Event)
@@ -61,9 +56,7 @@
 
 		]]>
 	</mx:Script>
-	<mx:VBox width="50%">
-	<mx:Form id="obsForm"  backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid">
-		<mx:FormHeading label="{(data as Obsel).uri}" />
-	</mx:Form>
+	<mx:VBox width="100%" id="vBox" backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" maxWidth="270" horizontalScrollPolicy="off">
+		<mx:Label id="headLabel" />
 	</mx:VBox>
 </mx:HBox>
