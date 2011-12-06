@@ -62,10 +62,11 @@
  */
 package ui.trace.timeline.TraceLineRenderers
 {
-	import ui.trace.timeline.TimelineModel;
-	import ui.trace.timeline.TraceLine;
-	
 	import com.ithaca.traces.Obsel;
+	
+	import ui.trace.timeline.TimelineModel;
+	import ui.trace.timeline.TraceLineBase;
+	import ui.trace.timeline.TraceLineWithRenderers;
 
 	
 	public interface ITraceRenderer
@@ -82,9 +83,9 @@ package ui.trace.timeline.TraceLineRenderers
 			
 		function get model():TimelineModel;
 		
-		function set parentLine(parent:TraceLine):void;
+		function set parentLine(parent:TraceLineWithRenderers):void;
 		
-		function get parentLine():TraceLine;
+		function get parentLine():TraceLineWithRenderers;
 		
 		function get selfSized():Boolean;
 		

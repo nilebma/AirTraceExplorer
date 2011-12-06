@@ -33,7 +33,6 @@
             import traceSelector.dummyTraceSelector;
             
             import ui.trace.ObselEditor;
-            import ui.trace.timeline.TraceLine;
             import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
             import ui.trace.timeline.events.TimelineEvent;
             
@@ -46,6 +45,8 @@
             
             [Bindable]
             public var theModel:Model;
+            
+
             
             [Bindable]
             protected var obselSelection:ObselCollection = new ObselCollection();
@@ -60,6 +61,7 @@
             {
                 theKtbs = new Ktbs("uriKtbs", Resource.RESOURCE_URI_ATTRIBUTION_POLICY_CLIENT_IS_KING);
                 theBase = this.theKtbs.createBase();
+                theModel = theBase.createModel();
                 
                 theTtlLoader.addEventListener(ResultEvent.RESULT, onTtlLoaded);
                 
@@ -137,7 +139,7 @@
             protected function loadBtn_clickHandler(event:MouseEvent):void
             {
                 
-                theTtlLoader.loadTTL(urlInput.textInput.text,theBase);
+                theTtlLoader.loadTTL(urlInput.textInput.text,theBase,theModel);
                 
                 
             }

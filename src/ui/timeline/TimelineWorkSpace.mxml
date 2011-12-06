@@ -11,10 +11,11 @@
          xmlns:ttlservice="services.ttlservice.*"
          xmlns:timeline2="ui.timeline.*"
          xmlns:trace="ui.trace.*"
-         width="100%" height="100%" creationComplete="group_creationCompleteHandler(event)">
+         width="100%" height="100%" creationComplete="group_creationCompleteHandler(event)" xmlns:screenshot="ui.screenshot.*">
 	<fx:Script>
 		<![CDATA[
             import com.ithaca.traces.Base;
+            import com.ithaca.traces.Model;
             import com.ithaca.traces.Obsel;
             import com.ithaca.traces.ObselCollection;
             import com.ithaca.traces.Trace;
@@ -32,9 +33,12 @@
             import services.TtlLoader;
             
             import spark.components.supportClasses.ItemRenderer;
+            import spark.events.RendererExistenceEvent;
+            
+            import traceSelector.dummyTraceSelector;
             
             import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
-            import ui.trace.timeline.TraceLine;
+            import ui.trace.timeline.PlayLineRenders.PlayHeadForHorizontalPlayLine;
             import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
             import ui.trace.timeline.TraceLineRenderers.TimeBar;
             import ui.trace.timeline.events.TimelineEvent;
@@ -63,7 +67,13 @@
 			
 			[Bindable]
 			public var theTraceBase:Base = null;
-			
+            
+            [Bindable]
+            public var theModel:Model = null;
+            
+            [Bindable]
+			public var tracelineSelectors:ArrayCollection = new ArrayCollection();
+            
 			[Bindable]
 			public var obselCollectionToDisplay:ObselCollection = new ObselCollection();
             
@@ -243,14 +253,20 @@
 					else
 					{
 						initTimeRange();
+                        
+                        var arTraceUris:ArrayCollection = new ArrayCollection();
 						
 						for each(var aTrace:com.ithaca.traces.Trace in loadedTraces)
 						{
 							for each(var o:Obsel in aTrace.obsels._obsels)
 								obselCollectionToDisplay.push(o);
+                              
+                            arTraceUris.addItem(aTrace.uri);
+                            
 						}
 						
 						subTraceLine.traceData = obselCollectionToDisplay;
+                        //commentLine.traceData = obselCollectionToDisplay;
 						contextTraceLine.traceData = obselCollectionToDisplay;
 						contextSelectionTraceLine.startTime = timeRange.begin;
 						contextSelectionTraceLine.stopTime = timeRange.end;
@@ -261,6 +277,8 @@
 						curseurTraceLine.currentTime = timeRange.begin;
 						playLine.startTime = timeRange.begin;
 						playLine.stopTime = timeRange.end;
+                        
+                        theScreenshotViewer.traceUris = arTraceUris;
 						
 					}
 				}
@@ -268,7 +286,7 @@
 				protected function loadTTL(ttl:Ttl):void
 				{
 					if(theTraceBase && theTtlLoader)
-						theTtlLoader.loadTTL(ttl.url,theTraceBase);
+						theTtlLoader.loadTTL(ttl.url,theTraceBase, theModel);
 				}
 				
 				protected function onTtlLoaded(e:ResultEvent):void
@@ -335,10 +353,11 @@
 			protected function addTracelineButton_clickHandler(event:MouseEvent):void
 			{
 				//CREATION DE LA TRACELINE
-				var newTraceLine:TracelineWrapper = new TracelineWrapper();
-				newTraceLine.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
+				//var newTraceLine:TracelineWrapper = new TracelineWrapper();
+                tracelineSelectors.addItem({"selector":new dummyTraceSelector()})
+				//newTraceLine.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
 
-				theTraceLineList.addElement(newTraceLine);
+				//theTraceLineList.addChild(newTraceLine);
 			}
 			
 			protected function initTracelineWrapper(e:Event)
@@ -364,8 +383,8 @@
                     obselSelection.push(obs);
                 
                 //on affiche les obsels selectionnées dans les traceline
-                selectionTraceLine.traceData = obselSelection;
-                contextSelectionTraceLine.traceData = obselSelection;
+                //selectionTraceLine.traceData = obselSelection;
+                //contextSelectionTraceLine.traceData = obselSelection;
 			}
 			
 			protected function playLine_currentTimeChangeHandler(event:TimeEvent):void
@@ -379,7 +398,13 @@
 				timeRange.makeTimeHole(timeAndPlayManager.currentTime,timeAndPlayManager.currentTime+100000);
 			}
 			
-		]]>
+            protected function theTraceLineList_rendererAddHandler(event:RendererExistenceEvent):void
+            {
+                event.renderer.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
+                
+            }
+            
+        ]]>
 	</fx:Script>
 	
 	<fx:Declarations>
@@ -410,76 +435,98 @@
 							   showBusyCursor="true"/>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	
-	<s:Group left="10" right="10" top="250" height="80" id="timelineGroup" clipAndEnableScrolling="true"  >
-		<s:layout>
-			<s:BasicLayout/>
-		</s:layout>
-		
-		
-		<timeline:TraceLine id="contextTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
-							rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
-							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
-							startTime="{timeRange.begin}" stopTime="{timeRange.end}"
-							borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
-							top="25" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
-		
-		<timeline:TraceLine id="contextSelectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
-							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
-							startTime="{timeRange.begin}" stopTime="{timeRange.end}"
-							rendererFunctionParams="{{'color':0xFF0000}}"
-							top="25" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
-		
-		<timeline:PlayLine id="playLine" RendererType="{ControlHeadForHorizontal}" direction="horizontal"
-						   renderAlign="middle" timeRange="{timeRange}" currentTimeChange="playLine_currentTimeChangeHandler(event)"
-						   currentTime="{timeAndPlayManager.currentTime}"
-						   startTime="{timeRange.begin}" stopTime="{timeRange.end}"
-						   top="30" height="60" left="100" right="10" />
-		
-		<timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" 
-									startEdge="100" endEdge="{contextTraceLine.width+90}"  
-									timeRange="{timeRange}"
-									minimumSize="70" lockSize="200" lockPosition="100" 
-									startTime="{timeRange.begin}" stopTime="{timeRange.end}"
-									startAndEndDelta="0" locked="false" tweening="true"/>
-		
-		<timeline:BitmapTraceLine id="subTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
-							traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
-							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-							rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
-							top="50" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
-		
-			
+	<mx:VDividedBox left="0" right="0" top="0" bottom="0">
+        <mx:Canvas width="100%" height="100%">
+            
+            
 
-		
-		<timeline:TraceLine id="selectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
-							RendererType="{RectangleRenderer}" useRendererFunction="true"
-							traceData="{obselSelection}" timeRange="{timeRange}"
-							rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
-							startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-							top="50" height="10" left="100" right="10" renderAlign="middle" mouseEnabled="false"/>
-        
-        <!--<timeline:TraceLine id="commentLine"  direction="horizontal" startPadding="0" endPadding="0"
-                            RendererType="{TimeBar}" useRendererFunction="false"
-                            traceData="{obselSelection}" timeRange="{timeRange}"
-                            startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-                            top="80" height="10" left="100" right="10" renderAlign="middle"/>-->
-		
+            <timeline2:PlayPauseButton right="426" top="50"
+                                       timeAndPlayManager="{timeAndPlayManager}">
+            </timeline2:PlayPauseButton>
+            <timeline2:ObselStack id="obselEditorZone" right="10" top="10" bottom="0" width="408"
+                                  obselSelection="{obselSelection}"/>
+            <mx:ToggleButtonBar x="369" y="21" dataProvider="{mediaVS}" >
+            </mx:ToggleButtonBar>
+            <mx:ViewStack id="mediaVS" left="10" right="552" top="0"
+                          bottom="0">
+                <s:NavigatorContent id="screeShotStack"  label="screenhot">
+                    <screenshot:ScreenshotViewer id="theScreenshotViewer" width="100%" height="100%" currentTime="{timeAndPlayManager.currentTime}"/>
+                </s:NavigatorContent>
+                <s:NavigatorContent id="screenCastStack"  label="screenCast">
+                    <s:VideoDisplay id="theVideoDisplay"  width="100%" height="100%" />
+                </s:NavigatorContent>
+            </mx:ViewStack>
+        </mx:Canvas>
+        <mx:Canvas width="100%" height="100%">
+            <s:Group left="10" right="10" top="0" height="85" id="timelineGroup" clipAndEnableScrolling="true"  >
+                <s:layout>
+                    <s:BasicLayout/>
+                </s:layout>
+                
+                
+                <timeline:TraceLineBitmap id="contextTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          rendererFunctionParams="{{'color':0x000000,'alpha':0.2}}"
+                                          traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+                                          startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                          borderColor="0xFF0000" borderVisible="true" borderStyle="solid"
+                                          top="25" height="10" left="120" right="25" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+                
+                <timeline:TraceLineBitmap id="contextSelectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          traceData="{obselSelection}" timeRange="{timeRange}"
+                                          startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                          rendererFunctionParams="{{'color':0xFF0000}}"
+                                          top="25" height="10" left="120" right="25" renderAlign="middle" mouseEnabled="false" mouseChildren="false"/>
+                
+                <timeline:PlayLine id="playLine" RendererType="{PlayHeadForHorizontalPlayLine}" direction="horizontal"
+                                   renderAlign="middle" timeRange="{timeRange}" 
+                                   currentTime="{timeAndPlayManager.currentTime}"
+                                   startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                   top="20" height="20" left="120" right="25" />
+                
+                <timeline:PlayLine id="playLineZoom" RendererType="{ControlHeadForHorizontal}" direction="horizontal"
+                                   renderAlign="middle" timeRange="{timeRange}" currentTimeChange="playLine_currentTimeChangeHandler(event)"
+                                   currentTime="{timeAndPlayManager.currentTime}"
+                                   startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+                                   top="45" height="45" left="120" right="25" />
+                
+                <timeline:CurseurHorizontal id="curseurTraceLine" top="0" height="49" x="100" 
+                                            startEdge="120" endEdge="{contextTraceLine.width+90}"  
+                                            timeRange="{timeRange}"
+                                            minimumSize="70" lockSize="200" lockPosition="100" 
+                                            startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                            startAndEndDelta="0" locked="false" tweening="true"/>
+                
+                <timeline:TraceLineBitmap id="subTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+                                          startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+                                          rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+                                          top="50" height="10" left="120" right="25" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+                
+                
+                
+                
+                <timeline:TraceLineBitmap id="selectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+                                          traceData="{obselSelection}" timeRange="{timeRange}"
+                                          rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
+                                          startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+                                          top="50" height="10" left="120" right="25" renderAlign="middle" mouseEnabled="false" mouseChildren="false"/>
+                
+                <!--<timeline:TraceLineWithRenderers id="commentLine"  direction="horizontal" startPadding="0" endPadding="0"
+                RendererType="{TimeBar}" 
+                traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
+                startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+                top="80" height="20" left="100" right="10" renderAlign="middle"/>-->
+                
+                
+                
+                <s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
+                <s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
+            </s:Group>
+            <s:List id="theTraceLineList" itemRenderer="ui.timeline.TracelineWrapper" rendererAdd="theTraceLineList_rendererAddHandler(event)" 
+                    dataProvider="{tracelineSelectors}" right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 5}" verticalScrollPolicy="on" />
+            <s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
+            
+        </mx:Canvas>
+    </mx:VDividedBox>
 
-		
-		<s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
-		<s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
-	</s:Group>
-	<mx:VBox id="theTraceLineList"  right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 10}" verticalScrollPolicy="on" />
-	<s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
-	<s:VideoDisplay id="theVideoDisplay" x="10" y="10" height="182"/>
-	<timeline2:PlayPauseButton x="269" y="200" timeAndPlayManager="{timeAndPlayManager}" >
-	</timeline2:PlayPauseButton>
-	<s:Button x="10" y="199" label="Create One minute timehole at current time"
-			  click="createArbitraryTimeHole(event)"/>
-    <timeline2:ObselStack id="obselEditorZone" right="10" top="10" width="408" height="182"
-                          obselSelection="{obselSelection}"/>	
 </s:Group>

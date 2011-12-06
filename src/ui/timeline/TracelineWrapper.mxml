@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:fx="http://ns.adobe.com/mxml/2009"
+<timeline1:TraceLineWrapperBase xmlns:fx="http://ns.adobe.com/mxml/2009"
 		   xmlns:s="library://ns.adobe.com/flex/spark"
 		   xmlns:mx="library://ns.adobe.com/flex/mx"
 		   xmlns:timeline="ui.trace.timeline.*"
 		   xmlns:traceSelector="traceSelector.*"
-		   width="100%" height="40" backgroundColor="#E0E0E0" borderAlpha="1.0"
-		   borderColor="#696969" cornerRadius="10" currentState="normal"
-		   height.edition="314" height.normal="40" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+           clipAndEnableScrolling="true"
+		   width="100%" height="40" 
+		   currentState="small"
+		   height.edition="314" height.small="40" xmlns:timeline1="ui.timeline.*">
 	<fx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Obsel;
@@ -22,374 +23,85 @@
 			
 			import ui.trace.timeline.TimelineModel;
 			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+
+            
+            protected function editButton_clickHandler(event:MouseEvent):void
+            {
+                if(this.currentState == "small")
+                    this.setCurrentState("edition");
+                else if(this.currentState == "edition")
+                    this.setCurrentState("small");
+            }
+            
 			
-			[Bindable]
-			public var title:String;
 			
-			
-			
-			///////////////////////////////////////////////////////
-			/* 	DIRTY EXPOSITION OF THE INNER TRACELINE OBJECT 	*/
-			/////////////////////////////////////////////////////
-			
-			public function get timeRange():TimeRange
-			{
-				return theTraceLine.timeRange;
-			}
+            override public function set traceData(value:ObselCollection):void
+            {
+                super.traceData = value;
+                theSelectionEditor.obsels = value;
+                
+            }
+            
 
-			public function set timeRange(value:TimeRange):void
-			{
-				theTraceLine.timeRange = value;
-			}
-
-			[Bindable]
-			public function get selector():dummyTraceSelector
-			{
-				return theSelectionEditor.theSelector;
-			}
-
-			public function set selector(value:dummyTraceSelector):void
-			{
-				theSelectionEditor.theSelector = value;
-			}
-
-			public function get dataFieldForGenericRenderer():String
-			{
-				return theTraceLine.dataFieldForGenericRenderer;
-			}
-
-			public function set dataFieldForGenericRenderer(value:String):void
-			{
-				theTraceLine.dataFieldForGenericRenderer = value;
-			}
-
-			public function get iconClassForGenericRenderer():Class
-			{
-				return theTraceLine.iconClassForGenericRenderer;
-			}
-
-			public function set iconClassForGenericRenderer(value:Class):void
-			{
-				theTraceLine.iconClassForGenericRenderer = value;
-			}
-
-			public function get sizedByEnd():Boolean
-			{
-				return theTraceLine.sizedByEnd;
-			}
-
-			public function set sizedByEnd(value:Boolean):void
-			{
-				theTraceLine.sizedByEnd = value;
-			}
-
-			public function get redrawRenderer():Boolean
-			{
-				return theTraceLine.redrawRenderer;
-			}
-
-			public function set redrawRenderer(value:Boolean):void
-			{
-				theTraceLine.redrawRenderer = value;
-			}
-
-			public function get rendererFunctionCanvas():Canvas
-			{
-				return theTraceLine.rendererFunctionCanvas;
-			}
-
-			public function set rendererFunctionCanvas(value:Canvas):void
-			{
-				theTraceLine.rendererFunctionCanvas = value;
-			}
-
-			public function get rendererFunctionData():Object
-			{
-				return theTraceLine.rendererFunctionData;
-			}
-
-			public function set rendererFunctionData(value:Object):void
-			{
-				theTraceLine.rendererFunctionData = value;
-			}
-
-			public function get rendererFunctionParams():Object
-			{
-				return theTraceLine.rendererFunctionParams;
-			}
-
-			public function set rendererFunctionParams(value:Object):void
-			{
-				theTraceLine.rendererFunctionParams = value;
-			}
-
-			public function get useRendererFunction():Boolean
-			{
-				return theTraceLine.useRendererFunction;
-			}
-
-			public function set useRendererFunction(value:Boolean):void
-			{
-				theTraceLine.useRendererFunction = value;
-			}
-
-			public function get endPadding():Number
-			{
-				return theTraceLine.endPadding;
-			}
-
-			public function set endPadding(value:Number):void
-			{
-				theTraceLine.endPadding = value;
-			}
-
-			public function get startPadding():Number
-			{
-				return theTraceLine.startPadding;
-			}
-
-			public function set startPadding(value:Number):void
-			{
-				theTraceLine.startPadding = value;
-			}
-
-			public function get deltaPos():Number
-			{
-				return theTraceLine.deltaPos;
-			}
-
-			public function set deltaPos(value:Number):void
-			{
-				theTraceLine.deltaPos = value;
-			}
-
-			public function get renderAlign():String
-			{
-				return theTraceLine.renderAlign;
-			}
-
-			public function set renderAlign(value:String):void
-			{
-				theTraceLine.renderAlign = value;
-			}
-
-			public function get RendererType():Class
-			{
-				return theTraceLine.RendererType;
-			}
-
-			public function set RendererType(value:Class):void
-			{
-				theTraceLine.RendererType = value;
-			}
-
-			public function get startEndMatchingProperty():String
-			{
-				return theTraceLine.startEndMatchingProperty;
-			}
-
-			public function set startEndMatchingProperty(value:String):void
-			{
-				theTraceLine.startEndMatchingProperty = value;
-			}
-
-			public function get endTraceFilter():Object
-			{
-				return theTraceLine.endTraceFilter;
-			}
-
-			public function set endTraceFilter(value:Object):void
-			{
-				theTraceLine.endTraceFilter = value;
-			}
-			
-			public function get traceFilter():Object
-			{
-				return theTraceLine.traceFilter;
-			}
-			
-			public function set traceFilter(value:Object):void
-			{
-				theTraceLine.traceFilter = value;
-			}
-			
-			public function invalidateDisplayListOnEvent(e:Event):void
-			{
-				theTraceLine.invalidateDisplayListOnEvent(e);
-			}
-			
-			public function get direction():String
-			{
-				return theTraceLine.direction;
-			}
-			
-			public function set direction(value:String):void
-			{
-				theTraceLine.direction = value;
-			}
-			
-			public function get stopTime():Number
-			{
-				return theTraceLine.stopTime;
-			}
-			
-			public function set stopTime(value:Number):void
-			{
-				theTraceLine.stopTime = value;
-			}
-			
-			public function get startTime():Number
-			{
-				return theTraceLine.startTime;
-			}
-			
-			public function set startTime(value:Number):void
-			{
-				theTraceLine.startTime = value;
-			}
-			
-			public function timeChanged(n:Number):void
-			{
-				theTraceLine.timeChanged(n);
-			}
-			
-			public function get model():TimelineModel
-			{
-				return theTraceLine.model;
-			}
-			
-			public function set model(value:TimelineModel):void
-			{
-				theTraceLine.model = value;			
-			}
-			
-			public function get traceData():ObselCollection
-			{
-				return theTraceLine.traceData;
-			}
-			
-			public function set traceData(value:ObselCollection):void
-			{
-				theSelectionEditor.obsels = value;
-				theTraceLine.traceData = value;
-			}
-			
-			public function onTraceDataCollectionChange(e:CollectionEvent):void
-			{
-				theTraceLine.onTraceDataCollectionChange(e);
-			}
-			
-			public function resetRenderer(e:Event = null):void
-			{
-				theTraceLine.resetRenderer(e);
-			}
-
-			public function sortRendererArray():void
-			{
-				theTraceLine.sortRendererArray();
-			}
-
-			public function searchEndTraceForExistingRenderers():void
-			{
-				theTraceLine.searchEndTraceForExistingRenderers();
-			}
-			
-			public function getEndTrace(oTrace:Object):Obsel
-			{
-				return theTraceLine.getEndTrace(oTrace);
-				
-			}
-			
-			public function getPreviosRendererPoint(value:Obsel):Point
-			{
-				return theTraceLine.getPreviosRendererPoint(value);
-			}
-			
-			public function getFirstObsel():Obsel
-			{
-				return theTraceLine.getFirstObsel();
-			}
-			
-			public function displayTraceRenderer( renderer:UIComponent, position:int, timeStamp:Number):void
-			{
-				theTraceLine.displayTraceRenderer( renderer, position, timeStamp);
-			}
-			
-			public function getEndPosFromRenderer(rendererTraceData:Object, rendererSize:Number):Number
-			{
-				return theTraceLine.getEndPosFromRenderer(rendererTraceData, rendererSize);
-			}
-			
-			public function getPosFromRenderer(rendererTraceData:Object, rendererSize:Number):Number
-			{
-				return theTraceLine.getPosFromRenderer(rendererTraceData, rendererSize);
-			}
-
-			public function getPosFromTime(t:Number):Number
-			{
-				return theTraceLine.getPosFromTime(t);
-			}
-			
-			public function getDataFromRenderer(renderer:Object):Object
-			{
-				return theTraceLine.getDataFromRenderer(renderer);
-			}
-			
-			public function renderingFunctionReset():void
-			{
-				theTraceLine.renderingFunctionReset();
-			}
-			
-			public function renderingFunction(obs:Obsel):void
-			{
-				theTraceLine.renderingFunction(obs);
-			}
-			
-			public function renderingFunctionGetObselFromPos(p:Point):Array
-			{
-				return theTraceLine.renderingFunctionGetObselFromPos(p);
-			}
-			
-
-			protected function deleteButton_clickHandler(event:MouseEvent):void
-			{
-				if(this.parent.contains(this))
-					(this.parent as Group).removeElement(this);
-			}
+            
+            [Bindable]
+            public function get selector():dummyTraceSelector
+            {
+                return theSelectionEditor.theSelector;
+            }
+            
+            public function set selector(value:dummyTraceSelector):void
+            {
+                theSelectionEditor.theSelector = value;
+            }
+            
+            // Override styleChanged() to proopgate style changes to compLabelDisplay.
+            override public function styleChanged(styleName:String):void {
+               
+                if(styleName == "small" || styleName == "edition")
+                    super.styleChanged(styleName);
+                
+                
+            }
 		
-			
-			protected function editButton_clickHandler(event:MouseEvent):void
-			{
-				if(this.currentState == "normal")
-					this.setCurrentState("edition");
-				else if(this.currentState == "edition")
-					this.setCurrentState("normal");
-			}
+     
 			
 		]]>
 	</fx:Script>
-	<mx:states>
-		<s:State name="normal"/>
-		<s:State name="edition"/>
-	</mx:states>
+    <timeline1:states>
+        <s:State name="small"/>
+        <s:State name="edition"/>
+    </timeline1:states>
+
 	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<timeline:BitmapTraceLine id="theTraceLine" left="120" right="10" top="10" height="10"
+    
+    <s:BorderContainer width="100%" height.small="40" height.edition="314" cornerRadius="10">
+        <s:backgroundFill>
+            <s:LinearGradient id="gradient1" rotation="90">
+                <s:entries>
+                    <s:GradientEntry color="0xEEEEFF" alpha="0.7"/>
+                    <s:GradientEntry color="0x8888AA" alpha="0.7" />
+                </s:entries>
+            </s:LinearGradient>
+        </s:backgroundFill>
+    </s:BorderContainer>
+	<timeline:TraceLineBitmap id="theTraceLine" left="120" right="10" top="10" height="10"
 						direction="horizontal" startPadding="10" endPadding="10"
-						RendererType="{RectangleRenderer}" useRendererFunction="true"
 						rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
 						traceFilter="{theSelectionEditor.theSelector}" 
 						borderColor="0xFF0000" borderVisible="true" borderStyle="solid"/>
 	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
-		<s:Label x="10" y="5" fontSize="10" text="{this.selector.name}"/>
+		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
 		<mx:LinkButton id="editButton" y="12" click="editButton_clickHandler(event)" color="#00078E"
 					   fontSize="9" textDecoration="underline"
 					   x.edition="5" y.edition="12" label.edition="Close Edition"
-					   x.normal="40" label.normal="Edit"/>
+					   x.small="40" label.small="Edit"/>
 		<mx:LinkButton x="65" y="12" label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
 	</mx:Canvas>
-	<traceSelector:dummyTraceSelectorEditor id="theSelectionEditor" visible.edition="true" visible.normal="false"  x="10" y="43">
+	<traceSelector:dummyTraceSelectorEditor theSelector="{data.selector}" id="theSelectionEditor" visible.edition="true" visible.small="false"  x="10" y="43">
 	</traceSelector:dummyTraceSelectorEditor>
-</mx:Canvas>
+    
+</timeline1:TraceLineWrapperBase>

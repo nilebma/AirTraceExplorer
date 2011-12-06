@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <timeline:CurseurBase direction="horizontal" backgroundColor="#222277" cornerRadius="5" width="50" height="20"
-						 xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ithaca.traces.timeline.*"
-						 implements="ithaca.traces.timeline.TraceLineRenderers.ITraceRenderer" 
-						 creationComplete="init()" currentState="preview">
+						 xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ui.trace.timeline.*"
+						 implements="ui.trace.timeline.TraceLineRenderers.ITraceRenderer" 
+						 creationComplete="init()" currentState="preview"
+                         zoomChange="onCursorMove(event)" zoomMove="onCursorMove(event)" >
 	
 	<mx:Style>
 		
@@ -24,19 +25,23 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import com.ithaca.traces.Obsel;
-			import ithaca.traces.timeline.TimelineModel;
-			import ithaca.traces.timeline.TraceLine;
+            import com.ithaca.traces.Model;
+            import com.ithaca.traces.Obsel;
+            
+            import flash.events.Event;
+            
+            import mx.core.UIComponent;
+            import mx.events.PropertyChangeEvent;
+            
+            import ui.trace.timeline.TimelineModel;
+            import ui.trace.timeline.TraceLineWithRenderers;
 			
-			import flash.events.Event;
-			
-			import mx.core.UIComponent;
-			import mx.events.PropertyChangeEvent;
-			
+                public var minSize:uint = 10;
 				protected var _traceData:Obsel;
 				protected var _endTraceData:Obsel;
-				protected var _model:TimelineModel;
-				protected var _parentLine:TraceLine;
+				protected var _parentLine:TraceLineWithRenderers;
+            
+            protected var _model:TimelineModel;
 				
 				protected var _selfSized:Boolean = true;
 				protected var _selfPositioned:Boolean;
@@ -44,7 +49,9 @@
 				protected function init():void
 				{
 					startEdge = 0;
-					endEdge = parent.width;
+                    if(parent && parent.width)
+					    endEdge = parent.width;
+
 				}
 			
 				public function set traceData(value:Obsel):void
@@ -73,41 +80,89 @@
 				{
 					return _endTraceData;
 				}
+            
+                protected function onCursorMove(event:Event):void
+                {
+                    if(_traceData)
+                    {
+                        traceData.removeEventListener(PropertyChangeEvent.PROPERTY_CHANGE, traceDataUpdate);
+                        _traceData.begin =  _parentLine.getTimeFromPos(this.x);
+                        _traceData.end = _parentLine.getTimeFromPos(this.x+this.width);
+                        traceData.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, traceDataUpdate);
+                    }
+
+                    
+                }
 				
 				public function traceDataUpdate(e:Event = null):void
 				{
-					;
+                    updateSizeAndPos();
 				}
+            
+                protected function updateSizeAndPos():void
+                {
+
+                    
+                    var pos:Number;
+                    var size:Number = 0;
+                    
+                    if(_traceData && _traceData.begin)
+                    {
+                        pos = _parentLine.getPosFromTime(_traceData.begin);
+                        
+                        if(_endTraceData && _endTraceData.end)
+                            size = _parentLine.getPosFromTime(_endTraceData.end) - pos;
+                        else if(_endTraceData && _endTraceData.begin)
+                            size = _parentLine.getPosFromTime(_endTraceData.begin) - pos;
+                        else if(_traceData.end)
+                            size = _parentLine.getPosFromTime(_traceData.end) - pos;
+                        
+                        size = Math.max(size, minSize);
+                        
+                    }
+                    
+                    if(_parentLine.direction == "horizontal")
+                    {
+                        this.x = pos;
+                        this.width = size;
+                    }
+                    //else #TODO
+
+                    
+                }
+            
+                
 				
-				[Bindable]
-				public function set model(value:TimelineModel):void
-				{
-					_model = value;
-					
-					if(model)
-						model.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, modelUpdate);
-				}
-				
-				public function get model():TimelineModel
-				{
-					return _model;
-				}
 				
 				public function modelUpdate(e:Event = null):void
 				{
 					;
 				}
 				
-				public function set parentLine(parent:TraceLine):void
+				public function set parentLine(parent:TraceLineWithRenderers):void
 				{
 					_parentLine = parent;
 				}
 				
-				public function get parentLine():TraceLine
+				public function get parentLine():TraceLineWithRenderers
 				{
 					return _parentLine;
 				}
-				
+            
+                [Bindable]
+                public function set model(value:TimelineModel):void
+                {
+                    _model = value;
+                    
+                    if(model)
+                        model.addEventListener(PropertyChangeEvent.PROPERTY_CHANGE, modelUpdate);
+                }
+                
+                public function get model():TimelineModel
+                {
+                    return _model;
+                }
+    				
 				public function set selfSized(value:Boolean):void
 				{
 					_selfSized = value;
@@ -130,10 +185,13 @@
 				
 				public function update():void
 				{
-					;
+                    updateSizeAndPos();
 				}
 			
-		]]>
+
+
+            
+        ]]>
 	</mx:Script>
 	<timeline:states>
 		<mx:State name="normal"/>
@@ -143,7 +201,7 @@
 	<mx:Button id="middleGripGraphic" styleName="MiddleHorizontalGrid" horizontalCenter="0" verticalCenter="0"/>
 	
 	<mx:Button id="middleGrip" horizontalCenter="-1"  verticalCenter="0" height="18" minWidth="20" mouseDown="centerStartDrag(event)"  
-			   buttonMode="true" fillAlphas="[1.0, 1.0]" fillColors="[#420A0A, #420A0A]" alpha="0" left="10" right="10"
+			   buttonMode="true"  alpha="0" left="10" right="10"
 			   />
 	
 	<mx:Button id="startGripGraphic" styleName="Grid" left="2" verticalCenter="0"/>

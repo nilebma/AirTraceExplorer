@@ -64,9 +64,6 @@ package ui.trace.timeline.TraceLineRenderers
 {
 
 	
-	import ui.trace.timeline.TimelineModel;
-	import ui.trace.timeline.TraceLine;
-	
 	import com.ithaca.traces.Obsel;
 	
 	import flash.events.Event;
@@ -74,12 +71,16 @@ package ui.trace.timeline.TraceLineRenderers
 	import mx.core.UIComponent;
 	import mx.events.PropertyChangeEvent;
 	
+	import ui.trace.timeline.TimelineModel;
+	import ui.trace.timeline.TraceLineBase;
+	import ui.trace.timeline.TraceLineWithRenderers;
+	
 	public class BaseRenderer extends UIComponent implements ITraceRenderer
 	{
 		protected var _traceData:Obsel;
 		protected var _endTraceData:Obsel;
 		protected var _model:TimelineModel;
-		protected var _parentLine:TraceLine;
+		protected var _parentLine:TraceLineWithRenderers;
 		
 		protected var _selfSized:Boolean;
 		protected var _selfPositioned:Boolean;
@@ -153,12 +154,12 @@ package ui.trace.timeline.TraceLineRenderers
 			;
 		}
 		
-		public function set parentLine(parent:TraceLine):void
+		public function set parentLine(parent:TraceLineWithRenderers):void
 		{
 			_parentLine = parent;
 		}
 		
-		public function get parentLine():TraceLine
+		public function get parentLine():TraceLineWithRenderers
 		{
 			return _parentLine;
 		}
