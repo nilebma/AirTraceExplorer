@@ -287,73 +287,88 @@ package ui.trace.timeline
 	
 		}
 		
-		
-		// return the y position (in the timeLine) to match the time t
-		//or null if such position does not exist
-		public function getPosFromTime(t:Number):Number
-		{
-			
-			//UNDER TEST : we DONT check if t is between the boundaries of the traceLine (startTime et stopTime)
-			if(!isNaN(startTime) && !isNaN(_stopTime)) //&& t >= startTime && t <= stopTime)
-			{
-				
-				var length:Number = _stopTime - _startTime;
-				
-				var diff:int = t - _startTime;
-				
-				var size:Number;
-				
-				if(direction == "vertical")
-					size = this.height;
-				else
-					size = this.width;
-				
-				size -= (startPadding + endPadding);
-				
-				var pos:Number;
-				
-				if(timeRange)
-					pos = timeRange.timeToPosition(t,size,startTime,stopTime);
-				else
-					pos = (size / length) * (diff);  //we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
-				
-				
-				pos += startPadding;			
-				
-				return pos;
-				
-			}
-			
-			return NaN;
-		}
-		
-		public function getTimeFromPos(pos:Number):Number
-		{
-			if(!isNaN(_startTime) && !isNaN(_stopTime))
-			{
-				var length:Number = _stopTime - _startTime;
-				
-				var size:Number;
-				
-				if(direction == "vertical")
-					size = this.height;
-				else
-					size = this.width;
-				
-				size -= (startPadding + endPadding);
-				
-				var t:Number;
-				
-				if(timeRange)
-					t = timeRange.positionToTime(pos - startPadding,size,_startTime,_stopTime);
-				else
-					t = ((length / size) * (pos - startPadding)) + _startTime;
-				
-				return t;
-			}
-			
-			return NaN;
-		}
+        
+        // return the y position (in the timeLine) to match the time t
+        //or null if such position does not exist
+        public function getPosFromTime(t:Number):Number
+        {
+            
+            //UNDER TEST : we DONT check if t is between the boundaries of the traceLine (startTime et stopTime)
+            if(!isNaN(startTime) && !isNaN(_stopTime)) //&& t >= startTime && t <= stopTime)
+            {
+                
+                var length:Number = _stopTime - _startTime;
+                
+                var diff:int = t - _startTime;
+                
+                var size:Number;
+                
+                if(direction == "vertical")
+                    size = this.height;
+                else
+                    size = this.width;
+                
+                size -= (startPadding + endPadding);
+                
+                var pos:Number;
+                
+                if(timeRange)
+                    pos = timeRange.timeToPosition(t,size,startTime,stopTime);
+                else
+                    pos = (size / length) * (diff);  //we calculate the pos, we consider "t minus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+                
+                
+                pos += startPadding;			
+                
+                return pos;
+                
+            }
+            
+            return NaN;
+        }
+                
+        public function getTimeFromPos(pos:Number):Number
+        {
+            
+            if(!isNaN(_startTime) && !isNaN(_stopTime))
+            {
+                
+                var length:Number = _stopTime - _startTime;
+                
+              
+                var size:Number;
+                
+                if(direction == "vertical")
+                    size = this.height;
+                else
+                    size = this.width;
+                
+                size -= (startPadding + endPadding);
+                
+                pos -= startPadding;
+                
+                var t:Number;
+                
+                if(timeRange)
+                    t = timeRange.positionToTime(pos,size,_startTime,_stopTime);
+                else
+                {
+                    
+                    //we calculate the pos, we consider "t plus startTime" here in order to replace t in the interval defined by [startTime, stopTime]
+                   t = ((length / size) * pos) + _startTime;
+                    
+                    
+                }
+                
+                trace(length, size, pos, t);
+                if(t <= 0)
+                    timeRange.positionToTime(pos,size,_startTime,_stopTime);  
+                
+                return t;
+            }
+            
+            return NaN;
+        }
 		
 		private function deleteRenderer():void
 		{
