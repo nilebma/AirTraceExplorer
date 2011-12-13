@@ -3,11 +3,16 @@
            xmlns:s="library://ns.adobe.com/flex/spark"
            xmlns:mx="library://ns.adobe.com/flex/mx"
            xmlns:timeline="ui.trace.timeline.*"
-           width="100%" height="40">
+           width="100%" height="40" creationComplete="oncreationCompleteHandler(event)">
     
     <s:layout>
         <s:BasicLayout/>
     </s:layout>
+
+    <fx:Metadata>
+        [Event(name="obselClick" , type="ui.trace.timeline.events.TimelineEvent")]
+        [Event(name="obselOver" , type="ui.trace.timeline.events.TimelineEvent")]
+    </fx:Metadata>
     
     <fx:Script>
         <![CDATA[
@@ -17,6 +22,7 @@
             import mx.containers.Canvas;
             import mx.core.UIComponent;
             import mx.events.CollectionEvent;
+            import mx.events.FlexEvent;
             
             import spark.components.Group;
             
@@ -24,6 +30,7 @@
             import ui.trace.timeline.TraceLineBase;
             import ui.trace.timeline.TraceLineBitmap;
             import ui.trace.timeline.TraceLineWithRenderers;
+            import ui.trace.timeline.events.TimelineEvent;
             
             [Bindable]
             public var title:String;
@@ -32,6 +39,15 @@
             [Bindable]
             public var theTraceLine:TraceLineBase;
             
+            
+            
+            
+            protected function oncreationCompleteHandler(event:FlexEvent):void
+            {
+               if(theTraceLine)
+                   theTraceLine.addEventListener("obselClick", theTraceLine_obselClickHandler);
+                
+            }
             
             ///////////////////////////////////////////////////////
             /* 	DIRTY EXPOSITION OF THE INNER TRACELINE OBJECT 	*/
@@ -262,6 +278,10 @@
                     (this.parent as Group).removeElement(this);
             }
             
+            protected function theTraceLine_obselClickHandler(event:TimelineEvent):void
+            {
+                this.dispatchEvent(new TimelineEvent(event.type,event.timestamp, event.userId, event.message, event.obsel, event.obselSet));
+            }
             
 
             

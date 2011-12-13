@@ -10,19 +10,21 @@
 		   height.edition="314" height.small="40" xmlns:timeline1="ui.timeline.*">
 	<fx:Script>
 		<![CDATA[
-			import com.ithaca.traces.Obsel;
-			import com.ithaca.traces.ObselCollection;
-			
-			import mx.containers.Canvas;
-			import mx.core.UIComponent;
-			import mx.events.CollectionEvent;
-			
-			import spark.components.Group;
-			
-			import traceSelector.dummyTraceSelector;
-			
-			import ui.trace.timeline.TimelineModel;
-			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+            import com.ithaca.traces.Obsel;
+            import com.ithaca.traces.ObselCollection;
+            
+            import mx.containers.Canvas;
+            import mx.core.UIComponent;
+            import mx.events.CollectionEvent;
+            
+            import spark.components.Group;
+            
+            import traceSelector.dummyTraceSelector;
+            
+            import ui.trace.timeline.TimelineModel;
+            import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+            import ui.trace.timeline.events.TimelineEvent;
+
 
             
             protected function editButton_clickHandler(event:MouseEvent):void
@@ -61,12 +63,11 @@
                 if(styleName == "small" || styleName == "edition")
                     super.styleChanged(styleName);
                 
-                
             }
-		
-     
 			
-		]]>
+
+            
+        ]]>
 	</fx:Script>
     <timeline1:states>
         <s:State name="small"/>
@@ -92,7 +93,7 @@
 						direction="horizontal" startPadding="10" endPadding="10"
 						rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
 						traceFilter="{theSelectionEditor.theSelector}" 
-						borderColor="0xFF0000" borderVisible="true" borderStyle="solid"/>
+						borderColor="0xFF0000" borderVisible="true" borderStyle="solid" />
 	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
 		<mx:LinkButton id="editButton" y="12" click="editButton_clickHandler(event)" color="#00078E"

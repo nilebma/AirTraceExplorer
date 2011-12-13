@@ -404,7 +404,7 @@
             protected function theTraceLineList_rendererAddHandler(event:RendererExistenceEvent):void
             {
                 event.renderer.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
-                
+                event.renderer.addEventListener("obselClick",onObselLineSelectionChange);
             }
             
         ]]>
