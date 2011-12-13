@@ -160,6 +160,7 @@ package ui.trace.timeline
 		//This function instantiate the renderers considering on traceData and traceFilter
 		override protected function initDisplay():void
 		{	
+            super.initDisplay();
             if(filteredTrace)
 				constructBitmapData();
             

@@ -342,8 +342,14 @@ package ui.trace.timeline
 			{
 				for each(var item:Obsel in e.items)
                 {
-					renderObsel(item);
-                    listenObsels(item);
+                    
+                    if(filterObsel(item))
+                    {
+                        filteredTrace.push(item)    
+                        
+					    renderObsel(item);
+                        listenObsels(item);
+                    }
                 }
 				
 
@@ -376,7 +382,7 @@ package ui.trace.timeline
         protected function initDisplay():void
         {	
             //to override
-            
+            trace("init display "+this.id);
         }
         
         protected function renderObsel(pObs:Obsel):void
