@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" xmlns:timeline="ui.trace.timeline.*">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
@@ -25,6 +25,8 @@
 			private var currentIdMedia:String;
 			private var videoObselTypes:Array=["lectureVideo","stopVideo","pauseVideo","finVideo"];	
 			private var previousObselBegin:Number;
+			
+			//attributs a ajouter: timerange, zoomdedebut et zoomdefin
 			
 			[Bindable]
 			public function get obselSelection():ObselCollection
@@ -91,10 +93,9 @@
 				}
 			}
 			
-			// Fonction de mise a jour des infos de temps d'un obsel
+			// Function updating obsels' time data 
 			private function updateTimeDataFromObsel(obs:Obsel,selectedPlayer:String):Boolean{
 				var updated:Boolean=false;
-				// Erreur: faire getAttributeValueByTypeLabel et non uri sinon marche pas.
 				if ((obs.obselType.label=="changementPositionVideo") && (obs.getAttributeValueByLabel("IdPlayer")==selectedPlayer)){
 					mediaCurrentTime=obs.getAttributeValueByLabel("NouvellePosition");
 					isMediaPlaying=(obs.getAttributeValueByLabel("Lecture")=="true"); // a debugger pour verifier que c'est bien un string				
@@ -114,16 +115,17 @@
 				}
 				
 				return updated;
-			}
-
-			
-			// On donne une collection deja enrichie et on appelle une methode draw qui prend en param un temps debut et un temps de fin comme
-			// la classe traceline. S'inspirer de updateDisplayList qui utilise Graphics dans TraceLine. Il faut coder les deux fonctions de TraceLine:
-			//getPosFromTime et getTimeFromPosition
-			// Faire une fonction qui prend deux bornes (temps) et qui donne en pixel ce que ca fait. Elle considère la hauteur (temps) et la largeur (durée de l'activité)
-			// 4 param: position temporelle, les deux bornes temporelles et la dimension de la zone (ex 800 si on est en 800 pixel de largeur).
-			
+			}			
 			
 		]]>
 	</fx:Script>
+	
+	<!-- faire des tests dans timelineworkspace en changeant le height<timeline:BitmapTraceAndMediaViewerTraceLine id="subTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
+												 useRendererFunction="true"
+												 
+												 traceData="{_obselSelection}" timeRange="{timeRange}"
+												 startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
+												 rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
+										 top="50" height="10" left="100" right="10" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
+	-->		
 </s:Group>
