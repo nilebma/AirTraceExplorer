@@ -57,8 +57,11 @@ package ui.trace.timeline
 		public var rendererFunctionParams:Object = null;
 		public var rendererFunctionData:Object = null;
 		private const BITMAPSIZE:Number = 4000;
-		private var maxCalculatedMediaTimeOfCollection:Number;
-		
+		public var maxMediaTime:Number;
+		[Bindable]
+		protected var _forceMaxMediaTime:Boolean;
+		[Bindable]
+		protected var _forcedMaxMediaTime:Number;
 		// Vars for trace improvement
 		private var mediaCurrentTime:Number; // Quelle valeur pour le debut??
 		private var isMediaPlaying:Boolean;
@@ -92,6 +95,28 @@ package ui.trace.timeline
 		}
 		
 		
+		public function get forceMaxMediaTime():Boolean
+		{
+			return _forceMaxMediaTime;
+		}
+		
+		public function set forceMaxMediaTime(value:Boolean):void
+		{
+			_forceMaxMediaTime = value;
+
+		}		
+		
+		public function get forcedMaxMediaTime():Number
+		{
+			return _forcedMaxMediaTime;
+		}
+		
+		public function set forcedMaxMediaTime(value:Number):void
+		{
+			_forcedMaxMediaTime = value;
+			
+		}				
+		
 		
 		override public function set timeRange(value:TimeRange):void
 		{
@@ -105,10 +130,14 @@ package ui.trace.timeline
 		//This function instantiate the renderers considering on traceData and traceFilter
 		override protected function initDisplay():void
 		{	
-			
+			trace("initDisplay");
 			if(filteredTrace){
 				completeTraceWithcalculatedMediaTime("Player1",filteredTrace);
-				maxCalculatedMediaTimeOfCollection=getMaxCalculatedMediaTimeFromObsels(filteredTrace);
+				if (forceMaxMediaTime=="false"){
+					maxMediaTime=getMaxCalculatedMediaTimeFromObsels(filteredTrace);
+				} else {
+					maxMediaTime=_forcedMaxMediaTime;
+				}
 				constructBitmapData();
 			}
 			invalidateDisplayList();
@@ -320,7 +349,7 @@ package ui.trace.timeline
 					theRect = new Rectangle(0,posDebut,this.width,size);
 				else{
 					
-					if (maxCalculatedMediaTimeOfCollection>0){
+					if (maxMediaTime>0){
 						if(!isNaN(obs.getAttributeValueByLabel("calculatedMediaTime"))){
 							theRect = new Rectangle(posDebut,getVerticalPosFromMediaTime(obs.getAttributeValueByLabel("calculatedMediaTime")),size,15);
 							bitmapData.fillRect(theRect,0xFFFF0000);
@@ -414,8 +443,7 @@ package ui.trace.timeline
 		
 		// Function returning the vertical position in px for the media time given in param
 		private function getVerticalPosFromMediaTime(mediaTime:Number):Number{
-			trace((mediaTime/maxCalculatedMediaTimeOfCollection)*BITMAPSIZE);
-			return ((mediaTime/maxCalculatedMediaTimeOfCollection)*BITMAPSIZE);
+			return ((mediaTime/maxMediaTime)*BITMAPSIZE);
 		}
 		
 		override public function onTraceDataCollectionChange(e:CollectionEvent):void
