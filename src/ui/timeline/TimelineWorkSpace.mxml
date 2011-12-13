@@ -12,7 +12,10 @@
          xmlns:timeline2="ui.timeline.*"
          xmlns:trace="ui.trace.*"
          width="100%" height="100%" creationComplete="group_creationCompleteHandler(event)" xmlns:screenshot="ui.screenshot.*">
-	<fx:Script>
+	
+    
+    
+    <fx:Script>
 		<![CDATA[
             import com.ithaca.traces.Base;
             import com.ithaca.traces.Model;
@@ -448,14 +451,14 @@
             </timeline2:PlayPauseButton>
             <timeline2:ObselStack id="obselEditorZone" right="10" top="10" bottom="0" width="408"
                                   obselSelection="{obselSelection}"/>
-            <mx:ToggleButtonBar x="369" y="21" dataProvider="{mediaVS}" >
+            <mx:ToggleButtonBar y="21" right="416" dataProvider="{mediaVS}">
             </mx:ToggleButtonBar>
             <mx:ViewStack id="mediaVS" left="10" right="552" top="0"
-                          bottom="0">
-                <s:NavigatorContent id="screeShotStack"  label="screenhot">
+                          bottom="0" creationPolicy="all">
+                <s:NavigatorContent id="screeShotStack"  label="screenhot" creationPolicy="all">
                     <screenshot:ScreenshotViewer id="theScreenshotViewer" width="100%" height="100%" currentTime="{timeAndPlayManager.currentTime}"/>
                 </s:NavigatorContent>
-                <s:NavigatorContent id="screenCastStack"  label="screenCast">
+                <s:NavigatorContent id="screenCastStack"  label="screenCast" creationPolicy="all">
                     <s:VideoDisplay id="theVideoDisplay"  width="100%" height="100%" />
                 </s:NavigatorContent>
             </mx:ViewStack>
@@ -497,6 +500,7 @@
                                             timeRange="{timeRange}"
                                             minimumSize="70" lockSize="200" lockPosition="100" 
                                             startTime="{timeRange.begin}" stopTime="{timeRange.end}"
+                                            currentTime="{timeAndPlayManager.currentTime}"
                                             startAndEndDelta="0" locked="false" tweening="true"/>
                 
                 <timeline:TraceLineBitmap id="subTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
@@ -504,10 +508,7 @@
                                           startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
                                           rendererFunctionParams="{{'color':0x000000, 'minSize':3,'alpha':0.2}}"
                                           top="50" height="10" left="120" right="25" renderAlign="middle" obselClick="onObselLineSelectionChange(event)"/>
-                
-                
-                
-                
+
                 <timeline:TraceLineBitmap id="selectionTraceLine"  direction="horizontal" startPadding="0" endPadding="0"
                                           traceData="{obselSelection}" timeRange="{timeRange}"
                                           rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
