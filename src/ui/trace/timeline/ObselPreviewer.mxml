@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"  creationComplete="onCreationCompleteHandler(event)" width="270">
+	<mx:Script>
+		<![CDATA[
+			import com.ithaca.traces.Attribute;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.Relation;
+			import com.ithaca.traces.utils.RDFconverter;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.containers.Form;
+			import mx.containers.FormItem;
+			import mx.controls.HRule;
+			import mx.controls.Text;
+			import mx.controls.TextInput;
+			import mx.events.FlexEvent;
+			
+			import spark.components.Label;
+
+			protected function onCreationCompleteHandler(event:FlexEvent):void
+			{
+				var obsCollection:Array = data as Array;
+				var obs:Obsel = obsCollection[0] as Obsel;
+				headLabel.text = obs.obselType.label;
+				
+				dataBox.addChild(new HRule());
+				
+				for each(var yo:Attribute in obs.attributes)
+					addField(yo,"value",yo.attributeType.label);
+					
+				dataBox.addChild(new HRule());
+				
+				for each(var r:Relation in obs.outcomingRelations)
+					addField(r.targetObsel,"uri",r.relationType.label, false);
+					
+					
+				footer.text = " ... and " + obsCollection.length + " more";
+
+				
+	
+				
+			}
+			
+			protected function addField(host:Object,chain:String, title:String=null, editable:Boolean = true):void
+			{
+				if(!title)
+					title = chain;
+				var htText:String = "<b>"+title+" : </b>"+host[chain];
+				
+				var textBox:Text =  new Text();
+				textBox.htmlText = htText;
+				//TODO : limiter la textbox a deux lignes de hauteur et environ 300px de largeur
+				dataBox.addChild(textBox);
+			}
+			
+			protected function onTextInputChange(e:Event)
+			{
+				
+			}
+
+		]]>
+	</mx:Script>
+	<mx:VBox width="100%" id="vBox" backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" horizontalScrollPolicy="off">
+		<mx:Label id="headLabel" />
+		<mx:VBox id="dataBox"></mx:VBox>
+		<mx:Label id="footer" />
+	</mx:VBox>
+</mx:HBox>

@@ -256,14 +256,17 @@
                         
                         var arTraceUris:ArrayCollection = new ArrayCollection();
 						
+                        var obselsToAdd:Array = [];
 						for each(var aTrace:com.ithaca.traces.Trace in loadedTraces)
 						{
+                            
 							for each(var o:Obsel in aTrace.obsels._obsels)
-								obselCollectionToDisplay.push(o);
+                                obselsToAdd.push(o);
                               
                             arTraceUris.addItem(aTrace.uri);
                             
 						}
+                        obselCollectionToDisplay.pushMultiple(obselsToAdd);
 						
 						subTraceLine.traceData = obselCollectionToDisplay;
                         //commentLine.traceData = obselCollectionToDisplay;

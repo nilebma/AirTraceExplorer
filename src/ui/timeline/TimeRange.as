@@ -157,7 +157,8 @@ package ui.timeline
 				if ( localStart <= _ranges[i]  )
 				{
 					var rangeStart : Number = Math.max( localStart, _ranges[i - 1] );
-					var intervalWidth : Number = (i % 2 == 0) ? timeHoleWidth : ( _ranges[i] - rangeStart) * width / duration;
+                    var rangeEnd : Number = Math.min( localEnd, _ranges[i] );
+					var intervalWidth : Number = (i % 2 == 0) ? timeHoleWidth : ( rangeEnd - rangeStart) * width / localDuration;
 					if ( positionValue < currentPostion + intervalWidth )
 					{						
 						time = rangeStart + ( positionValue - currentPostion )  * localDuration / width;
