@@ -108,6 +108,12 @@
 				getAllTimelineResult.token = timelineService.getAllTimeline();
 			}
 			
+			protected function voTimelineBox2_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				getAllTimelineResult.token = timelineService.getAllTimeline();
+			}
+			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
@@ -174,7 +180,15 @@
 				<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
 			</s:ComboBox>
 		</s:NavigatorContent>
-		<s:NavigatorContent width="100%" height="100%" label="Visualisation temps verticale">
+		<s:NavigatorContent width="100%" height="100%" label="Vue 2d film/activite">
+			<timeline:TimelineWorkSpaceTimeAndMediaViewer left="0" right="0" top="30" bottom="0" theTraceBase="{theBase}" theModel="{theModel}" voTimeline="{voTimelineComboBox2.selectedItem as Timeline}"
+										theTtlLoader="{theTraceLoader}">
+			</timeline:TimelineWorkSpaceTimeAndMediaViewer>
+			<s:ComboBox id="voTimelineComboBox2" x="10" y="-1"
+						creationComplete="voTimelineBox2_creationCompleteHandler(event)"
+						labelField="title" >
+				<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
+			</s:ComboBox>
 		</s:NavigatorContent>
 	</mx:TabNavigator>
 
