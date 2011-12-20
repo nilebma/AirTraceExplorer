@@ -5,9 +5,9 @@
 		   xmlns:timeline="ui.trace.timeline.*"
 		   xmlns:traceSelector="traceSelector.*"
            clipAndEnableScrolling="true"
-		   width="100%" height="40" 
+		   width="100%" 
 		   currentState="small"
-		   height.edition="314" height.small="40" xmlns:timeline1="ui.timeline.*">
+		   height="314" height.small="40" xmlns:timeline1="ui.timeline.*">
 	<fx:Script>
 		<![CDATA[
             import com.ithaca.traces.Obsel;
@@ -29,9 +29,9 @@
             
             protected function editButton_clickHandler(event:MouseEvent):void
             {
-                if(this.currentState == "small")
+                if(this.currentState != "edition")
                     this.setCurrentState("edition");
-                else if(this.currentState == "edition")
+                else
                     this.setCurrentState("small");
             }
             
@@ -67,6 +67,7 @@
 			
 
             
+            
         ]]>
 	</fx:Script>
     <timeline1:states>
@@ -93,14 +94,20 @@
 						direction="horizontal" startPadding="10" endPadding="10"
 						rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
 						traceFilter="{theSelectionEditor.theSelector}" 
-						borderColor="0xFF0000" borderVisible="true" borderStyle="solid" />
+						borderColor="0xFF0000" borderVisible="true" borderStyle="solid" visible = "true"  />
+    
+   
 	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
-		<mx:LinkButton id="editButton" y="12" click="editButton_clickHandler(event)" color="#00078E"
-					   fontSize="9" textDecoration="underline"
-					   x.edition="5" y.edition="12" label.edition="Close Edition"
-					   x.small="40" label.small="Edit"/>
-		<mx:LinkButton x="65" y="12" label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
+        <mx:HBox x="5" y="12" width="100%" height="15"
+                 x.small="-2" y.small="14" horizontalGap="0" >
+                
+            <mx:LinkButton id="editButton" click="editButton_clickHandler(event)" color="#00078E"
+                                    fontSize="9" textDecoration="underline"
+                                    label.edition="Close Edition"
+                                     label="Edit"/>
+            <mx:LinkButton  label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
+		</mx:HBox>
 	</mx:Canvas>
 	<traceSelector:dummyTraceSelectorEditor theSelector="{data.selector}" id="theSelectionEditor" visible.edition="true" visible.small="false"  x="10" y="43">
 	</traceSelector:dummyTraceSelectorEditor>

@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<timeline1:TraceLineWrapperBase xmlns:fx="http://ns.adobe.com/mxml/2009"
+		   xmlns:s="library://ns.adobe.com/flex/spark"
+		   xmlns:mx="library://ns.adobe.com/flex/mx"
+		   xmlns:timeline="ui.trace.timeline.*"
+		   xmlns:traceSelector="traceSelector.*"
+           clipAndEnableScrolling="true"
+		   width="100%" 
+		   currentState="small"
+		   height="314" height.small="40" xmlns:timeline1="ui.timeline.*">
+	<fx:Script>
+		<![CDATA[
+            import com.ithaca.traces.Obsel;
+            import com.ithaca.traces.ObselCollection;
+            
+            import mx.containers.Canvas;
+            import mx.core.UIComponent;
+            import mx.events.CollectionEvent;
+            
+            import spark.components.Group;
+            
+            import traceSelector.dummyTraceSelector;
+            
+            import ui.trace.timeline.TimelineModel;
+            import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+            import ui.trace.timeline.events.TimelineEvent;
+
+
+            
+            protected function editButton_clickHandler(event:MouseEvent):void
+            {
+                if(this.currentState != "edition")
+                    this.setCurrentState("edition");
+                else
+                    this.setCurrentState("small");
+            }
+            
+			
+			
+            override public function set traceData(value:ObselCollection):void
+            {
+                super.traceData = value;
+                theSelectionEditor.obsels = value;
+                the2DTraceLine.traceData = value;
+                
+            }
+            
+
+            
+            [Bindable]
+            public function get selector():dummyTraceSelector
+            {
+                return theSelectionEditor.theSelector;
+            }
+            
+            public function set selector(value:dummyTraceSelector):void
+            {
+                theSelectionEditor.theSelector = value;
+            }
+            
+            // Override styleChanged() to proopgate style changes to compLabelDisplay.
+            override public function styleChanged(styleName:String):void {
+               
+                if(styleName == "small" || styleName == "edition" || styleName == "view2D")
+                    super.styleChanged(styleName);
+                
+            }
+			
+
+            
+            protected function view2DButton_clickHandler(event:MouseEvent):void
+            {
+                // TODO Auto-generated method stub
+                if(this.currentState != "view2D")
+                    this.setCurrentState("view2D");
+                else
+                    this.setCurrentState("small");
+            }
+            
+            
+            //EXPOSITION OF SETTER METHOD FOR THE 2D TRACELINE 
+            
+            override public function set timeRange(value:TimeRange):void
+            {
+                super.timeRange = value;
+                the2DTraceLine.timeRange = value;
+            }
+            
+            override public function set endPadding(value:Number):void
+            {
+                super.endPadding = value;
+                the2DTraceLine.endPadding = value;
+            }
+            
+            override public function set startPadding(value:Number):void
+            {
+                super.startPadding = value;
+                the2DTraceLine.startPadding = value;
+            }
+            
+            override public function set deltaPos(value:Number):void
+            {
+                the2DTraceLine.deltaPos = value;
+            }
+            
+            override public function set renderAlign(value:String):void
+            {
+                super.renderAlign = value;
+                the2DTraceLine.renderAlign = value;
+            }
+            
+            
+            override public function set startEndMatchingProperty(value:String):void
+            {
+                super.startEndMatchingProperty = value;
+                the2DTraceLine.startEndMatchingProperty = value;
+            }
+            
+            override public function set endTraceFilter(value:Object):void
+            {
+                super.endTraceFilter = value;
+                the2DTraceLine.endTraceFilter = value;
+            }
+            
+            override public function set traceFilter(value:Object):void
+            {
+                super.traceFilter = value;
+                the2DTraceLine.traceFilter = value;
+            }
+            
+            override public function invalidateDisplayListOnEvent(e:Event):void
+            {
+                super.invalidateDisplayListOnEvent(e);
+                the2DTraceLine.invalidateDisplayListOnEvent(e);
+            }
+            
+            override public function set direction(value:String):void
+            {
+                super.direction = value;
+                the2DTraceLine.direction = value;
+            }
+            
+            override public function set stopTime(value:Number):void
+            {
+                super.stopTime = value;
+                the2DTraceLine.stopTime = value;
+            }
+            
+            override public function onTraceDataCollectionChange(e:CollectionEvent):void
+            {
+                super.onTraceDataCollectionChange(e);
+                the2DTraceLine.onTraceDataCollectionChange(e);
+            }
+            
+            override public function reset(e:Event = null):void
+            {
+                super.reset(e);
+                the2DTraceLine.reset(e);
+            }
+            
+            override public function set startTime(value:Number):void
+            {
+                super.startTime = value;
+                the2DTraceLine.startTime = value;
+            }
+            
+            override public function timeChanged(n:Number):void
+            {
+                super.timeChanged(n);
+                the2DTraceLine.timeChanged(n);
+            }
+            
+        ]]>
+	</fx:Script>
+    <timeline1:states>
+        <s:State name="small"/>
+        <s:State name="edition"/>
+        <s:State name="view2D"/>
+    </timeline1:states>
+
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+    
+    <s:BorderContainer width="100%" height.small="40" height="314" cornerRadius="10">
+        <s:backgroundFill>
+            <s:LinearGradient id="gradient1" rotation="90">
+                <s:entries>
+                    <s:GradientEntry color="0xEEEEFF" alpha="0.7"/>
+                    <s:GradientEntry color="0x8888AA" alpha="0.7" />
+                </s:entries>
+            </s:LinearGradient>
+        </s:backgroundFill>
+    </s:BorderContainer>
+	<timeline:TraceLineBitmap id="theTraceLine" left="120" right="10" top="10" height="10"
+						direction="horizontal" startPadding="10" endPadding="10"
+						rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
+						traceFilter="{theSelectionEditor.theSelector}" 
+						borderColor="0xFF0000" borderVisible="true" borderStyle="solid" visible = "true" visible.view2D="false" />
+    
+    <timeline:BitmapTraceAndMediaViewerTraceLine id="the2DTraceLine" left="120" right="10" top="10" height="300"
+                              direction="horizontal" startPadding="10" endPadding="10"
+                              rendererFunctionParams="{{'color':0x0000FF, 'minSize':6}}"
+                              traceFilter="{theSelectionEditor.theSelector}" 
+                              borderColor="0xFF0000" borderVisible="true" borderStyle="solid" visible = "false" visible.view2D="true" />
+	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
+        <mx:HBox x="5" y="12" width="100%" height="15"
+                  horizontalGap="0" >
+                
+            <mx:LinkButton id="editButton" click="editButton_clickHandler(event)" color="#00078E"
+                                    fontSize="9" textDecoration="underline"
+                                    label.edition="Close Edition"
+                                     label="Edit"/>
+            
+            <mx:LinkButton id="view2DButton" click="view2DButton_clickHandler(event)" color="#00078E"
+                           fontSize="9" textDecoration="underline"
+                            label="2D"
+                           label.view2D="clode 2D"/>
+            <mx:LinkButton  label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
+		</mx:HBox>
+	</mx:Canvas>
+	<traceSelector:dummyTraceSelectorEditor theSelector="{data.selector}" id="theSelectionEditor" visible.edition="true" visible="false"  x="10" y="43">
+	</traceSelector:dummyTraceSelectorEditor>
+    
+</timeline1:TraceLineWrapperBase>

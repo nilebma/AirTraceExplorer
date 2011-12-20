@@ -112,7 +112,7 @@ package ui.trace.timeline
 				constructBitmapData();
 			}
 			invalidateDisplayList();
-			
+
 		}
 		
 		private function constructBitmapData():void
@@ -275,7 +275,7 @@ package ui.trace.timeline
 					bgAlpha = rendererFunctionParams["alpha"];
 				
 				
-				var argb:uint = returnARGB(bgColor, bgAlpha);
+				var argb:uint = returnARGB(bgColor, 1);
 				
 				
 				//We set the values we will use to draw
@@ -322,8 +322,8 @@ package ui.trace.timeline
 					
 					if (maxCalculatedMediaTimeOfCollection>0){
 						if(!isNaN(obs.getAttributeValueByLabel("calculatedMediaTime"))){
-							theRect = new Rectangle(posDebut,getVerticalPosFromMediaTime(obs.getAttributeValueByLabel("calculatedMediaTime")),size,15);
-							bitmapData.fillRect(theRect,0xFFFF0000);
+							theRect = new Rectangle(posDebut,getVerticalPosFromMediaTime(obs.getAttributeValueByLabel("calculatedMediaTime")),size,20);
+							bitmapData.fillRect(theRect,argb);
 						}
 					}
 				}

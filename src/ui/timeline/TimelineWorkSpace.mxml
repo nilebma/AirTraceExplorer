@@ -378,7 +378,7 @@
 			
 			protected function initTracelineWrapper(e:Event)
 			{
-				var newTraceLine:TracelineWrapper = e.currentTarget as TracelineWrapper;
+				var newTraceLine:TraceLineWrapperBase = e.currentTarget as TraceLineWrapperBase;
 				
 				//TODO
 				newTraceLine.addEventListener("obselClick", onObselLineSelectionChange);
@@ -536,7 +536,7 @@
                 <s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
                 <s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
             </s:Group>
-            <s:List id="theTraceLineList" itemRenderer="ui.timeline.TracelineWrapper" rendererAdd="theTraceLineList_rendererAddHandler(event)" 
+            <s:List id="theTraceLineList" itemRenderer="ui.timeline.TracelineWrapperWith2DMediaView" rendererAdd="theTraceLineList_rendererAddHandler(event)" 
                     dataProvider="{tracelineSelectors}" right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 5}" verticalScrollPolicy="on" />
             <s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
             
