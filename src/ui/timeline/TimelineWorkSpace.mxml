@@ -82,6 +82,8 @@
             
             [Bindable]
             public var obselSelection:ObselCollection = new ObselCollection();
+            
+            private var nbLoadedComplete:Number = 0;
 			
 			public function get voTimeline():Timeline
 			{
@@ -194,8 +196,8 @@
 							relatedIntervals[iit.id] = iit;
 					}
 					
+                    trace("call loadTraces from onUpdateFromServer");
 					loadTraces();
-					initTimeRange();
 					
 					
 				}
@@ -227,9 +229,9 @@
 					
 				}
 				
-				public function loadTraces():void
+				public function loadTraces(somethingNewLoaded:Boolean = false):void
 				{
-					obselCollectionToDisplay = new ObselCollection();
+					
 					
 					var loadedTraces:Array = [];
 					var unloadedTtl:Array = [];
@@ -251,10 +253,13 @@
 					if(unloadedTtl.length > 0)
 					{
 						for each(var t:Ttl in unloadedTtl)
-						loadTTL(t);
+						    loadTTL(t);
 					}
-					else
+					else if(somethingNewLoaded)
 					{
+                        trace("all trace are loaded for "+ nbLoadedComplete++ +" times");
+                        obselCollectionToDisplay.removeAll();
+                        
 						initTimeRange();
                         
                         var arTraceUris:ArrayCollection = new ArrayCollection();
@@ -269,11 +274,11 @@
                             arTraceUris.addItem(aTrace.uri);
                             
 						}
-                        obselCollectionToDisplay.pushMultiple(obselsToAdd);
+                        
 						
-						subTraceLine.traceData = obselCollectionToDisplay;
+						//subTraceLine.traceData = obselCollectionToDisplay;
                         //commentLine.traceData = obselCollectionToDisplay;
-						contextTraceLine.traceData = obselCollectionToDisplay;
+						//contextTraceLine.traceData = obselCollectionToDisplay;
 						contextSelectionTraceLine.startTime = timeRange.begin;
 						contextSelectionTraceLine.stopTime = timeRange.end;
 						contextTraceLine.startTime = timeRange.begin;
@@ -283,6 +288,8 @@
 						curseurTraceLine.currentTime = timeRange.begin;
 						playLine.startTime = timeRange.begin;
 						playLine.stopTime = timeRange.end;
+                        
+                        obselCollectionToDisplay.pushMultiple(obselsToAdd);
                         
                         theScreenshotViewer.traceUris = arTraceUris;
 						
@@ -327,8 +334,11 @@
 							
 						}
 						
-						loadTraces();
+                        trace("call loadTraces from onTtlLoaded");
+						loadTraces(true);
 					}
+                    else
+                        trace("not loaded","getAllTraceResult.lastResult",getAllTraceResult.lastResult);
 				}
 				
 				protected function getTtlByUrl(url:String):Ttl

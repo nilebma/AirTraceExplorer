@@ -74,6 +74,7 @@ package ui.trace.timeline
 	import flash.filters.BitmapFilterQuality;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.utils.Dictionary;
 	
 	import mx.collections.ArrayCollection;
 	import mx.containers.Canvas;
@@ -113,6 +114,14 @@ package ui.trace.timeline
 		public var rendererFunctionData:Object = null;
 		private var currentTT:ObselPreviewer;
 
+        
+        private var timeGen:Number = 0;
+        private var timeInteraction:Number = 0;
+        private var timeDrawing:Number = 0;
+        private var timeSetting:Number = 0;
+        private var timeRetrievingParam:Number = 0;
+        private var timeTesting:Number = 0;
+        
 		
 
 
@@ -166,6 +175,56 @@ package ui.trace.timeline
             
             invalidateDisplayList();
 		}
+        
+        override public function onTraceDataCollectionChange(e:CollectionEvent):void
+        {
+            if(e.kind == CollectionEventKind.ADD)
+            {
+                var d1:Number = new Date().time;
+                var timeFiltering:Number = 0;
+                var timeRendering:Number = 0;
+                var timeListening:Number = 0;
+                var timeSorting:Number = 0;
+                var newFilteredObsels:ObselCollection = new ObselCollection();
+                for each(var item:Obsel in e.items)
+                {
+                    var df:Number = new Date().time;
+                    if(filterObsel(item))
+                    {
+                        newFilteredObsels.push(item);
+                        timeFiltering += new Date().time - df;
+                        
+
+                        
+                        var dl:Number = new Date().time;
+                        listenObsels(item);
+                        timeListening += new Date().time - dl;
+                        
+                    }
+                    else
+                        timeFiltering += new Date().time - df;
+                    
+                   
+                }
+                
+                var ds:Number = new Date().time;
+                newFilteredObsels.sortByBegin();
+                filteredTrace.pushFromOtherObselCollection(newFilteredObsels._obsels);
+                timeSorting += new Date().time - ds;
+                
+                var dr:Number = new Date().time;
+                renderMultipleObsels(newFilteredObsels);
+                timeRendering += new Date().time - dr;
+                
+                var timeGen:Number = new Date().time - d1;
+                trace(id, "Adding", e.items.length, "obsels", "nbRendering", nbRendering, "time", timeGen);
+                trace("rendering",timeRendering,"listening",timeListening,"filtering",timeFiltering,"other",timeGen - timeFiltering - timeListening - timeRendering);
+                if(this is TraceLineBitmap)
+                    (this as TraceLineBitmap).traceRenderTime();
+            }
+            else
+                super.onTraceDataCollectionChange(e);
+        }
 		
 		private function constructBitmapData():void
 		{
@@ -188,6 +247,7 @@ package ui.trace.timeline
            bitmapImage.source = bitmapData;
            bitmapImage.smooth = true;
            
+           trace(id,"nbConstruct", nbConstruct++, "nbRendering",nbRendering);
 		}
 		
 
@@ -303,13 +363,25 @@ package ui.trace.timeline
 				(rendererFunctionData["obsAndRect"] as ArrayCollection).addItem({"obs":obs,"rect":theRect});
 			}
 		}*/
+        
+        public function traceRenderTime():void
+        {
+            trace("timeGen",timeGen,"timeInteraction", timeInteraction,
+                "timeDrawing", timeDrawing, "timeSetting", timeSetting,
+                "timeRetrievingParam", timeRetrievingParam,
+                "other", timeGen - timeInteraction - timeDrawing - timeSetting - timeRetrievingParam - timeTesting);
+        }
 		
         override protected function renderObsel(obs:Obsel):void
 		{
+            var dg:Number = new Date().time;            
 			//If the obsel is (event partly) in the time window to display
-			if(!isNaN(getPosFromTime(Number(obs["begin"]))) || !isNaN(getPosFromTime(Number(obs["end"]))))
-			{
-				//We deal with renderinfFunctionParams Object
+			//if(!isNaN(getPosFromTime(Number(obs["begin"]))) || !isNaN(getPosFromTime(Number(obs["end"]))))
+			//{
+                
+                //We deal with renderinfFunctionParams Object
+                var drp:Number = new Date().time;
+				
 				var bgColor:uint = 0x00FF00;
 				if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("color"))
 					bgColor = rendererFunctionParams["color"];
@@ -322,56 +394,190 @@ package ui.trace.timeline
 				if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("alpha"))
 					bgAlpha = rendererFunctionParams["alpha"];
                 
+                timeRetrievingParam += new Date().time - drp;
                 
                 var argb:uint = returnARGB(bgColor, bgAlpha);
 				
+                
+                
+                //We set the values we will use to draw
+                var ds:Number = new Date().time;
 				
-				//We set the values we will use to draw
 				var posDebut:Number = timeRange.timeToPosition(Number(obs["begin"]),8000);
+                
+                var abort:Boolean = false;
 				
 				if(isNaN(posDebut) || posDebut < 0) //if the begin of the obsel is not in the time window to displau
-					posDebut = 0;
+                    abort = true;
 				
-				var size:Number;
-				if(!isNaN(getPosFromTime(Number(obs["end"]))))
-					size = timeRange.timeToPosition(Number(obs["end"]),8000) - posDebut;
+				var size:Number = timeRange.timeToPosition(Number(obs["end"]),8000) 
+				if(!isNaN(size))
+					size -= posDebut;
 				else
-					size = this.width;
+				    abort = true;
+                    //size = this.width;
 				
 				size = Math.max(size,minSize);
 				//posDebut -= size/2;
+                
+                timeSetting += new Date().time - ds;
+                
+                if(abort)
+                {
+                    timeGen += new Date().time - dg;
+                    return;
+                }
 				
                // bitmapData.fillRect(new Rectangle(posDebut,0,size,this.height),argb);
                 
+                
+                
 				//we draw
-				if(!isNaN(posDebut) && !isNaN(size))
-				{
-					for(var i:int = posDebut; i < Math.min(posDebut+size,8000); i++)
-                    {
-                        var currentColor:uint = bitmapData.getPixel32(i,0);
-                        if(currentColor == 0x00000000)
-                            bitmapData.setPixel32(i,0,argb);
-                        else
-                        {
-                            var newColor:uint = addAtoARGB(currentColor,bgAlpha);
-                            bitmapData.setPixel32(i,0,newColor);
-                        }
-                            
-                        //bitmapData.setPixel(i,0,argb);
-                    }
-						
-				}	
+                renderDrawingObsel(posDebut, size, obs, argb, bgAlpha);
 				
-				//we save the rectange coordinates and map it with the obsel (useful for mouse interaction amongst other things)
-				var theRect:Rectangle;		
-				if(direction == "vertical")
-					theRect = new Rectangle(0,posDebut,this.width,size);
-				else
-					theRect = new Rectangle(posDebut,0,size,this.height);
-				
-				(rendererFunctionData["obsAndRect"] as ArrayCollection).addItem({"obs":obs,"rect":theRect});
-			}
+                renderHandlingInteraction(posDebut, size, obs);
+                
+                nbRendering++;
+			
+            
+            timeGen += new Date().time - dg;
+            
+
 		}
+        
+        
+        protected function renderMultipleObsels(obsCol:ObselCollection):void
+        {
+            var dg:Number = new Date().time;            
+            //If the obsel is (event partly) in the time window to display
+            //if(!isNaN(getPosFromTime(Number(obs["begin"]))) || !isNaN(getPosFromTime(Number(obs["end"]))))
+            //{
+            
+            //We deal with renderinfFunctionParams Object
+            var drp:Number = new Date().time;
+            
+            var bgColor:uint = 0x00FF00;
+            if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("color"))
+                bgColor = rendererFunctionParams["color"];
+            
+            var minSize:Number = 8;
+            if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("minSize"))
+                minSize = rendererFunctionParams["minSize"];
+            
+            var bgAlpha:Number = 1;
+            if(rendererFunctionParams && rendererFunctionParams.hasOwnProperty("alpha"))
+                bgAlpha = rendererFunctionParams["alpha"];
+            
+            timeRetrievingParam += new Date().time - drp;
+            
+            
+            var ds:Number = new Date().time;
+            var argb:uint = returnARGB(bgColor, bgAlpha);
+            
+            
+            //We get the measure of the timeRanges
+            var localDuration:Number = timeRange.getDurationMinusTimeHoles(timeRange.begin, timeRange.end);
+            var timeRangesInfo:Array = timeRange.getRangesWithPositions(8000);
+            var coeff:Number = 8000 / localDuration;
+            
+            var obsColWithPos:Dictionary = new Dictionary();
+            
+            var iRange:int = 0;
+            for each(var obs:Obsel in obsCol._obsels)
+            {
+                if(obs.begin > timeRangesInfo[iRange+1]["begin"] && iRange+3 < timeRangesInfo.length )
+                {
+                    trace("to");
+                    iRange += 2;
+                }
+                obsColWithPos[obs] = {};
+                var pb:Number = (timeRangesInfo[iRange]["posBegin"]) + (( obs.begin - timeRangesInfo[iRange]["begin"] ) * coeff);
+                obsColWithPos[obs]["posBegin"] = pb;
+            }
+            
+            obsCol.sortByEnd()
+            iRange = 0;
+            for each(var obs:Obsel in obsCol._obsels)
+            {
+                if(obs.end > timeRangesInfo[iRange+1]["begin"] && iRange+2 < timeRangesInfo.length )
+                    iRange += 2;
+                
+                obsColWithPos[obs]["posEnd"] = (timeRangesInfo[iRange]["posBegin"]) + (( obs.end - timeRangesInfo[iRange]["begin"] ) * coeff);
+            }
+            
+            timeSetting += new Date().time - ds;
+            
+        
+            for(var theObsel:Object in obsColWithPos)
+            {
+                var oPos:Object = obsColWithPos[theObsel]
+                var posDebut:Number = oPos["posBegin"];
+                var size:Number = oPos["posEnd"] - posDebut;
+                
+                size = Math.max(size, minSize);
+                
+                renderDrawingObsel(posDebut, size, theObsel as Obsel, argb, bgAlpha);
+                                
+                renderHandlingInteraction(posDebut, size, theObsel as Obsel);
+                
+                nbRendering++;
+            }
+            
+        
+            
+            
+            
+
+            
+
+
+            
+            
+            
+            timeGen += new Date().time - dg;
+            
+            
+        }
+        
+        private function renderDrawingObsel(posDebut:Number, size:Number, obs:Obsel, argb:uint, bgAlpha:Number):void
+        {
+            var dr:Number = new Date().time;
+            if(!isNaN(posDebut) && !isNaN(size))
+            {
+                for(var i:int = posDebut; i < Math.min(posDebut+size,8000); i++)
+                {
+                    var currentColor:uint = bitmapData.getPixel32(i,0);
+                    if(currentColor == 0x00000000)
+                        bitmapData.setPixel32(i,0,argb);
+                    else
+                    {
+                        var newColor:uint = addAtoARGB(currentColor,bgAlpha);
+                        bitmapData.setPixel32(i,0,newColor);
+                    }
+                    
+                    //bitmapData.setPixel(i,0,argb);
+                }
+                
+            }	
+            
+            timeDrawing += new Date().time - dr;
+        }
+        
+        private function renderHandlingInteraction(posDebut:Number, size:Number, obs:Obsel):void
+        {
+            var di:Number = new Date().time;
+            //we save the rectange coordinates and map it with the obsel (useful for mouse interaction amongst other things)
+            var theRect:Rectangle;		
+            if(direction == "vertical")
+                theRect = new Rectangle(0,posDebut,this.width,size);
+            else
+                theRect = new Rectangle(posDebut,0,size,this.height);
+            
+            (rendererFunctionData["obsAndRect"] as ArrayCollection).addItem({"obs":obs,"rect":theRect});
+            
+            timeInteraction += new Date().time - di;
+        }
+        
 		
 		
         private function returnARGB(rgb:uint, newAlpha:Number):uint{

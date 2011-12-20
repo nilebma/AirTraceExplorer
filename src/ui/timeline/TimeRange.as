@@ -415,5 +415,21 @@ package ui.timeline
 			return arReturn;
 			
 		}
+        
+        //Return an array of ranges {number:int,begin:Number,end:Number,posBegin:Number, posEnd:Number, size:Number] representing the different ranges considered in a space, with the size of this space given
+        public function getRangesWithPositions(width:Number):Array
+        {
+            var arReturn:Array = [];
+            for ( var i : int = 0; i < _ranges.length-1; i+=2 )
+            {
+                var or:Object = {"number":i, "begin":_ranges[i], "end":_ranges[i+1]};
+                or["posBegin"] = timeToPosition(_ranges[i],width);
+                or["posEnd"] = timeToPosition(_ranges[i+1],width);
+                or["size"] = or["posEnd"] - or["posBegin"];
+                arReturn.push(or);
+            }
+            return arReturn;
+            
+        }
 	}
 }
