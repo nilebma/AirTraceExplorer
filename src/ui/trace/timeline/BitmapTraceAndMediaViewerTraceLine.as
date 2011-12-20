@@ -59,7 +59,7 @@ package ui.trace.timeline
 		private const BITMAPSIZE:Number = 4000;
 		public var maxMediaTime:Number;
 		[Bindable]
-		protected var _forceMaxMediaTime:Boolean;
+		protected var _forceMaxMediaTime:Boolean = false;
 		[Bindable]
 		protected var _forcedMaxMediaTime:Number;
 		// Vars for trace improvement
@@ -103,6 +103,8 @@ package ui.trace.timeline
 		public function set forceMaxMediaTime(value:Boolean):void
 		{
 			_forceMaxMediaTime = value;
+            
+            //TODO : We should reinit display here if forcedMaxMediaTime is true
 
 		}		
 		
@@ -115,6 +117,7 @@ package ui.trace.timeline
 		{
 			_forcedMaxMediaTime = value;
 			
+            //TODO : We should reinit display here if a forceMaxMediaTime is set
 		}				
 		
 		
@@ -133,7 +136,7 @@ package ui.trace.timeline
 			trace("initDisplay");
 			if(filteredTrace){
 				completeTraceWithcalculatedMediaTime("Player1",filteredTrace);
-				if (forceMaxMediaTime=="false"){
+				if (forceMaxMediaTime==false){
 					maxMediaTime=getMaxCalculatedMediaTimeFromObsels(filteredTrace);
 				} else {
 					maxMediaTime=_forcedMaxMediaTime;
