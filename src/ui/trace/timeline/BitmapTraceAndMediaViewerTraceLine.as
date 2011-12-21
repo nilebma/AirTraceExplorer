@@ -310,6 +310,16 @@ package ui.trace.timeline
 				var argb:uint = returnARGB(bgColor, 1);
 				
 				
+				// Color : one color per obsel type
+				var ind:Number=0;
+				var colorVal:Number=0;
+				for (ind;ind<obs.obselType.label.length;ind++){
+					colorVal=colorVal+(obs.obselType.label.charCodeAt(ind)*100);
+				}
+				var colorArgb:uint=0x00FF00;
+				colorArgb=returnARGB(colorVal, 1);
+				
+				
 				//We set the values we will use to draw
 				var posDebut:Number = timeRange.timeToPosition(Number(obs["begin"]),BITMAPSIZE);
 				
@@ -355,7 +365,8 @@ package ui.trace.timeline
 					if (maxMediaTime>0){
 						if(!isNaN(obs.getAttributeValueByLabel("calculatedMediaTime"))){
 							theRect = new Rectangle(posDebut,getVerticalPosFromMediaTime(obs.getAttributeValueByLabel("calculatedMediaTime")),size,20);
-							bitmapData.fillRect(theRect,argb);
+							//bitmapData.fillRect(theRect,argb);
+							bitmapData.fillRect(theRect,colorArgb);
 						}
 					}
 				}
