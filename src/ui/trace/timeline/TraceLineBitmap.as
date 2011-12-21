@@ -217,8 +217,8 @@ package ui.trace.timeline
                 timeRendering += new Date().time - dr;
                 
                 var timeGen:Number = new Date().time - d1;
-                trace(id, "Adding", e.items.length, "obsels", "nbRendering", nbRendering, "time", timeGen);
-                trace("rendering",timeRendering,"listening",timeListening,"filtering",timeFiltering,"other",timeGen - timeFiltering - timeListening - timeRendering);
+                //trace(id, "Adding", e.items.length, "obsels", "nbRendering", nbRendering, "time", timeGen);
+                //trace("rendering",timeRendering,"listening",timeListening,"filtering",timeFiltering,"other",timeGen - timeFiltering - timeListening - timeRendering);
                 if(this is TraceLineBitmap)
                     (this as TraceLineBitmap).traceRenderTime();
             }
@@ -247,7 +247,7 @@ package ui.trace.timeline
            bitmapImage.source = bitmapData;
            bitmapImage.smooth = true;
            
-           trace(id,"nbConstruct", nbConstruct++, "nbRendering",nbRendering);
+           //trace(id,"nbConstruct", nbConstruct++, "nbRendering",nbRendering);
 		}
 		
 
@@ -437,7 +437,7 @@ package ui.trace.timeline
 				
                 renderHandlingInteraction(posDebut, size, obs);
                 
-                nbRendering++;
+                //nbRendering++;
 			
             
             timeGen += new Date().time - dg;
@@ -520,7 +520,7 @@ package ui.trace.timeline
                                 
                 renderHandlingInteraction(posDebut, size, theObsel as Obsel);
                 
-                nbRendering++;
+                //nbRendering++;
             }
             
         
