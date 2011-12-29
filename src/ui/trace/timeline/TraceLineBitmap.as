@@ -499,7 +499,7 @@ package ui.trace.timeline
             iRange = 0;
             for each(var obs:Obsel in obsCol._obsels)
             {
-                if(obs.end > timeRangesInfo[iRange+1]["begin"] && iRange+2 < timeRangesInfo.length )
+                if(obs.end > timeRangesInfo[iRange+1]["begin"] && iRange+3 < timeRangesInfo.length )
                     iRange += 2;
                 
                 obsColWithPos[obs]["posEnd"] = (timeRangesInfo[iRange]["posBegin"]) + (( obs.end - timeRangesInfo[iRange]["begin"] ) * coeff);
