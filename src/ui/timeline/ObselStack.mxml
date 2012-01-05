@@ -43,7 +43,7 @@
 				//on initialise les champs
 				previousStack.label="previous";
 				nextStack.label="next";
-				obselActu.text = "1";
+				obselActu.text = (viewstackGeneric.numChildren == 0)?"0":"1";
 				sur.text = "sur";
 				nbObselTotal.text = viewstackGeneric.numChildren.toString();
 				//on traite les boutons
