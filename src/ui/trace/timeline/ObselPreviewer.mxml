@@ -45,9 +45,11 @@
 			{
 				if(!title)
 					title = chain;
-				var htText:String = "<b>"+title+" : </b>"+host[chain];
+				var htText:String = "<li><b>"+title+" : </b>"+host[chain]+"</li>";
 				
-				var textBox:Text =  new Text();
+				var textBox:mx.core.UITextField = new mx.core.UITextField();
+				textBox.wordWrap = true;
+				textBox.width = 260;
 				textBox.htmlText = htText;
 				//TODO : limiter la textbox a deux lignes de hauteur et environ 300px de largeur
 				dataBox.addChild(textBox);
@@ -60,7 +62,7 @@
 
 		]]>
 	</mx:Script>
-	<mx:VBox width="100%" id="vBox" backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" horizontalScrollPolicy="off">
+	<mx:VBox width="100%" id="vBox" backgroundColor="#F5CC3F" cornerRadius="12" borderStyle="solid" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
 		<mx:Label id="headLabel" />
 		<mx:VBox id="dataBox"></mx:VBox>
 		<mx:Label id="footer" />
