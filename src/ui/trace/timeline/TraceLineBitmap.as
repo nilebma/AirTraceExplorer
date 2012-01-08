@@ -671,7 +671,7 @@ package ui.trace.timeline
 				//currentTT = ToolTipManager.createToolTip("Il y a "+ obselset.length +" Obsels", e.stageX+5, e.stageY) as CustomToolTip;
 				var obsPreview:ObselPreviewer = new ObselPreviewer;
 				if(mx.core.FlexGlobals.topLevelApplication.width/2 < e.stageX)
-					obsPreview.x = e.stageX-270;
+					obsPreview.x = e.stageX-280;
 				else obsPreview.x = e.stageX;
 				obsPreview.y = e.stageY;
 				obsPreview.data = obselset;
