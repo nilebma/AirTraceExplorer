@@ -8,7 +8,9 @@
 		 xmlns:mediaservice="services.mediaservice.*"
 		 xmlns:mediaInTimeline="ui.mediaInTimeline.*"
 		 xmlns:traceInTimeline="ui.traceInTimeline.*"
-		 width="100%" height="100%" xmlns:intervalles="ui.intervalles.*">
+		 width="100%" 
+         height="100%" 
+         xmlns:intervalles="ui.intervalles.*">
 	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
