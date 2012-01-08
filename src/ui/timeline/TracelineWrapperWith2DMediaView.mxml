@@ -10,23 +10,53 @@
 		   height="314" height.small="40" xmlns:timeline1="ui.timeline.*">
 	<fx:Script>
 		<![CDATA[
-            import com.ithaca.traces.Obsel;
-            import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			
+			import mx.containers.Canvas;
+			import mx.core.UIComponent;
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			
+			import spark.components.Group;
+			
+			import traceSelector.dummyTraceSelector;
+			
+			import ui.trace.timeline.PlayLineRenders.PlayHead;
+			import ui.trace.timeline.PlayLineRenders.PlayHeadWithTime;
+			import ui.trace.timeline.TimelineModel;
+			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+			import ui.trace.timeline.events.TimelineEvent;
             
-            import mx.containers.Canvas;
-            import mx.core.UIComponent;
-            import mx.events.CollectionEvent;
-            
-            import spark.components.Group;
-            
-            import traceSelector.dummyTraceSelector;
-            
-            import ui.trace.timeline.TimelineModel;
-            import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
-            import ui.trace.timeline.events.TimelineEvent;
-
-
-            
+			/*[bindable]
+			public var _timeAndPlayManager:TimeAndPlayManager;
+			
+			public function get timeAndPlayManager():TimeAndPlayManager
+			{
+				return _timeAndPlayManager;
+			}
+			
+			public function set timeAndPlayManager(value:TimeAndPlayManager):void
+			{
+					_timeAndPlayManager = value;
+			}*/
+			
+			[bindable]
+			public var _currentTime:Number;
+			
+			public function get currentTime():Number
+			{
+				return _currentTime;
+			}
+			
+			public function set currentTime(value:Number):void
+			{
+				//marche seulement si set currentTime appele a chaque fois
+				_currentTime = value;
+				trace("toto");
+				verticalPlayLine.currentTime=the2DTraceLine.getMediaTimeFromActivityTime(currentTime);
+			}
+			
             protected function editButton_clickHandler(event:MouseEvent):void
             {
                 if(this.currentState != "edition")
@@ -45,6 +75,13 @@
                 
             }
             
+			/*override protected function oncreationCompleteHandler(event:FlexEvent):void
+			{
+				super.oncreationCompleteHandler(event);
+				if(the2DTraceLine)
+					the2DTraceLine.addEventListener("obselClick", theTraceLine_obselClickHandler);
+				
+			}*/
 
             
             [Bindable]
@@ -170,7 +207,14 @@
                 the2DTraceLine.timeChanged(n);
             }
             
-        ]]>
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				verticalPlayLine.stopTime=the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData);
+				//the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData)
+			}
+			
+		]]>
 	</fx:Script>
     <timeline1:states>
         <s:State name="small"/>
@@ -192,6 +236,18 @@
                 </s:entries>
             </s:LinearGradient>
         </s:backgroundFill>
+		<timeline:PlayLine id="verticalPlayLine" height="20" borderColor="0x0000FF"
+						   borderStyle="solid" borderVisible="true" currentTime="500"
+						   direction="vertical" renderAlign="middle"
+						   RendererType="{PlayHeadWithTime}" startTime="1"
+						   stopTime="1000"
+						   visible.edition="false" left.edition="120" right.edition="1152"
+						   top.edition="20" borderVisible.edition="false"
+						   left.small="120" right.small="25" top.small="20"
+						   borderVisible.small="false"
+						   x.view2D="107" y.view2D="9" width.view2D="53" height.view2D="300"/>
+		<s:Button includeIn="view2D" x="13" y="121" label="Bouton"
+				  click="button1_clickHandler(event)"/>
     </s:BorderContainer>
 	<timeline:TraceLineBitmap id="theTraceLine" left="120" right="10" top="10" height="10"
 						direction="horizontal" startPadding="10" endPadding="10"
@@ -199,11 +255,34 @@
 						traceFilter="{theSelectionEditor.theSelector}" 
 						borderColor="0xFF0000" borderVisible="true" borderStyle="solid" visible = "true" visible.view2D="false" />
     
-    <timeline:BitmapTraceAndMediaViewerTraceLine id="the2DTraceLine" left="120" right="10" top="10" height="300"
-                              direction="horizontal" startPadding="10" endPadding="10"
-                              rendererFunctionParams="{{'color':0x0000FF, 'minSize':6}}"
-                              traceFilter="{theSelectionEditor.theSelector}" 
-                              borderColor="0xFF0000" borderVisible="true" borderStyle="solid" visible = "false" visible.view2D="true" />
+    <timeline:BitmapTraceAndMediaViewerTraceLine id="the2DTraceLine" visible="false" left="120"
+												 right="10" top="10" height="300"
+												 borderColor="0xFF0000" borderStyle="solid"
+												 borderVisible="true" direction="horizontal"
+												 endPadding="10"
+												 rendererFunctionParams="{{'color':0x0000FF, 'minSize':6}}"
+												 startPadding="10"
+												 traceFilter="{theSelectionEditor.theSelector}"
+												 visible.view2D="true" left.view2D="161"
+												 right.view2D="10" top.view2D="10" obselClick="theTraceLine_obselClickHandler(event)" />
+	<!--<timeline:CurseurVertical id="curseur" x="33" y="24" width="43" height="{previewTimelineContainer.height - 28}" 
+							  startEdge="24" endEdge="{previewTimelineContainer.height - 28}"  
+							  minimumSize="70" lockSize="70" lockPosition="35"
+							  startTime="{_model.startTime}"
+							  stopTime="{_model.stopTime}" 
+							  startAndEndDelta="3"
+							  currentTime="{_model.currentTime}"
+							  zoomChange="updateZoomToContextEffect()"
+							  locked="true"/>-->
+	<!--<timeline:CurseurVertical id="curseur" x="33" y="24" width="43" height="{previewTimelineContainer.height - 28}" 
+							  startEdge="24" endEdge="{previewTimelineContainer.height - 28}"  
+							  minimumSize="70" lockSize="70" lockPosition="35"
+							  startTime="{_model.startTime}"
+							  stopTime="{_model.stopTime}" 
+							  startAndEndDelta="3"
+							  currentTime="{_model.currentTime}"
+							  zoomChange="updateZoomToContextEffect()"
+							  locked="true"/>-->
 	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
         <mx:HBox x="5" y="12" width="100%" height="15"
@@ -217,7 +296,7 @@
             <mx:LinkButton id="view2DButton" click="view2DButton_clickHandler(event)" color="#00078E"
                            fontSize="9" textDecoration="underline"
                             label="2D"
-                           label.view2D="clode 2D"/>
+                           label.view2D="close 2D"/>
             <mx:LinkButton  label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
 		</mx:HBox>
 	</mx:Canvas>

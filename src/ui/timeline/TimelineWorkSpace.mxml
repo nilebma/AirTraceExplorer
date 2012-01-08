@@ -385,6 +385,12 @@
 				BindingUtils.bindProperty(newTraceLine,"startTime",curseurTraceLine,"zoomStartTime");
 				BindingUtils.bindProperty(newTraceLine,"stopTime",curseurTraceLine,"zoomStopTime");
 				//BindingUtils.bindProperty(newTraceLine,"traceData",this,"obselCollectionToDisplay");
+				
+				
+				//ajout de timeandplaymanager
+				if (newTraceLine is TracelineWrapperWith2DMediaView){
+					BindingUtils.bindProperty(newTraceLine,"currentTime",timeAndPlayManager,"currentTime");
+				}
 				newTraceLine.traceData = obselCollectionToDisplay;
 				newTraceLine.timeRange = timeRange;
 			}
