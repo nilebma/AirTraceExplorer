@@ -485,24 +485,35 @@ package ui.trace.timeline
             var iRange:int = 0;
             for each(var obs:Obsel in obsCol._obsels)
             {
-                if(obs.begin > timeRangesInfo[iRange+1]["begin"] && iRange+3 < timeRangesInfo.length )
-                {
-                    trace("to");
+                while(iRange+2 < timeRangesInfo.length && obs.begin > timeRangesInfo[iRange+1]["begin"])
                     iRange += 2;
+                
+                if(obs.begin >= timeRangesInfo[iRange]["begin"])
+                {
+                    var pb:Number = timeRangesInfo[iRange]["posBegin"] + (( obs.begin - timeRangesInfo[iRange]["begin"] ) * coeff);
+                    obsColWithPos[obs] = {"posBegin" : pb, "inhole" : false};
                 }
-                obsColWithPos[obs] = {};
-                var pb:Number = (timeRangesInfo[iRange]["posBegin"]) + (( obs.begin - timeRangesInfo[iRange]["begin"] ) * coeff);
-                obsColWithPos[obs]["posBegin"] = pb;
+                else
+                    obsColWithPos[obs] = {"posBegin" : timeRangesInfo[iRange]["posBegin"], "inhole" : true};
             }
             
             obsCol.sortByEnd()
             iRange = 0;
             for each(var obs:Obsel in obsCol._obsels)
             {
-                if(obs.end > timeRangesInfo[iRange+1]["begin"] && iRange+3 < timeRangesInfo.length )
+                while(iRange+2 < timeRangesInfo.length && obs.end > timeRangesInfo[iRange+1]["begin"]  )
                     iRange += 2;
                 
-                obsColWithPos[obs]["posEnd"] = (timeRangesInfo[iRange]["posBegin"]) + (( obs.end - timeRangesInfo[iRange]["begin"] ) * coeff);
+                if(obs.begin >= timeRangesInfo[iRange]["begin"])                    
+                    obsColWithPos[obs]["posEnd"] = (timeRangesInfo[iRange]["posBegin"]) + (( obs.end - timeRangesInfo[iRange]["begin"] ) * coeff);
+                else
+                {
+                    if(obsColWithPos[obs]["inhole"] == false)
+                        obsColWithPos[obs]["posEnd"] = timeRangesInfo[Math.max(0,iRange-1)]["posBegin"];
+                    else
+                        delete obsColWithPos[obs];
+                        
+                }
             }
             
             timeSetting += new Date().time - ds;
