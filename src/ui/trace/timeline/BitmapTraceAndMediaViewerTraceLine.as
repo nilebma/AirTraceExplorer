@@ -584,7 +584,7 @@ package ui.trace.timeline
 		// Function returning the media time from an activity time
 		public function getMediaTimeFromActivityTime(value:Number):Number{
 			var previousObs:Obsel;
-			var currentObs:Obsel;
+
 			if (_traceData){
 				for each(var obs:Obsel in _traceData._obsels){
 					if (obs.begin){
@@ -604,10 +604,10 @@ package ui.trace.timeline
 					// On se place sur le dernier obs précédent le temps de l'activite
                     var currentObsIndex:Number =_traceData.getItemIndex(previousObs);
                     
-                    while (currentObsIndex > 0 && !updateTimeDataFromObsel(_traceData.getItemAt(currentObsIndex) as Obsel,"Player1"))
+                    while (currentObsIndex >= 0 && !updateTimeDataFromObsel(_traceData.getItemAt(currentObsIndex) as Obsel,"Player1"))
                         currentObsIndex--;
                     
-						if (!currentObs){
+						if (currentObsIndex < 0){
 							return (obs.getAttributeValueByLabel("calculatedMediaTime"));
 						}
 						//On renvoie le calculatedMediaTime de l'obsel previousObs
