@@ -547,10 +547,7 @@
 					rendererAdd="theTraceLineList_rendererAddHandler(event)" 
                     dataProvider="{tracelineSelectors}" 
 					right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 5}" 
-					verticalScrollPolicy="on"
-					dragEnabled="true"
-					dragMoveEnabled="true"
-					dropEnabled="true"/>
+					verticalScrollPolicy="on"/>
             <s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
             
         </mx:Canvas>
