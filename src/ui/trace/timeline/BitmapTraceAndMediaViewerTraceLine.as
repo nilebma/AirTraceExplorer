@@ -602,15 +602,11 @@ package ui.trace.timeline
 				if (previousObs){
 					//On retourne en arriere jusqu'a ce que retourne true updateTime
 					// On se place sur le dernier obs précédent le temps de l'activite
-					currentObs=previousObs;
-					while (!updateTimeDataFromObsel(currentObs,"Player1")){
-						if (!currentObs){
-							break;
-						}
-							currentObs=_traceData.getItemAt(_traceData.getItemIndex(currentObs)-1) as Obsel;	
-						
-						
-					} 
+                    var currentObsIndex:Number =_traceData.getItemIndex(previousObs);
+                    
+                    while (currentObsIndex > 0 && !updateTimeDataFromObsel(_traceData.getItemAt(currentObsIndex) as Obsel,"Player1"))
+                        currentObsIndex--;
+                    
 						if (!currentObs){
 							return (obs.getAttributeValueByLabel("calculatedMediaTime"));
 						}
