@@ -72,7 +72,8 @@
                 super.traceData = value;
                 theSelectionEditor.obsels = value;
                 the2DTraceLine.traceData = value;
-                
+				verticalPlayLine.stopTime=the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData);
+				trace(the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData));
             }
             
 			/*override protected function oncreationCompleteHandler(event:FlexEvent):void
@@ -227,7 +228,8 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
     
-    <s:BorderContainer width="100%" height.small="40" height="314" cornerRadius="10">
+    <s:BorderContainer width="100%" height="314" cornerRadius="10"
+					   x.small="2" y.small="0" height.small="40">
         <s:backgroundFill>
             <s:LinearGradient id="gradient1" rotation="90">
                 <s:entries>
@@ -239,32 +241,33 @@
 		<timeline:PlayLine id="verticalPlayLine" height="20" borderColor="0x0000FF"
 						   borderStyle="solid" borderVisible="true" currentTime="500"
 						   direction="vertical" renderAlign="middle"
-						   RendererType="{PlayHeadWithTime}" startTime="1"
-						   stopTime="1000"
+						   RendererType="{PlayHeadWithTime}" startTime="1" stopTime="1000"
 						   visible.edition="false" left.edition="120" right.edition="1152"
 						   top.edition="20" borderVisible.edition="false"
 						   left.small="120" right.small="25" top.small="20"
 						   borderVisible.small="false"
-						   x.view2D="107" y.view2D="9" width.view2D="53" height.view2D="300"/>
-		<s:Button includeIn="view2D" x="13" y="121" label="Bouton"
-				  click="button1_clickHandler(event)"/>
+						   x.view2D="80" y.view2D="10" width.view2D="72" height.view2D="298"
+						   borderVisible.view2D="false" dropShadowVisible.view2D="false"/>
+		<timeline:BitmapTraceAndMediaViewerTraceLine id="the2DTraceLine" visible="false" height="300"
+													 borderColor="0xFF0000" borderStyle="solid"
+													 borderVisible="true" direction="horizontal"
+													 endPadding="10"
+													 obselClick="theTraceLine_obselClickHandler(event)"
+													 rendererFunctionParams="{{'color':0x0000FF, 'minSize':6}}"
+													 startPadding="10"
+													 traceFilter="{theSelectionEditor.theSelector}"
+													 left.edition="120" right.edition="10"
+													 top.edition="10"
+													 left.small="120" right.small="10"
+													 top.small="10"
+													 visible.view2D="true" left.view2D="116"
+													 right.view2D="12" top.view2D="6"/>
     </s:BorderContainer>
 	<timeline:TraceLineBitmap id="theTraceLine" left="120" right="10" top="10" height="10"
 						direction="horizontal" startPadding="10" endPadding="10"
 						rendererFunctionParams="{{'color':0x0000FF, 'minSize':3}}"
 						traceFilter="{theSelectionEditor.theSelector}" 
 						borderColor="0xFF0000" borderVisible="true" borderStyle="solid" visible = "true" visible.view2D="false" />
-    
-    <timeline:BitmapTraceAndMediaViewerTraceLine id="the2DTraceLine" visible="false" left="120"
-												 right="10" top="10" height="300"
-												 borderColor="0xFF0000" borderStyle="solid"
-												 borderVisible="true" direction="horizontal"
-												 endPadding="10"
-												 rendererFunctionParams="{{'color':0x0000FF, 'minSize':6}}"
-												 startPadding="10"
-												 traceFilter="{theSelectionEditor.theSelector}"
-												 visible.view2D="true" left.view2D="161"
-												 right.view2D="10" top.view2D="10" obselClick="theTraceLine_obselClickHandler(event)" />
 	<!--<timeline:CurseurVertical id="curseur" x="33" y="24" width="43" height="{previewTimelineContainer.height - 28}" 
 							  startEdge="24" endEdge="{previewTimelineContainer.height - 28}"  
 							  minimumSize="70" lockSize="70" lockPosition="35"
@@ -283,7 +286,9 @@
 							  currentTime="{_model.currentTime}"
 							  zoomChange="updateZoomToContextEffect()"
 							  locked="true"/>-->
-	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10"
+			   horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			   left.view2D="5" top.view2D="5" width.view2D="88">
 		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
         <mx:HBox x="5" y="12" width="100%" height="15"
                   horizontalGap="0" >
