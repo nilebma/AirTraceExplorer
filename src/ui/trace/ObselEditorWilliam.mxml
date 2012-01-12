@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 borderVisible="false" creationComplete="onCreationCompleteHandler(event)">
+	
 	<mx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Attribute;
@@ -12,11 +13,30 @@
 			import mx.containers.Form;
 			import mx.containers.FormItem;
 			import mx.controls.HRule;
+			import mx.controls.Text;
 			import mx.controls.TextArea;
 			import mx.controls.TextInput;
 			import mx.events.FlexEvent;
 			
 			import spark.formatters.DateTimeFormatter;
+			
+			[Bindable]
+			private var _displayDate:Boolean = true;
+			
+			import org.osmf.events.TimeEvent;
+			
+			public function get displayDate():Boolean
+			{
+				return _displayDate;
+			}
+
+			public function set displayDate(value:Boolean):void
+			{
+				_displayDate = value;
+				setDate(data);
+			}
+
+			//@TODO faire de même pour le mini bouton lecture!!!
 			
 			protected function onCreationCompleteHandler(event:FlexEvent):void
 			{
@@ -24,17 +44,16 @@
 				//addField((data as Obsel).obselType,"label","type");
 				//addField(data,"begin");
 				//addField(data,"end");
-				addDate(data);
+				setDate((data as Obsel));
 				
-				addField(data,"subject");
+				addField((data as Obsel),"subject");
 				
 				obsForm.addChild(new HRule());
 				
 				for each(var yo:Attribute in (data as Obsel).attributes)
 					addField(yo,"value",yo.attributeType.label);
 					
-				obsForm.addChild(new HRule());
-				
+				//obsForm.addChild(new HRule());
 				//for each(var r:Relation in (data as Obsel).outcomingRelations)
 				//	addField(r.targetObsel,"uri",r.relationType.label, false);
 
@@ -43,14 +62,12 @@
 				
 			}
 			
-			protected function addDate(host:Object, displayDate:Boolean = true):void
+			protected function setDate(host:Object):void
 			{
-				if(displayDate){
-					var frmItem:FormItem = new FormItem();
-					frmItem.direction = "horizontal";
+				if(_displayDate && data){
+					
 					var endDate:int = parseInt(host["end"]);
 					var beginDate:int = parseInt(host["begin"]);
-					var resultatDate:String;
 					var date:Date;
 					var dtf:DateTimeFormatter = new DateTimeFormatter();
 					dtf.setStyle('locale','fr-FR');
@@ -58,19 +75,15 @@
 					
 					//on récupère la date de début
 					date = new Date(parseInt(host["begin"]));
-					resultatDate = dtf.format(date);
+					resultatDate.text = dtf.format(date);
 					
 					//si la date de fin est plus ou moins 500ms après le début, on affiche en plus la date de fin
 					if(endDate > (beginDate + 500)){
 						date = new Date(parseInt(host["end"]));
 						dtf.setStyle('locale','fr-FR');
 						dtf.dateTimePattern='hh:mm:ss';
-						resultatDate += (" à " + dtf.format(date));
+						resultatDate.text += (" à " + dtf.format(date));
 					}
-					
-					frmItem.label = resultatDate;
-					
-					obsForm.addChild(frmItem);
 				}
 			}
 			protected function addField(host:Object,chain:String, title:String=null, editable:Boolean = true):void
@@ -123,13 +136,22 @@
 				
 			}
 
+			protected function timeDateButton_clickHandler(event:MouseEvent):void
+			{
+				this.dispatchEvent(new TimeEvent(TimeEvent.CURRENT_TIME_CHANGE,false,false,(data as Obsel)["begin"]));
+			}
+			
 		]]>
 	</mx:Script>
-	<mx:VBox width="50%">
-	<mx:Form id="obsForm" backgroundColor="#F5CC3F" borderAlpha="0.27" borderColor="#A5A3A3"
+	<mx:VBox width="50%" backgroundColor="#F5CC3F" borderAlpha="0.27" borderColor="#A5A3A3"
 			 borderStyle="solid" borderVisible="true" cornerRadius="10" dropShadowVisible="false"
-			 paddingBottom="0" paddingLeft="2" paddingRight="2" paddingTop="0">
-		<mx:FormHeading label="{(data as Obsel).obselType.label}" fontWeight="bold"/>
-	</mx:Form>
+			 paddingBottom="0" paddingLeft="2" paddingRight="2" paddingTop="0" verticalGap="0">
+		<mx:Label fontWeight="bold" paddingBottom="-2" text="{(data as Obsel).obselType.label}"/>
+		<mx:HBox horizontalGap="0" paddingBottom="-5" paddingTop="0">
+			<mx:Button id="timeDateButton" width="16" height="16" icon="@Embed('/assets/img/timeDateButton.png')" click="timeDateButton_clickHandler(event)"/>
+			<mx:Text id="resultatDate" visible="{_displayDate}" height="16"/>
+		</mx:HBox>
+		<mx:Form id="obsForm">
+		</mx:Form>
 	</mx:VBox>
 </mx:HBox>

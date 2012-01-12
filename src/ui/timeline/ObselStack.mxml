@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		 xmlns:s="library://ns.adobe.com/flex/spark" 
-		 xmlns:mx="library://ns.adobe.com/flex/mx" width="322" height="440">
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="322" height="440" xmlns:trace="ui.trace.*">
 	<s:layout>
 		<s:BasicLayout/>
 	</s:layout>
+	
+	<fx:Metadata>
+		[Event(name="currentTimeChange",type="org.osmf.events.TimeEvent")]
+	</fx:Metadata>
+	
 	<fx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Obsel;
 			import com.ithaca.traces.ObselCollection;
 			
 			import mx.events.CollectionEvent;
+			
+			import org.osmf.events.TimeEvent;
 			
 			import ui.trace.ObselEditorWilliam;
 			
@@ -33,12 +40,14 @@
 			{
 				//les obsel selectionné sont affichés dans la box "obseleditorZone", on vide aussi celle-ci
 				viewstackGeneric.removeAllChildren();
-				//pour tous les obsels selectionnée
+				//pour tous les obsels selectionnée chronologiquement par date de début
+				obselSelection.sortByBegin();
 				for each(var obsel:Obsel in obselSelection._obsels)
 				{
 					var obsEditor:ObselEditorWilliam = new ObselEditorWilliam();
 					obsEditor.data = obsel;
 					viewstackGeneric.addChild(obsEditor);
+					obsEditor.addEventListener(TimeEvent.CURRENT_TIME_CHANGE, dispatchTimeDate);
 				}
 				//on initialise les champs
 				previousStack.label="previous";
@@ -74,6 +83,11 @@
 				if(viewstackGeneric.selectedIndex >= viewstackGeneric.numChildren - 1)
 					nextStack.enabled = false;
 				obselActu.text = (viewstackGeneric.selectedIndex + 1).toString();
+			}
+			
+			protected function dispatchTimeDate(te:TimeEvent):void
+			{	
+				this.dispatchEvent(new TimeEvent(TimeEvent.CURRENT_TIME_CHANGE,false,false,te.time));
 			}
 		]]>
 	</fx:Script>
