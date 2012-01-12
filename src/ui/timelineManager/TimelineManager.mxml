@@ -8,7 +8,9 @@
 		 xmlns:mediaservice="services.mediaservice.*"
 		 xmlns:mediaInTimeline="ui.mediaInTimeline.*"
 		 xmlns:traceInTimeline="ui.traceInTimeline.*"
-		 width="100%" height="100%" xmlns:intervalles="ui.intervalles.*">
+		 width="100%" 
+         height="100%" 
+         xmlns:intervalles="ui.intervalles.*">
 	<fx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -54,7 +56,10 @@
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	<s:List id="list" x="10" top="10" bottom="10" width="148"
-			creationComplete="updateFromServer(event)" labelField="title">
+			creationComplete="updateFromServer(event)" labelField="title"
+			dragEnabled="true"
+			dragMoveEnabled="true"
+			dropEnabled="true">
 		<s:AsyncListView list="{getAllTimelineResult.lastResult}"/>
 	</s:List>
 	<s:Button id="createButton" x="166" y="10" label="Create New Timeline"

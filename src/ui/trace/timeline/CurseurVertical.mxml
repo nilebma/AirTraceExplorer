@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <timeline:CurseurBase direction="vertical"
-	xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ithaca.traces.timeline.*">
+	xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:timeline="ui.trace.timeline.*">
 	
 	<mx:Style>
 		

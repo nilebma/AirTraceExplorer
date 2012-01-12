@@ -385,6 +385,12 @@
 				BindingUtils.bindProperty(newTraceLine,"startTime",curseurTraceLine,"zoomStartTime");
 				BindingUtils.bindProperty(newTraceLine,"stopTime",curseurTraceLine,"zoomStopTime");
 				//BindingUtils.bindProperty(newTraceLine,"traceData",this,"obselCollectionToDisplay");
+				
+				
+				//ajout de timeandplaymanager
+				if (newTraceLine is TracelineWrapperWith2DMediaView){
+					BindingUtils.bindProperty(newTraceLine,"currentTime",timeAndPlayManager,"currentTime");
+				}
 				newTraceLine.traceData = obselCollectionToDisplay;
 				newTraceLine.timeRange = timeRange;
 			}
@@ -541,10 +547,7 @@
 					rendererAdd="theTraceLineList_rendererAddHandler(event)" 
                     dataProvider="{tracelineSelectors}" 
 					right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 5}" 
-					verticalScrollPolicy="on"
-					dragEnabled="true"
-					dragMoveEnabled="true"
-					dropEnabled="true"/>
+					verticalScrollPolicy="on"/>
             <s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
             
         </mx:Canvas>

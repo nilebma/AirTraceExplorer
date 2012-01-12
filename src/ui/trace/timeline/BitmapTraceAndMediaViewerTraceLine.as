@@ -25,6 +25,7 @@ package ui.trace.timeline
 	import mx.events.ResizeEvent;
 	import mx.graphics.BitmapSmoothingQuality;
 	import mx.utils.ColorUtil;
+	import mx.utils.object_proxy;
 	
 	import spark.components.Group;
 	import spark.primitives.BitmapImage;
@@ -37,6 +38,7 @@ package ui.trace.timeline
 	import ui.trace.timeline.TraceLineRenderers.ITraceRenderer;
 	import ui.trace.timeline.events.InternalTimelineEvent;
 	import ui.trace.timeline.events.TimelineEvent;
+
 	// --- end import for trace improvement
 	
 	[Event(name="itemRendererCreated" , type="ui.trace.timeline.events.InternalTimelineEvent")]
@@ -57,6 +59,7 @@ package ui.trace.timeline
 		public var rendererFunctionParams:Object = null;
 		public var rendererFunctionData:Object = null;
 		private const BITMAPSIZE:Number = 4000;
+		[Bindable]
 		public var maxMediaTime:Number;
 		[Bindable]
 		protected var _forceMaxMediaTime:Boolean = false;
@@ -141,6 +144,22 @@ package ui.trace.timeline
 				} else {
 					maxMediaTime=_forcedMaxMediaTime;
 				}
+				
+				/*
+				// 5 minutes graduation
+				var ind:Number=0;
+				
+				var graduation:Number= getVerticalPosFromMediaTime(300000);
+				trace("graduation: "+graduation);
+				
+				for (ind;ind<(this.height/graduation);ind++){
+					var gradline:Rectangle = new Rectangle(0,graduation*ind,100,200);
+					//bitmapData.fillRect(theRect,argb);
+					var col:uint=0x00FF00;
+					bitmapData.fillRect(gradline,returnARGB(col, 1));
+					trace(ind);
+				}	
+				*/
 				constructBitmapData();
 			}
 			invalidateDisplayList();
@@ -443,9 +462,9 @@ package ui.trace.timeline
 			this.dispatchEvent(tle);
 		}
 		
-		
+		[Bindable]
 		// Function returning the highest calculatedMediaTime attribute value from an ObselCollection
-		private function getMaxCalculatedMediaTimeFromObsels(value:ObselCollection):Number{
+		public function getMaxCalculatedMediaTimeFromObsels(value:ObselCollection):Number{
 			var maxTime:Number=0;
 			for each(var obs:Obsel in value._obsels){
 				if (obs.getAttributeValueByLabel("calculatedMediaTime")>maxTime){
@@ -505,6 +524,8 @@ package ui.trace.timeline
 					
 					// Principe : on veut enrichir TOUS les obsels avec calculatedMediaTime (donc necessite de partir avec une valeur de CurrentTime) et calculatedMediaId
 					for each(var obs:Obsel in collect._obsels){
+						
+						//TODO : a optimiser car appeller pour chaque obsel
 						var calculatedMediaTimeAttributeType:AttributeType;
 						var calculatedMediaIDAttributeType:AttributeType;
 						
@@ -557,6 +578,53 @@ package ui.trace.timeline
 			return updated;
 		}					
 
+		
+		
+		[Bindable]
+		// Function returning the media time from an activity time
+		public function getMediaTimeFromActivityTime(value:Number):Number{
+			var previousObs:Obsel;
+
+			if (_traceData){
+				for each(var obs:Obsel in _traceData._obsels){
+					if (obs.begin){
+						trace(obs.begin);
+						trace(value);
+						if (obs.begin<value){
+							previousObs=obs;
+						}
+						else {
+							trace("break");
+							break;
+						}
+					}
+				}
+				if (previousObs){
+					//On retourne en arriere jusqu'a ce que retourne true updateTime
+					// On se place sur le dernier obs précédent le temps de l'activite
+                    var currentObsIndex:Number =_traceData.getItemIndex(previousObs);
+                    
+                    while (currentObsIndex >= 0 && !updateTimeDataFromObsel(_traceData.getItemAt(currentObsIndex) as Obsel,"Player1"))
+                        currentObsIndex--;
+                    
+						if (currentObsIndex < 0){
+							return (obs.getAttributeValueByLabel("calculatedMediaTime"));
+						}
+						//On renvoie le calculatedMediaTime de l'obsel previousObs
+						if (isMediaPlaying){
+							trace(obs.getAttributeValueByLabel("calculatedMediaTime")+(value-obs.begin));
+							return (obs.getAttributeValueByLabel("calculatedMediaTime")+(value-obs.begin))
+						} else {
+							return (obs.getAttributeValueByLabel("calculatedMediaTime"));
+						}
+
+				} else {
+					return 0;
+				}
+				
+			}
+			return NaN;
+		}				
 		
 	}
 }

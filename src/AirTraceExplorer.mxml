@@ -12,26 +12,28 @@
 					   xmlns:timeline="ui.timeline.*"
 					   xmlns:timelineservice="services.timelineservice.*"
 					   width="1000" height="800"
-					   initialize="windowedapplication1_initializeHandler(event)">
+					   initialize="windowedapplication1_initializeHandler(event)"
+                       creationComplete="application_creationCompleteHandler(event)">
 	<fx:Script>
 		<![CDATA[
-			import com.ithaca.traces.Base;
-			import com.ithaca.traces.Ktbs;
-			import com.ithaca.traces.Model;
-			import com.ithaca.traces.Obsel;
-			import com.ithaca.traces.Resource;
-			
-			import mx.controls.Alert;
-			import mx.events.FlexEvent;
-			import mx.utils.StringUtil;
-			
-			import services.TtlLoader;
-			
-			import spark.events.IndexChangeEvent;
-			
-			import valueObjects.Timeline;
-			import valueObjects.VOScreenshot;
-			import valueObjects.VOTrace;
+            import com.ithaca.traces.Base;
+            import com.ithaca.traces.Ktbs;
+            import com.ithaca.traces.Model;
+            import com.ithaca.traces.Obsel;
+            import com.ithaca.traces.Resource;
+            
+            import mx.controls.Alert;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.ResultEvent;
+            import mx.utils.StringUtil;
+            
+            import services.TtlLoader;
+            
+            import spark.events.IndexChangeEvent;
+            
+            import valueObjects.Timeline;
+            import valueObjects.VOScreenshot;
+            import valueObjects.VOTrace;
 			
 			[Bindable]
 			public var theKtbs:Ktbs;
@@ -57,6 +59,8 @@
 				theKtbs = new Ktbs("uriKtbs", Resource.RESOURCE_URI_ATTRIBUTION_POLICY_CLIENT_IS_KING);
 				theBase = this.theKtbs.createBase();
                 theModel = theBase.createModel();
+                
+                
 			}
 			
 			protected function enrich_btn_clickHandler(event:MouseEvent):void
@@ -114,7 +118,29 @@
 				getAllTimelineResult.token = timelineService.getAllTimeline();
 			}
 			
-		]]>
+            protected function application_creationCompleteHandler(event:FlexEvent):void
+            {
+                theTraceLoader.addEventListener(ResultEvent.RESULT, onTTLLoaded);
+                
+            }
+            
+            protected function onTTLLoaded(e:ResultEvent):void
+            {
+                // Create file object (resolve user's documents directory, add own directory and file name)
+                var file:File = File.documentsDirectory.resolvePath(encodeURIComponent(e.result.theTtl));
+                // FileStream for writing the file
+                var fileStream:FileStream = new FileStream();
+                // Open the file in write mode
+                fileStream.open(file, FileMode.WRITE);
+                // Write the ArrayCollection object of persons to the file
+                
+                fileStream.writeObject(JSON.stringify(e.result.objectified));
+                //file.save(JSON.serialize(e.result.objectified),encodeURIComponent(e.result.theTtl));
+                // Close FileStream
+                //fileStream.close();
+            }
+            
+        ]]>
 	</fx:Script>
 	<fx:Declarations>
 		<s:CallResponder id="getAllScreenshotResult"/>
