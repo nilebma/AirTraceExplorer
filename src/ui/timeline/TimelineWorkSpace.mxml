@@ -409,7 +409,7 @@
                 //contextSelectionTraceLine.traceData = obselSelection;
 			}
 			
-			protected function playLine_currentTimeChangeHandler(event:TimeEvent):void
+			protected function currentTimeChangeHandler(event:TimeEvent):void
 			{
 				timeAndPlayManager.currentTime = event.time;
 				
@@ -472,7 +472,7 @@
             <mx:ViewStack id="mediaVS" left="10" right="552" top="0"
                           bottom="0" creationPolicy="all">
                 <s:NavigatorContent id="screeShotStack"  label="screenhot" creationPolicy="all">
-                    <screenshot:ScreenshotViewer id="theScreenshotViewer" width="100%" height="100%" currentTime="{timeAndPlayManager.currentTime}"/>
+                    <screenshot:ScreenshotViewer id="theScreenshotViewer" width="100%" height="100%" currentTime="{timeAndPlayManager.currentTime}" currentTimeChange="currentTimeChangeHandler(event)" />
                 </s:NavigatorContent>
                 <s:NavigatorContent id="screenCastStack"  label="screenCast" creationPolicy="all">
                     <s:VideoDisplay id="theVideoDisplay"  width="100%" height="100%" />
@@ -506,7 +506,7 @@
                                    top="20" height="20" left="120" right="25" />
                 
                 <timeline:PlayLine id="playLineZoom" RendererType="{ControlHeadForHorizontal}" direction="horizontal"
-                                   renderAlign="middle" timeRange="{timeRange}" currentTimeChange="playLine_currentTimeChangeHandler(event)"
+                                   renderAlign="middle" timeRange="{timeRange}" currentTimeChange="currentTimeChangeHandler(event)"
                                    currentTime="{timeAndPlayManager.currentTime}"
                                    startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
                                    top="45" height="45" left="120" right="25" />

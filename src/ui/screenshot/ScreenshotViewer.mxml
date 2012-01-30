@@ -3,16 +3,28 @@
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:mx="library://ns.adobe.com/flex/mx"
 		 xmlns:screenshotservice="services.screenshotservice.*"
-		 width="100%" height="100%" currentState="State1">
+		 width="100%" height="100%" currentState="State1" creationComplete="onCreationComplete(event)">
+    
+    <fx:Metadata>
+        [Event(name="currentTimeChange", type="org.osmf.events.TimeEvent")]
+    </fx:Metadata>
 	<fx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.events.CollectionEvent;
-			import mx.events.FlexEvent;
-			import mx.rpc.events.ResultEvent;
-			
-			import valueObjects.VOScreenshot;
+            import mx.collections.ArrayCollection;
+            import mx.controls.Alert;
+            import mx.controls.TextArea;
+            import mx.core.FlexGlobals;
+            import mx.events.CollectionEvent;
+            import mx.events.FlexEvent;
+            import mx.rpc.events.ResultEvent;
+            import mx.states.RemoveChild;
+            
+            import org.osmf.events.TimeEvent;
+            
+            import spark.components.Image;
+            import spark.components.supportClasses.SkinnableTextBase;
+            
+            import valueObjects.VOScreenshot;
 
 			private var _currentTime:Number = NaN;
 			
@@ -21,6 +33,14 @@
 			private var mapTimeToScreenshotUrl:Dictionary;
 			private var arTimes:Array;
 			
+            public var currentScreenshotTime:Number = NaN;
+            public var currentScreenshotUrl:String = null;
+            
+            public var currentFullSreenImage:Image;
+            public var lastFullSreenImage:Image;
+            
+            public var theImage:Image = null;
+            public var lastImage:Image = null;
 
 
 			[Bindable]
@@ -38,7 +58,8 @@
 					onTraceUrisChange();
 				}
 
-				theImage.source = null;
+                if(theImage)
+				    theImage.source = null;
 			}
 			
 			protected function onTraceUrisChange(e:Event = null):void
@@ -83,21 +104,41 @@
 			
 			protected function updateImage():void
 			{
-				if(!isNaN(_currentTime) && getScreenshotByTraceUrisResult.lastResult  && this.currentState != "loadingList")
-				{
-					var closestTime:Number = findClosestSmaller(arTimes,_currentTime);
-					var url:String = mapTimeToScreenshotUrl[closestTime];
-					
-					if(url)
-					{
-						theImage.source = url;
-						theImage.invalidateDisplayList();
-						theImage.validateNow();
-					}
-					trace(url,_currentTime,closestTime);
-					
-				}
+                if(!isNaN(_currentTime) && getScreenshotByTraceUrisResult.lastResult  && this.currentState != "loadingList")
+                {
+					currentScreenshotTime = findClosestSmaller(arTimes,_currentTime);
+
+                    if(!isNaN(currentScreenshotTime))
+                    {
+    				    var url:String = mapTimeToScreenshotUrl[currentScreenshotTime];
+    					
+    					if(url != currentScreenshotUrl)
+    					{
+                            currentScreenshotUrl = url; 
+                            
+                            if(lastImage)
+                                theImageBox.removeElement(lastImage);
+                            
+                            lastImage = theImage;
+                            
+                            theImage = new Image();
+                            theImage.width = theImageBox.width;
+                            theImage.height = theImageBox.height;
+                            theImage.x = 0;
+                            theImage.y = 0;
+                            theImage.source = url;
+                            theImageBox.addElement(theImage);
+                            
+                            if(currentFullSreenImage)
+                            {
+                                goFullscreen();
+                            }
+                        }
+    				}
+                } 
 			}
+         
+             
 			
 			protected function findClosestSmaller(ar:Array, n:Number, start:Number = NaN, end:Number = NaN):Number
 			{
@@ -123,7 +164,127 @@
 				}
 			}
 			
-		]]>
+            protected function gotoNextScreenshot(event:Event = null):void
+            {
+                // TODO Auto-generated method stub
+                var currentScreenShotIndex = arTimes.indexOf(currentScreenshotTime);
+                
+                if(currentScreenShotIndex >= 0)
+                {
+                    currentScreenShotIndex++;
+                    
+                    if(currentScreenShotIndex > arTimes.length-1)
+                        currentScreenShotIndex = arTimes.length - 1;
+                    
+                    currentTime = arTimes[currentScreenShotIndex];
+                    fireTimeChangeEvent(currentTime);              
+                }
+
+            }
+            
+            protected function gotoPreviousScreenshot(event:Event = null):void
+            {
+                // TODO Auto-generated method stub
+                var currentScreenShotIndex = arTimes.indexOf(currentScreenshotTime);
+                
+                if(currentScreenShotIndex >= 0)
+                {
+                    currentScreenShotIndex--;
+                    
+                    if(currentScreenShotIndex < 0)
+                        currentScreenShotIndex = 0;
+                        
+                    currentTime = arTimes[currentScreenShotIndex];
+                    fireTimeChangeEvent(currentTime);                                  
+                }
+            }
+            
+            protected function goFullscreen(event:Event = null):void                
+            {
+                if(!currentFullSreenImage || currentFullSreenImage.source != currentScreenshotUrl)
+                {
+             
+                    if(lastFullSreenImage && mx.core.FlexGlobals.topLevelApplication.getElementIndex(lastFullSreenImage) >= 0)
+                        mx.core.FlexGlobals.topLevelApplication.removeElement(lastFullSreenImage);
+                        
+                    lastFullSreenImage = currentFullSreenImage;
+    
+                    currentFullSreenImage = new Image();
+                    currentFullSreenImage.width = FlexGlobals.topLevelApplication.width - 60;
+                    currentFullSreenImage.height = FlexGlobals.topLevelApplication.height - 40;
+                    currentFullSreenImage.x = 30;
+                    currentFullSreenImage.y = 20;
+                    
+                    currentFullSreenImage.source = currentScreenshotUrl;
+                    //theImage.invalidateDisplayList();
+                    //theImage.validateNow();
+                }
+                
+                mx.core.FlexGlobals.topLevelApplication.addElement(currentFullSreenImage);
+            }
+            
+            protected function leaveFullscreen(event:Event = null):void                
+            {
+                if(currentFullSreenImage && mx.core.FlexGlobals.topLevelApplication.getElementIndex(currentFullSreenImage) >= 0)
+                {
+                    mx.core.FlexGlobals.topLevelApplication.removeElement(currentFullSreenImage);
+                    currentFullSreenImage = null;
+                }
+                
+                if(lastFullSreenImage && mx.core.FlexGlobals.topLevelApplication.getElementIndex(lastFullSreenImage) >= 0)
+                {
+                    mx.core.FlexGlobals.topLevelApplication.removeElement(lastFullSreenImage);
+                    lastFullSreenImage = null;
+                }
+            }
+            
+            
+            protected function fireTimeChangeEvent(time:Number):void
+            {
+                this.dispatchEvent(new TimeEvent("currentTimeChange",false,false,time));
+            }
+            
+
+            
+            protected function onCreationComplete(event:FlexEvent):void
+            {
+                stage.addEventListener(KeyboardEvent.KEY_DOWN,keyboardDownHandler);
+                stage.addEventListener(KeyboardEvent.KEY_UP,keyboardUpHandler);
+                
+            }
+            
+            protected function keyboardDownHandler(e:KeyboardEvent):void
+            {
+                if(e.target is SkinnableTextBase || e.target is TextArea || e.target is TextField)
+                    return;
+                else
+                {
+                    if(e.keyCode == 39)
+                        gotoNextScreenshot();
+                    
+                    if(e.keyCode == 37)
+                        gotoPreviousScreenshot();
+                    
+                    if(e.keyCode == 32)
+                        goFullscreen();
+                    
+                }
+                    
+            }
+            
+            protected function keyboardUpHandler(e:KeyboardEvent):void
+            {
+                if(e.target is SkinnableTextBase || e.target is TextArea || e.target is TextField)
+                    return;
+                else
+                {
+                    if(e.keyCode == 32)
+                        leaveFullscreen();
+                }
+                
+                
+            }
+        ]]>
 	</fx:Script>
 	<s:states>
 		<s:State name="State1"/>
@@ -139,7 +300,9 @@
 	</fx:Declarations>
 	<s:Label includeIn="loadingList" x="179" y="134" text="Loading List"/>
 	<s:Label id="lbl_loading_image" includeIn="showing" x="179" y="134" text="Loading Image" visible="false"/>
-	<s:Image id="theImage" visible.showing="true" visible.loadingList="false" visible.State1="false" x="0" y="0" width="100%" height="100%"/>
+	<s:Group id="theImageBox" visible.showing="true" visible.loadingList="false" visible.State1="false" x="0" y="0" width="100%" top="0" bottom="20"/>
+    <s:Button label="next" id="nextButton" visible.showing="true" visible.loadingList="false" visible.State1="false" width="100" height="20" bottom="0" right="0" click="gotoNextScreenshot(event)"/>
+    <s:Button label="previous" id="previousButton" visible.showing="true" visible.loadingList="false" visible.State1="false" width="100" height="20" bottom="0" right="100" click="gotoPreviousScreenshot(event)"/>
 	<s:List id="list" includeIn="State1" x="194" y="90"
 			creationComplete="list_creationCompleteHandler(event)" labelField="filename">
 		<s:AsyncListView list="{getScreenshotByTraceUrisResult.lastResult}"/>
