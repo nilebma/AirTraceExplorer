@@ -157,7 +157,7 @@
 										 showBusyCursor="true"/>
 	</fx:Declarations>
 
-	<mx:TabNavigator x="0" y="0" width="100%" height="100%">
+	<mx:TabNavigator x="0" y="0" width="100%" height="100%" focusEnabled="false">
 		<s:NavigatorContent width="100%" height="100%" label="Timelines">
 			<timelineManager:TimelineManager/>
 		</s:NavigatorContent>

@@ -72,7 +72,7 @@ package ui.trace.timeline
 		private var videoObselTypes:Array=["lectureVideo","stopVideo","pauseVideo","finVideo"];	
 		private var previousObselBegin:Number;
 		// --- end of trace improvement vars
-		
+		private var currentTT:ObselPreviewer;
 		
 		public function BitmapTraceAndMediaViewerTraceLine()
 		{
@@ -80,7 +80,10 @@ package ui.trace.timeline
 			
 			
 			this.addEventListener(MouseEvent.CLICK,onMouseClick);	
-			
+			this.addEventListener(MouseEvent.MOUSE_OVER,onMouseOver);
+			this.addEventListener(MouseEvent.MOUSE_OUT,onMouseOut);
+			this.addEventListener(MouseEvent.MOUSE_MOVE,onMouseOver);
+
 			bitmapImage = new BitmapImage();
 			bitmapImage.x=0;
 			bitmapImage.y = 0;
@@ -383,7 +386,7 @@ package ui.trace.timeline
 					
 					if (maxMediaTime>0){
 						if(!isNaN(obs.getAttributeValueByLabel("calculatedMediaTime"))){
-							theRect = new Rectangle(posDebut,getVerticalPosFromMediaTime(obs.getAttributeValueByLabel("calculatedMediaTime")),size,20);
+							theRect = new Rectangle(posDebut,getVerticalPosFromMediaTime(obs.getAttributeValueByLabel("calculatedMediaTime")),size,100);
 							//bitmapData.fillRect(theRect,argb);
 							bitmapData.fillRect(theRect,colorArgb);
 						}
@@ -444,8 +447,9 @@ package ui.trace.timeline
 			if(rendererFunctionData && rendererFunctionData["obsAndRect"])
 			{
 				var coeff = BITMAPSIZE / bitmapImage.width;
+				var coeffy = BITMAPSIZE / bitmapImage.height;
 				var gx:Number = (p.x - bitmapImage.x)*coeff;
-				var gy:Number = 1;
+				var gy:Number = (p.y - bitmapImage.y)*coeffy;
 				
 				for each(var or:Object in rendererFunctionData["obsAndRect"])
 				if((or["rect"] as Rectangle).contains(gx, gy))
@@ -461,6 +465,46 @@ package ui.trace.timeline
 			tle.obselSet = renderingFunctionGetObselFromPos(new Point(e.localX,e.localY));
 			this.dispatchEvent(tle);
 		}
+		
+		/**
+		 * Mouse over associé aux tooltips 
+		 * @param e
+		 * 
+		 */
+		protected function onMouseOver(e:MouseEvent):void
+		{
+			var obselset:Array = renderingFunctionGetObselFromPos(new Point(e.localX,e.localY));
+			if(obselset && obselset.length>0){
+				if(currentTT){
+					mx.core.FlexGlobals.topLevelApplication.removeElement(currentTT);
+					currentTT = null;
+				}
+				//currentTT = ToolTipManager.createToolTip("Il y a "+ obselset.length +" Obsels", e.stageX+5, e.stageY) as CustomToolTip;
+				var obsPreview:ObselPreviewer = new ObselPreviewer;
+				if(mx.core.FlexGlobals.topLevelApplication.width/2 < e.stageX)
+					obsPreview.x = e.stageX-280;
+				else obsPreview.x = e.stageX;
+				obsPreview.y = e.stageY;
+				obsPreview.data = obselset;
+				
+				mx.core.FlexGlobals.topLevelApplication.addElement(obsPreview);
+				currentTT = obsPreview;
+			}
+			
+		}
+		
+		/**
+		 * Mouse out associé aux tooltips 
+		 * @param e
+		 * 
+		 */
+		protected function onMouseOut(e:MouseEvent):void
+		{
+			if(currentTT){
+				mx.core.FlexGlobals.topLevelApplication.removeElement(currentTT);
+				currentTT = null;
+			}
+		}		
 		
 		[Bindable]
 		// Function returning the highest calculatedMediaTime attribute value from an ObselCollection
