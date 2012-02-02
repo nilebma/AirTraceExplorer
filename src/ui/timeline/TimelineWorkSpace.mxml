@@ -466,7 +466,7 @@
                                        timeAndPlayManager="{timeAndPlayManager}">
             </timeline2:PlayPauseButton>
             <timeline2:ObselStack id="obselEditorZone" right="10" top="10" bottom="0" width="408"
-                                  obselSelection="{obselSelection}" currentTimeChange="playLine_currentTimeChangeHandler(event)"/>
+                                  obselSelection="{obselSelection}" currentTimeChange="currentTimeChangeHandler(event)"/>
             <mx:ToggleButtonBar y="21" right="416" dataProvider="{mediaVS}">
             </mx:ToggleButtonBar>
             <mx:ViewStack id="mediaVS" left="10" right="552" top="0"
