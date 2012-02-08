@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="70" height="300" 
-		 verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="enableGripCursor()">
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="70" height="300" creationComplete="enableGripCursor()"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
 
 	<mx:Metadata>
 		[Event(name="zoomChange", type="flash.events.Event")]
@@ -63,6 +64,8 @@
 			protected var _currentTime:Number = 0;
 			
 			public var startAndEndDelta:Number = 	0;
+			
+			public var zoomWitdh:Number = 20;
 			
 			protected var realStartTime:Number;
 			
@@ -205,6 +208,43 @@
 				this.x = this.startEdge;
 				this.width = this.endEdge;
 				locked = false;
+			}
+			
+			public function onClickZoom():void{
+				this.addEventListener(FlexEvent.UPDATE_COMPLETE , onUpdateFromUserComplet);
+				
+				if(this.x - this.zoomWitdh > 120)
+				{
+					if(screen.width - this.x - this.width > this.zoomWitdh + 25)
+					{
+						this.x = this.x - this.zoomWitdh;
+						this.width = this.width + zoomWitdh*2;
+					}	
+					else{
+						if(screen.width - this.width - 145 >= this.zoomWitdh)
+						{
+							this.x = screen.width - 2*this.zoomWitdh - this.width - 25;
+							this.width = this.width + zoomWitdh*2;
+						}						
+					}
+				}
+				else{
+					if(screen.width - this.x - this.width > this.zoomWitdh + 25)
+					{
+						this.x = 120;	
+						this.width = this.width + zoomWitdh*2;
+					}					
+				}				
+				locked = false;
+				
+			}
+			
+			public function onClickDeZoom():void{
+				if(this.width - this.zoomWitdh*2 > this.minimumSize)
+				{
+					this.x = this.x + this.zoomWitdh;
+					this.width = this.width - zoomWitdh*2;
+				}
 			}
 
 			public function updateFromLock():void
