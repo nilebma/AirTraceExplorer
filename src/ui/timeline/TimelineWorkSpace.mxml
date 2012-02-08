@@ -17,42 +17,45 @@
     
     <fx:Script>
 		<![CDATA[
-            import com.ithaca.traces.Base;
-            import com.ithaca.traces.Model;
-            import com.ithaca.traces.Obsel;
-            import com.ithaca.traces.ObselCollection;
-            import com.ithaca.traces.Trace;
-            
-            import mx.binding.utils.BindingUtils;
-            import mx.collections.ArrayCollection;
-            import mx.controls.Alert;
-            import mx.controls.List;
-            import mx.events.FlexEvent;
-            import mx.rpc.events.ResultEvent;
-            import mx.utils.ObjectProxy;
-            
-            import org.osmf.events.TimeEvent;
-            
-            import services.TtlLoader;
-            
-            import spark.components.supportClasses.ItemRenderer;
-            import spark.events.RendererExistenceEvent;
-            
-            import traceSelector.dummyTraceSelector;
-            
-            import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
-            import ui.trace.timeline.PlayLineRenders.PlayHeadForHorizontalPlayLine;
-            import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
-            import ui.trace.timeline.TraceLineRenderers.TimeBar;
-            import ui.trace.timeline.events.TimelineEvent;
-            
-            import valueObjects.Intervalle;
-            import valueObjects.Media;
-            import valueObjects.MediaInTimeline;
-            import valueObjects.Timeline;
-            import valueObjects.TraceInTimeline;
-            import valueObjects.Ttl;
-            import valueObjects.VOTrace;
+			import com.ithaca.traces.Base;
+			import com.ithaca.traces.Model;
+			import com.ithaca.traces.Obsel;
+			import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.Trace;
+			
+			import flash.sampler.NewObjectSample;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.controls.List;
+			import mx.events.FlexEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectProxy;
+			
+			import org.osmf.events.TimeEvent;
+			
+			import services.TtlLoader;
+			
+			import spark.components.supportClasses.ItemRenderer;
+			import spark.events.RendererExistenceEvent;
+			
+			import traceSelector.dummyTraceSelector;
+			
+			import ui.trace.timeline.CurseurBase;
+			import ui.trace.timeline.PlayLineRenders.ControlHeadForHorizontal;
+			import ui.trace.timeline.PlayLineRenders.PlayHeadForHorizontalPlayLine;
+			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
+			import ui.trace.timeline.TraceLineRenderers.TimeBar;
+			import ui.trace.timeline.events.TimelineEvent;
+			
+			import valueObjects.Intervalle;
+			import valueObjects.Media;
+			import valueObjects.MediaInTimeline;
+			import valueObjects.Timeline;
+			import valueObjects.TraceInTimeline;
+			import valueObjects.Ttl;
+			import valueObjects.VOTrace;
 			
 			private var _voTimeline:Timeline;
 			
@@ -426,7 +429,20 @@
                 event.renderer.addEventListener("obselClick",onObselLineSelectionChange);
             }
             
-        ]]>
+			protected function Zoom_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				curseurTraceLine.onClickZoom();				
+			}
+			
+			protected function DeZoom_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				curseurTraceLine.onClickDeZoom();
+				
+			}
+			
+		]]>
 	</fx:Script>
 	
 	<fx:Declarations>
@@ -540,7 +556,13 @@
                 
                 
                 <s:Label y="25" left="10" width="90"  fontSize="10" text="Globale" showTruncationTip="true" maxDisplayedLines="1" />
+				<s:Image id="Zoom" y="25" right="0" buttonMode="true" smooth="true"
+						 smoothingQuality="high"
+						 source="@Embed('assets/img/bullet_toggle_plus.png')" useHandCursor="true" click="Zoom_clickHandler(event)"/>
                 <s:Label y="51" left="10" width="90"  fontSize="10" text="Zoom" showTruncationTip="true" maxDisplayedLines="1" />
+				<s:Image id="DeZoom" y="51" right="0" buttonMode="true" smooth="true"
+						 smoothingQuality="high"
+						 source="@Embed('assets/img/bullet_toggle_minus.png')" useHandCursor="true" click="DeZoom_clickHandler(event)"/>
             </s:Group>
             <s:List id="theTraceLineList" 
 					itemRenderer="ui.timeline.TracelineWrapperWith2DMediaView" 
