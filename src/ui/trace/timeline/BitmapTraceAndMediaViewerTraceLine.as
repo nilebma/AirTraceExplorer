@@ -8,6 +8,8 @@ package ui.trace.timeline
 	
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.display.Graphics;
+	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
@@ -184,8 +186,33 @@ package ui.trace.timeline
 				
 				for each(var obs:Obsel in filteredTrace._obsels)
 				if((obs.begin >= timeRange.begin && obs.begin <= timeRange.end)
-					|| (obs.end >= timeRange.begin && obs.end <= timeRange.end))
+					|| (obs.end >= timeRange.begin && obs.end <= timeRange.end)){
 					renderObsel(obs);
+				}
+				
+				// Ici pour chaque obsel de la map on les relit		
+				if(rendererFunctionData && rendererFunctionData["obsAndRect"])
+				{
+					var previousObsBottomRight:Point=null;
+					for each(var or:Object in rendererFunctionData["obsAndRect"]){
+						var rect:Rectangle=or["rect"] as Rectangle;
+						if (previousObsBottomRight){
+							var topLeft:Point=null;
+							var bottomRight:Point=null;
+							topLeft=rect.topLeft;
+							bottomRight=rect.bottomRight;
+
+							var shape:Shape = new Shape();
+							var graphics:Graphics = shape.graphics;
+							graphics.lineStyle(10, 0xff7f00, 1);
+							graphics.moveTo(previousObsBottomRight.x,previousObsBottomRight.y);
+							graphics.lineTo(topLeft.x, bottomRight.y);
+							bitmapData.draw(shape);
+						}
+						previousObsBottomRight=rect.bottomRight;
+						
+					}
+				}
 			}
 			
 			bitmapImage.source = bitmapData;

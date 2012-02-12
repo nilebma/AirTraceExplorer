@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TraceLineRenderers1:CanvasBaseRenderer xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:local="*" width="40" height="35" 
-			direction="horizontal" selfSized="false" selfPositioned="false" xmlns:TraceLineRenderers="ithaca.traces.timeline.TraceLineRenderers.*"
-			verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:TraceLineRenderers1="ithaca.traces.timeline.TraceLineRenderers.*">
+			direction="horizontal" selfSized="false" selfPositioned="false" xmlns:TraceLineRenderers="ui.trace.timeline.tickRenderers.*"
+			verticalScrollPolicy="off" horizontalScrollPolicy="off" xmlns:TraceLineRenderers1="ui.trace.timeline.TraceLineRenderers.*">
 		
 	<mx:Script>
 		<![CDATA[

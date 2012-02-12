@@ -60,23 +60,25 @@
  * 
  * -- End of licenses
  */
-package ithaca.traces.timeline.TraceLineRenderers
+//package ithaca.traces.timeline.TraceLineRenderers
+package ui.trace.timeline.TraceLineRenderers
 {
-	import flash.events.Event;
+	import com.ithaca.traces.Obsel;
 	
-	import ithaca.traces.Obsel;
-	import ithaca.traces.timeline.TimelineModel;
-	import ithaca.traces.timeline.TraceLine;
+	import flash.events.Event;
 	
 	import mx.containers.Canvas;
 	import mx.events.PropertyChangeEvent;
+	
+	import ui.trace.timeline.TimelineModel;
+	import ui.trace.timeline.TraceLineWithRenderers;
 	
 	public class CanvasBaseRenderer extends Canvas implements ITraceRenderer
 	{
 		protected var _traceData:Obsel;
 		protected var _endTraceData:Obsel;
 		protected var _model:TimelineModel;
-		protected var _parentLine:TraceLine;
+		protected var _parentLine:TraceLineWithRenderers;
 		
 		protected var _selfSized:Boolean;
 		protected var _selfPositioned:Boolean;
@@ -150,12 +152,12 @@ package ithaca.traces.timeline.TraceLineRenderers
 			;
 		}
 		
-		public function set parentLine(parent:TraceLine):void
+		public function set parentLine(parent:TraceLineWithRenderers):void
 		{
 			_parentLine = parent;
 		}
 		
-		public function get parentLine():TraceLine
+		public function get parentLine():TraceLineWithRenderers
 		{
 			return _parentLine;
 		}

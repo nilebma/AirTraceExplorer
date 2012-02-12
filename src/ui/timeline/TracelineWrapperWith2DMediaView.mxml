@@ -7,12 +7,15 @@
            clipAndEnableScrolling="true"
 		   width="100%" 
 		   currentState="small"
-		   height="314" height.small="40" xmlns:timeline1="ui.timeline.*">
+		   height="314" height.small="40" xmlns:timeline1="ui.timeline.*" >
 	<fx:Script>
 		<![CDATA[
 			import com.ithaca.traces.Obsel;
 			import com.ithaca.traces.ObselCollection;
+			import com.ithaca.traces.ObselType;
+			import com.ithaca.traces.Trace;
 			
+			import mx.collections.ArrayCollection;
 			import mx.containers.Canvas;
 			import mx.core.UIComponent;
 			import mx.events.CollectionEvent;
@@ -27,6 +30,9 @@
 			import ui.trace.timeline.TimelineModel;
 			import ui.trace.timeline.TraceLineRenderers.RectangleRenderer;
 			import ui.trace.timeline.events.TimelineEvent;
+			import ui.trace.timeline.tickRenderers.bigTick;
+			import ui.trace.timeline.tickRenderers.littleTick;
+			import ui.trace.timeline.tickRenderers.mediumTick;
             
 			/*[bindable]
 			public var _timeAndPlayManager:TimeAndPlayManager;
@@ -74,6 +80,8 @@
                 the2DTraceLine.traceData = value;
 				verticalPlayLine.stopTime=the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData);
 				trace(the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData));
+				generateTickData();
+				
             }
             
 			/*override protected function oncreationCompleteHandler(event:FlexEvent):void
@@ -215,6 +223,83 @@
 				//the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData)
 			}
 			
+			//[Bindable]
+			//private var _model:TimelineModel;
+			
+			[Bindable]
+			public var tickData:ObselCollection; //dummy obsel to generate time ruler
+			
+			// A APPELER!
+			public function generateTickData():void
+			{
+				var boundTick:ObselType = new ObselType(null,null,"boundaryTick");
+				var bigTick:ObselType = new ObselType(null,null,"bigTick");
+				var littleTick:ObselType = new ObselType(null,null,"littleTick");
+				var mediumTick:ObselType = new ObselType(null,null,"mediumTick");
+				
+				//<!-- on a changé les namespaces dans bigTick.mxml en ui.trace.tracerender...."-->
+				//changer le if par rapport a mon but
+				//if(_model && _model.startTime && _model.stopTime)
+				//{
+					tickData = new ObselCollection();
+					
+
+					littleTickZoomLine.startTime=0;
+					littleTickZoomLine.stopTime=the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData);
+					mediumTickZoomLine.startTime=0;
+					mediumTickZoomLine.stopTime=the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData);					
+					bigTickZoomLine.startTime=0;
+					bigTickZoomLine.stopTime=the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData);
+					
+					littleTickZoomLine.traceFilter=new dummyTraceSelector(new ArrayCollection([littleTick]));
+					mediumTickZoomLine.traceFilter=new dummyTraceSelector(new ArrayCollection([mediumTick]));
+					bigTickZoomLine.traceFilter=new dummyTraceSelector(new ArrayCollection([bigTick]));
+					// regler ces 3 valeurs selon la taille du film
+					var littleTickGap:Number = 1; // 1 min
+					var mediumTickGap:Number = 5; // 5 min
+					var bigTickGap:Number = 10; // 10 minutes
+					
+					var timeUnit:Number = 60 * 1000; //minute
+					
+
+					//we add special obsel from start and end
+					//var o:Obsel = new Obsel(this,type,begin,end,uri,subject,attributes,relations,source_obsels);
+					var startObsel:Obsel = new Obsel(new Trace(null,null),boundTick,0); // 0 le début du film
+					tickData.push(startObsel);
+					
+					var stopObsel:Obsel =  new Obsel(new Trace(null,null),boundTick,the2DTraceLine.getMaxCalculatedMediaTimeFromObsels(traceData)); // le max du temps de film
+					tickData.push(stopObsel);
+					
+					var i:int = 1;
+					
+					var t:Number = startObsel.begin + i*timeUnit;
+					
+					while( t < stopObsel.begin)
+					{
+						//var type:String;
+						var type:ObselType;
+						if(i % bigTickGap == 0)
+							type = bigTick; // remplacer par le vrai obselType
+						else if(i % mediumTickGap == 0)
+							type = mediumTick;
+						else
+							type = littleTick;
+						
+						//var o:Obsel = new Obsel(type);
+						var o:Obsel =  new Obsel(new Trace(null,null),boundTick,0);
+						o.begin = t;
+						
+						tickData.addItem(o);
+						
+						i++;
+						//t = _model.startTime + i*timeUnit;
+						t = startObsel.begin + i*timeUnit;
+					}
+					
+				//}
+			}
+			
+			
 		]]>
 	</fx:Script>
     <timeline1:states>
@@ -261,7 +346,40 @@
 													 left.small="120" right.small="10"
 													 top.small="10"
 													 visible.view2D="true" left.view2D="116"
-													 right.view2D="12" top.view2D="6"/>
+													 right.view2D="12" top.view2D="6">
+			<mx:Canvas id="zoomTimelineContainer" x="185" y="0" width="100%" height="90"
+					   horizontalScrollPolicy="off" verticalScrollPolicy="off"
+					   x.view2D="0" y.view2D="0" height.view2D="298" borderColor.view2D="#D200FF">
+		
+				<timeline:TraceLineWithRenderers id="bigTickZoomLine" x="10" y="40"
+												 width="{zoomTimelineContainer.width}" height="40"
+												 direction="vertical" endPadding="20"
+												 renderAlign="middle" RendererType="{bigTick}"
+												 startPadding="20" startTime="0"
+												 traceData="{tickData}"
+												 x.view2D="0" y.view2D="0" height.view2D="298"
+												 borderColor.view2D="#696969"/>
+				<timeline:TraceLineWithRenderers id="mediumTickZoomLine" x="10" y="40"
+												 width="{zoomTimelineContainer.width}" height="40"
+												 direction="vertical" endPadding="20"
+												 renderAlign="middle" RendererType="{mediumTick}"
+												 startPadding="20" startTime="0"
+												 traceData="{tickData}"
+												 x.view2D="0" y.view2D="0" height.view2D="298"
+												 borderColor.view2D="#696969">
+					<timeline:TraceLineWithRenderers id="littleTickZoomLine" x="10" y="40"
+													 width="{zoomTimelineContainer.width}" height="40"
+													 direction="vertical" endPadding="20"
+													 renderAlign="middle" RendererType="{littleTick}"
+													 startPadding="20" startTime="0"
+													 traceData="{tickData}"
+													 x.view2D="0" y.view2D="0" height.view2D="298"
+													 borderColor.view2D="#00FF2A">
+					</timeline:TraceLineWithRenderers>
+				</timeline:TraceLineWithRenderers>
+			
+			</mx:Canvas>
+		</timeline:BitmapTraceAndMediaViewerTraceLine>
     </s:BorderContainer>
 	<timeline:TraceLineBitmap id="theTraceLine" left="120" right="10" top="10" height="10"
 						direction="horizontal" startPadding="10" endPadding="10"
@@ -307,5 +425,5 @@
 	</mx:Canvas>
 	<traceSelector:dummyTraceSelectorEditor theSelector="{data.selector}" id="theSelectionEditor" visible.edition="true" visible="false"  x="10" y="43">
 	</traceSelector:dummyTraceSelectorEditor>
-    
+	
 </timeline1:TraceLineWrapperBase>
