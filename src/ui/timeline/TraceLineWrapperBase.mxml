@@ -39,7 +39,8 @@
             [Bindable]
             public var theTraceLine:TraceLineBase;
             
-            
+			[bindable]
+			public var _delete:Boolean = false;
             
             
             protected function oncreationCompleteHandler(event:FlexEvent):void
@@ -271,12 +272,17 @@
             
 
             
-            
+            /*
             protected function deleteButton_clickHandler(event:MouseEvent):void
             {
-                if(this.parent.contains(this))
-                    (this.parent as Group).removeElement(this);
+                //if(this.parent.contains(this))
+                //    (this.parent as Group).removeElement(this);
+				//this.removeAllElements();
+				
+				//(this.parent.parent as Group).removeChildAt(0);
+				
             }
+			*/
             
             protected function theTraceLine_obselClickHandler(event:TimelineEvent):void
             {

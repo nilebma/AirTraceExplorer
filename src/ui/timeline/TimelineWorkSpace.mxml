@@ -40,6 +40,7 @@
 			import spark.components.supportClasses.ItemRenderer;
 			import spark.events.RendererExistenceEvent;
 			
+			import traceSelector.dummyMetaTraces;
 			import traceSelector.dummyTraceSelector;
 			
 			import ui.trace.timeline.CurseurBase;
@@ -373,7 +374,10 @@
 			{
 				//CREATION DE LA TRACELINE
 				//var newTraceLine:TracelineWrapper = new TracelineWrapper();
-                tracelineSelectors.addItem({"selector":new dummyTraceSelector()})
+				//var dum = new dummyTraceSelector();
+				var dum = {"selector":new dummyTraceSelector()};
+                //tracelineSelectors.addItem({"selector":new dummyTraceSelector()})				
+				tracelineSelectors.addItem(dum);
 				//newTraceLine.addEventListener(FlexEvent.CREATION_COMPLETE,  initTracelineWrapper);
 
 				//theTraceLineList.addChild(newTraceLine);
@@ -432,7 +436,7 @@
 			protected function Zoom_clickHandler(event:MouseEvent):void
 			{
 				// TODO Auto-generated method stub
-				curseurTraceLine.onClickZoom();				
+				curseurTraceLine.onClickZoom();	
 			}
 			
 			protected function DeZoom_clickHandler(event:MouseEvent):void
@@ -440,6 +444,27 @@
 				// TODO Auto-generated method stub
 				curseurTraceLine.onClickDeZoom();
 				
+			}
+			
+			protected function deleteTracelineButton_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				tracelineSelectors.removeAll();
+			}
+			
+			protected function theTraceLineList_clickHandler(event:MouseEvent):void
+			{
+				var i:Number = 0;
+				var arr:Array = tracelineSelectors.toArray();
+				
+				for each(var m:* in arr){		
+					
+					if(m.selector._delete == true)
+					{
+						tracelineSelectors.removeItemAt(i);
+					}
+					i++;
+				}			
 			}
 			
 		]]>
@@ -547,11 +572,11 @@
                                           startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
                                           top="50" height="10" left="120" right="25" renderAlign="middle" mouseEnabled="false" mouseChildren="false"/>
                 
-                <!--<timeline:TraceLineWithRenderers id="commentLine"  direction="horizontal" startPadding="0" endPadding="0"
+                <timeline:TraceLineWithRenderers id="commentLine"  direction="horizontal" startPadding="0" endPadding="0"
                 RendererType="{TimeBar}" 
                 traceData="{obselCollectionToDisplay}" timeRange="{timeRange}"
                 startTime="{curseurTraceLine.zoomStartTime}" stopTime="{curseurTraceLine.zoomStopTime}"
-                top="80" height="20" left="100" right="10" renderAlign="middle"/>-->
+                top="80" height="20" left="120" right="25" renderAlign="middle"/>
                 
                 
                 
@@ -564,13 +589,15 @@
 						 smoothingQuality="high"
 						 source="@Embed('assets/img/bullet_toggle_minus.png')" useHandCursor="true" click="DeZoom_clickHandler(event)"/>
             </s:Group>
-            <s:List id="theTraceLineList" 
-					itemRenderer="ui.timeline.TracelineWrapperWith2DMediaView" 
-					rendererAdd="theTraceLineList_rendererAddHandler(event)" 
-                    dataProvider="{tracelineSelectors}" 
-					right="10" left="10" bottom="30" top="{timelineGroup.y + timelineGroup.height + 5}" 
+            <s:List id="theTraceLineList" left="10" right="10"
+					top="{timelineGroup.y + timelineGroup.height + 5}" bottom="30"
+					click="theTraceLineList_clickHandler(event)" dataProvider="{tracelineSelectors}"
+					itemRenderer="ui.timeline.TracelineWrapperWith2DMediaView"
+					rendererAdd="theTraceLineList_rendererAddHandler(event)"
 					verticalScrollPolicy="on"/>
             <s:Button id="addTracelineButton" x="10" bottom="5" label="Add" click="addTracelineButton_clickHandler(event)"/>
+			<s:Button id="deleteTracelineButton" x="93" bottom="5" label="Delete All"
+					  click="deleteTracelineButton_clickHandler(event)"/>
             
         </mx:Canvas>
     </mx:VDividedBox>

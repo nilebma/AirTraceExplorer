@@ -300,6 +300,12 @@
 			}
 			
 			
+			protected function deleteButton_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				theSelectionEditor.theSelector._delete = true;
+			}
+			
 		]]>
 	</fx:Script>
     <timeline1:states>
@@ -406,21 +412,26 @@
 							  locked="true"/>-->
 	<mx:Canvas left="5" top="5" width="110" height="30" backgroundColor="#CDD3C5" cornerRadius="10"
 			   horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			   left.small="5" top.small="5" width.small="107"
 			   left.view2D="5" top.view2D="5" width.view2D="88">
 		<s:Label x="10" y="5" fontSize="10" text="{data.selector.name}"/>
         <mx:HBox x="5" y="12" width="100%" height="15"
                   horizontalGap="0" >
                 
             <mx:LinkButton id="editButton" click="editButton_clickHandler(event)" color="#00078E"
-                                    fontSize="9" textDecoration="underline"
+                                    fontSize="8" textDecoration="underline"
                                     label.edition="Close Edition"
                                      label="Edit"/>
             
             <mx:LinkButton id="view2DButton" click="view2DButton_clickHandler(event)" color="#00078E"
-                           fontSize="9" textDecoration="underline"
+                           fontSize="8" textDecoration="underline"
                             label="2D"
                            label.view2D="close 2D"/>
-            <mx:LinkButton  label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
+            <mx:LinkButton id="deleteButton" label="Delete" color="#00078E" fontSize="8"
+						   textDecoration="underline"
+						   click.edition="deleteButton_clickHandler(event)"
+						   click.small="deleteButton_clickHandler(event)"
+						   click.view2D="deleteButton_clickHandler(event)"/>
 		</mx:HBox>
 	</mx:Canvas>
 	<traceSelector:dummyTraceSelectorEditor theSelector="{data.selector}" id="theSelectionEditor" visible.edition="true" visible="false"  x="10" y="43">

@@ -68,7 +68,13 @@
 
             
             
-        ]]>
+			protected function deleteButton_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				theSelectionEditor.theSelector._delete = true;
+			}
+			
+		]]>
 	</fx:Script>
     <timeline1:states>
         <s:State name="small"/>
@@ -106,7 +112,10 @@
                                     fontSize="9" textDecoration="underline"
                                     label.edition="Close Edition"
                                      label="Edit"/>
-            <mx:LinkButton  label="Delete" id="deleteButton" color="#00078E" fontSize="9" textDecoration="underline" click="deleteButton_clickHandler(event)"/>
+            <mx:LinkButton id="deleteButton" label="Delete" color="#00078E" fontSize="9"
+						   textDecoration="underline"
+						   click.edition="deleteButton_clickHandler(event)"
+						   click.small="deleteButton_clickHandler(event)"/>
 		</mx:HBox>
 	</mx:Canvas>
 	<traceSelector:dummyTraceSelectorEditor theSelector="{data.selector}" id="theSelectionEditor" visible.edition="true" visible.small="false"  x="10" y="43">

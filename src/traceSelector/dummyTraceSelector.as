@@ -22,6 +22,9 @@ package traceSelector
 		public var name:String = "noname";
 		
 		[Bindable]
+		public var _delete:Boolean = false;
+		
+		[Bindable]
 		public var metaTrace:dummyMetaTraces;
 		
 		[Bindable]
